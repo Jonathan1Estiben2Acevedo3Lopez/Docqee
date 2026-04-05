@@ -1,4 +1,4 @@
-﻿export class BulkUploadJobEntity {
+export class BulkUploadJobEntity {
   id!: string;
   universityId!: string;
   entityType!: 'STUDENT' | 'TEACHER';

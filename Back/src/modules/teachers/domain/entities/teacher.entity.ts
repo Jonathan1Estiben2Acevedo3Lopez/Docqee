@@ -1,4 +1,4 @@
-﻿export class TeacherEntity {
+export class TeacherEntity {
   id!: string;
   universityId!: string;
   firstName!: string;

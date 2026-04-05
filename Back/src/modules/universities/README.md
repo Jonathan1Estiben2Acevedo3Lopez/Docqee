@@ -1,4 +1,4 @@
-﻿# Universities module
+# Universities module
 
 Universidades, estado operativo y relacion con su localidad principal.
 

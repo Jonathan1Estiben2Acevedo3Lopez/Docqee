@@ -1,4 +1,4 @@
-﻿# UniversityAdmin module
+# UniversityAdmin module
 
 Informacion institucional y datos editables del administrador universitario.
 

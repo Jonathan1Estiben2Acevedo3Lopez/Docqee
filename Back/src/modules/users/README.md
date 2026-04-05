@@ -1,4 +1,4 @@
-﻿# Users module
+# Users module
 
 Usuarios base del sistema y perfil autenticado.
 

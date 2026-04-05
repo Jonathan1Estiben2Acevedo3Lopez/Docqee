@@ -1,4 +1,22 @@
-﻿import { Controller } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+
+import { ListCitiesUseCase } from '../application/use-cases/list-cities.use-case';
+import { ListLocalitiesByCityUseCase } from '../application/use-cases/list-localities-by-city.use-case';
 
 @Controller('catalogs')
-export class CatalogsController {}
+export class CatalogsController {
+  constructor(
+    private readonly listCitiesUseCase: ListCitiesUseCase,
+    private readonly listLocalitiesByCityUseCase: ListLocalitiesByCityUseCase,
+  ) {}
+
+  @Get('cities')
+  async listCities() {
+    return this.listCitiesUseCase.execute();
+  }
+
+  @Get('localities/:cityId')
+  async listLocalitiesByCity(@Param('cityId', ParseIntPipe) cityId: number) {
+    return this.listLocalitiesByCityUseCase.execute(cityId);
+  }
+}

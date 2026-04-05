@@ -1,4 +1,4 @@
-﻿generator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -7,184 +7,518 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  PLATFORM_ADMIN
-  UNIVERSITY_ADMIN
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cita {
+  id_cita                Int                   @id @default(autoincrement())
+  id_solicitud           Int
+  id_docente_universidad Int
+  id_sede                Int
+  id_tipo_cita           Int
+  cancelada_por_cuenta   Int?
+  fecha_hora_inicio      DateTime              @db.Timestamptz(6)
+  fecha_hora_fin         DateTime              @db.Timestamptz(6)
+  informacion_adicional  String?
+  estado                 cita_estado_enum      @default(PROPUESTA)
+  respondida_at          DateTime?             @db.Timestamptz(6)
+  motivo_cancelacion     String?
+  finalizada_at          DateTime?             @db.Timestamptz(6)
+  fecha_creacion         DateTime              @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion    DateTime              @default(now()) @db.Timestamptz(6)
+  cuenta_acceso          cuenta_acceso?        @relation(fields: [cancelada_por_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_cita_cancelada_por")
+  docente_universidad    docente_universidad   @relation(fields: [id_docente_universidad], references: [id_docente_universidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_cita_docente_universidad")
+  sede                   sede                  @relation(fields: [id_sede], references: [id_sede], onDelete: NoAction, onUpdate: NoAction, map: "fk_cita_sede")
+  solicitud              solicitud             @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: NoAction, onUpdate: NoAction, map: "fk_cita_solicitud")
+  tipo_cita              tipo_cita             @relation(fields: [id_tipo_cita], references: [id_tipo_cita], onDelete: NoAction, onUpdate: NoAction, map: "fk_cita_tipo_cita")
+  cita_tratamiento       cita_tratamiento[]
+  reprogramacion_cita    reprogramacion_cita[]
+  valoracion             valoracion[]
 }
 
-enum UniversityStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
+model cita_tratamiento {
+  id_cita             Int
+  id_tipo_tratamiento Int
+  cita                cita             @relation(fields: [id_cita], references: [id_cita], onDelete: NoAction, onUpdate: NoAction, map: "fk_cita_tratamiento_cita")
+  tipo_tratamiento    tipo_tratamiento @relation(fields: [id_tipo_tratamiento], references: [id_tipo_tratamiento], onDelete: NoAction, onUpdate: NoAction, map: "fk_cita_tratamiento_tipo")
+
+  @@id([id_cita, id_tipo_tratamiento], map: "pk_cita_tratamiento")
 }
 
-enum PersonStatus {
-  ACTIVE
-  INACTIVE
+model ciudad {
+  id_ciudad Int         @id @default(autoincrement())
+  nombre    String      @unique(map: "uq_ciudad_nombre") @db.VarChar(120)
+  localidad localidad[]
 }
 
-enum CredentialStatus {
-  GENERATED
-  SENT
+model conversacion {
+  id_conversacion Int                      @id @default(autoincrement())
+  id_solicitud    Int                      @unique(map: "uq_conversacion_solicitud")
+  estado          conversacion_estado_enum @default(ACTIVA)
+  habilitada_at   DateTime                 @default(now()) @db.Timestamptz(6)
+  solo_lectura_at DateTime?                @db.Timestamptz(6)
+  fecha_creacion  DateTime                 @default(now()) @db.Timestamptz(6)
+  solicitud       solicitud                @relation(fields: [id_solicitud], references: [id_solicitud], onDelete: NoAction, onUpdate: NoAction, map: "fk_conversacion_solicitud")
+  mensaje         mensaje[]
 }
 
-enum BulkUploadEntityType {
-  STUDENT
-  TEACHER
+model credencial_inicial {
+  id_credencial_inicial Int                @id @default(autoincrement())
+  id_cuenta_acceso      Int                @unique(map: "uq_credencial_inicial_cuenta")
+  anulada_at            DateTime?          @db.Timestamptz(6)
+  fecha_creacion        DateTime           @default(now()) @db.Timestamptz(6)
+  cuenta_acceso         cuenta_acceso      @relation(fields: [id_cuenta_acceso], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_credencial_inicial_cuenta")
+  envio_credencial      envio_credencial[]
 }
 
-enum BulkUploadStatus {
-  FILE_SELECTED
-  INVALID
-  VALIDATED
-  PROCESSED
+model cuenta_acceso {
+  id_cuenta                                                                   Int                       @id @default(autoincrement())
+  tipo_cuenta                                                                 tipo_cuenta_enum
+  correo                                                                      String                    @unique(map: "uq_cuenta_acceso_correo") @db.Citext
+  password_hash                                                               String
+  estado                                                                      estado_simple_enum        @default(ACTIVO)
+  correo_verificado                                                           Boolean                   @default(false)
+  correo_verificado_at                                                        DateTime?                 @db.Timestamptz(6)
+  primer_ingreso_pendiente                                                    Boolean                   @default(true)
+  ultimo_login_at                                                             DateTime?                 @db.Timestamptz(6)
+  fecha_creacion                                                              DateTime                  @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion                                                         DateTime                  @default(now()) @db.Timestamptz(6)
+  cita                                                                        cita[]
+  credencial_inicial                                                          credencial_inicial?
+  cuenta_admin_plataforma                                                     cuenta_admin_plataforma?
+  cuenta_admin_universidad                                                    cuenta_admin_universidad?
+  cuenta_estudiante                                                           cuenta_estudiante?
+  cuenta_paciente                                                             cuenta_paciente?
+  mensaje                                                                     mensaje[]
+  notificacion                                                                notificacion[]
+  recuperacion_cuenta                                                         recuperacion_cuenta[]
+  reprogramacion_cita_reprogramacion_cita_propuesta_por_cuentaTocuenta_acceso reprogramacion_cita[]     @relation("reprogramacion_cita_propuesta_por_cuentaTocuenta_acceso")
+  reprogramacion_cita_reprogramacion_cita_respuesta_por_cuentaTocuenta_acceso reprogramacion_cita[]     @relation("reprogramacion_cita_respuesta_por_cuentaTocuenta_acceso")
+  solicitud                                                                   solicitud[]
+  valoracion_valoracion_id_cuenta_emisorTocuenta_acceso                       valoracion[]              @relation("valoracion_id_cuenta_emisorTocuenta_acceso")
+  valoracion_valoracion_id_cuenta_receptorTocuenta_acceso                     valoracion[]              @relation("valoracion_id_cuenta_receptorTocuenta_acceso")
+  verificacion_correo                                                         verificacion_correo[]
 }
 
-enum BulkUploadRowStatus {
-  PENDING
-  PROCESSED
-  ERROR
+model cuenta_admin_plataforma {
+  id_cuenta           Int           @id
+  nombres             String        @db.VarChar(120)
+  apellidos           String        @db.VarChar(120)
+  fecha_creacion      DateTime      @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion DateTime      @default(now()) @db.Timestamptz(6)
+  cuenta_acceso       cuenta_acceso @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_plataforma_cuenta")
 }
 
-enum DocumentType {
-  CC
-  CE
-  TI
-  PASSPORT
+model cuenta_admin_universidad {
+  id_cuenta           Int           @id
+  id_universidad      Int           @unique(map: "uq_admin_universidad_universidad")
+  nombres             String        @db.VarChar(120)
+  apellidos           String        @db.VarChar(120)
+  celular             String?       @db.VarChar(30)
+  fecha_creacion      DateTime      @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion DateTime      @default(now()) @db.Timestamptz(6)
+  cuenta_acceso       cuenta_acceso @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_universidad_cuenta")
+  universidad         universidad   @relation(fields: [id_universidad], references: [id_universidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_universidad_universidad")
 }
 
-model User {
-  id            String                   @id @default(cuid())
-  email         String                   @unique
-  passwordHash  String?
-  role          Role
-  firstName     String
-  lastName      String
-  phone         String?
-  isActive      Boolean                  @default(true)
-  adminProfile  UniversityAdminProfile?
-  createdAt     DateTime                 @default(now())
-  updatedAt     DateTime                 @updatedAt
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cuenta_estudiante {
+  id_cuenta                Int                        @id
+  id_persona               Int                        @unique(map: "uq_cuenta_estudiante_persona")
+  id_universidad           Int
+  celular                  String                     @db.VarChar(30)
+  semestre                 Int                        @db.SmallInt
+  fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion      DateTime                   @default(now()) @db.Timestamptz(6)
+  cuenta_acceso            cuenta_acceso              @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_estudiante_cuenta")
+  persona                  persona                    @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_estudiante_persona")
+  universidad              universidad                @relation(fields: [id_universidad], references: [id_universidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_estudiante_universidad")
+  enlace_profesional       enlace_profesional[]
+  estudiante_sede_practica estudiante_sede_practica[]
+  estudiante_tratamiento   estudiante_tratamiento[]
+  horario_bloqueado        horario_bloqueado[]
+  perfil_estudiante        perfil_estudiante?
+  solicitud                solicitud[]
 }
 
-model UniversityAdminProfile {
-  id           String     @id @default(cuid())
-  userId       String     @unique
-  universityId String     @unique
-  user         User       @relation(fields: [userId], references: [id])
-  university   University @relation(fields: [universityId], references: [id])
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+model cuenta_paciente {
+  id_cuenta            Int                @id
+  id_persona           Int                @unique(map: "uq_cuenta_paciente_persona")
+  id_localidad         Int
+  id_tutor_responsable Int?
+  sexo                 sexo_enum
+  fecha_nacimiento     DateTime           @db.Date
+  celular              String             @db.VarChar(30)
+  foto_url             String?
+  fecha_creacion       DateTime           @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion  DateTime           @default(now()) @db.Timestamptz(6)
+  cuenta_acceso        cuenta_acceso      @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_paciente_cuenta")
+  localidad            localidad          @relation(fields: [id_localidad], references: [id_localidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_paciente_localidad")
+  persona              persona            @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_paciente_persona")
+  tutor_responsable    tutor_responsable? @relation(fields: [id_tutor_responsable], references: [id_tutor_responsable], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_paciente_tutor")
+  solicitud            solicitud[]
 }
 
-model City {
-  id           String       @id @default(cuid())
-  name         String       @unique
-  slug         String       @unique
-  localities   Locality[]
-  universities University[]
+model docente {
+  id_docente          Int                   @id @default(autoincrement())
+  id_tipo_documento   Int                   @db.SmallInt
+  numero_documento    String                @db.VarChar(30)
+  nombres             String                @db.VarChar(120)
+  apellidos           String                @db.VarChar(120)
+  fecha_creacion      DateTime              @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion DateTime              @default(now()) @db.Timestamptz(6)
+  tipo_documento      tipo_documento        @relation(fields: [id_tipo_documento], references: [id_tipo_documento], onDelete: NoAction, onUpdate: NoAction, map: "fk_docente_tipo_documento")
+  docente_universidad docente_universidad[]
+
+  @@unique([id_tipo_documento, numero_documento], map: "uq_docente_documento")
 }
 
-model Locality {
-  id            String       @id @default(cuid())
-  cityId        String
-  name          String
-  slug          String
-  city          City         @relation(fields: [cityId], references: [id])
-  universities  University[] @relation("UniversityMainLocality")
+model docente_universidad {
+  id_docente_universidad Int                @id @default(autoincrement())
+  id_docente             Int
+  id_universidad         Int
+  estado                 estado_simple_enum @default(ACTIVO)
+  fecha_creacion         DateTime           @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion    DateTime           @default(now()) @db.Timestamptz(6)
+  cita                   cita[]
+  docente                docente            @relation(fields: [id_docente], references: [id_docente], onDelete: NoAction, onUpdate: NoAction, map: "fk_docente_universidad_docente")
+  universidad            universidad        @relation(fields: [id_universidad], references: [id_universidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_docente_universidad_universidad")
 
-  @@unique([cityId, name])
-  @@unique([cityId, slug])
+  @@unique([id_docente, id_universidad], map: "uq_docente_universidad")
 }
 
-model University {
-  id             String                  @id @default(cuid())
-  name           String                  @unique
-  slug           String                  @unique
-  status         UniversityStatus        @default(PENDING)
-  logoUrl        String?
-  cityId         String
-  mainLocalityId String
-  city           City                    @relation(fields: [cityId], references: [id])
-  mainLocality   Locality                @relation("UniversityMainLocality", fields: [mainLocalityId], references: [id])
-  adminProfile   UniversityAdminProfile?
-  students       Student[]
-  teachers       Teacher[]
-  bulkUploadJobs BulkUploadJob[]
-  createdAt      DateTime                @default(now())
-  updatedAt      DateTime                @updatedAt
+model enlace_profesional {
+  id_enlace_profesional Int               @id @default(autoincrement())
+  id_cuenta_estudiante  Int
+  tipo_enlace           tipo_enlace_enum
+  url                   String
+  fecha_creacion        DateTime          @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion   DateTime          @default(now()) @db.Timestamptz(6)
+  cuenta_estudiante     cuenta_estudiante @relation(fields: [id_cuenta_estudiante], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_enlace_profesional_cuenta")
 }
 
-model Student {
-  id             String        @id @default(cuid())
-  universityId   String
-  firstName      String
-  lastName       String
-  documentType   DocumentType
-  documentNumber String
-  email          String
-  phone          String?
-  semester       Int
-  status         PersonStatus  @default(ACTIVE)
-  university     University    @relation(fields: [universityId], references: [id])
-  credential     Credential?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-
-  @@unique([universityId, documentType, documentNumber])
+model envio_credencial {
+  id_envio_credencial   Int                        @id @default(autoincrement())
+  id_credencial_inicial Int
+  tipo_envio            tipo_envio_credencial_enum
+  enviado_at            DateTime                   @default(now()) @db.Timestamptz(6)
+  credencial_inicial    credencial_inicial         @relation(fields: [id_credencial_inicial], references: [id_credencial_inicial], onDelete: NoAction, onUpdate: NoAction, map: "fk_envio_credencial")
 }
 
-model Teacher {
-  id             String        @id @default(cuid())
-  universityId   String
-  firstName      String
-  lastName       String
-  documentType   DocumentType
-  documentNumber String
-  status         PersonStatus  @default(ACTIVE)
-  university     University    @relation(fields: [universityId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+model estudiante_sede_practica {
+  id_estudiante_sede_practica Int                @id @default(autoincrement())
+  id_cuenta_estudiante        Int
+  id_sede                     Int
+  estado                      estado_simple_enum @default(ACTIVO)
+  fecha_creacion              DateTime           @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion         DateTime           @default(now()) @db.Timestamptz(6)
+  cuenta_estudiante           cuenta_estudiante  @relation(fields: [id_cuenta_estudiante], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_sede_cuenta")
+  sede                        sede               @relation(fields: [id_sede], references: [id_sede], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_sede_sede")
 
-  @@unique([universityId, documentType, documentNumber])
+  @@unique([id_cuenta_estudiante, id_sede], map: "uq_estudiante_sede")
 }
 
-model Credential {
-  id                    String           @id @default(cuid())
-  studentId             String           @unique
-  email                 String
-  temporaryPasswordHash String?
-  status                CredentialStatus @default(GENERATED)
-  lastSentAt            DateTime?
-  student               Student          @relation(fields: [studentId], references: [id])
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
+model estudiante_tratamiento {
+  id_estudiante_tratamiento Int                @id @default(autoincrement())
+  id_cuenta_estudiante      Int
+  id_tipo_tratamiento       Int
+  estado                    estado_simple_enum @default(ACTIVO)
+  fecha_creacion            DateTime           @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion       DateTime           @default(now()) @db.Timestamptz(6)
+  cuenta_estudiante         cuenta_estudiante  @relation(fields: [id_cuenta_estudiante], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_tratamiento_cuenta")
+  tipo_tratamiento          tipo_tratamiento   @relation(fields: [id_tipo_tratamiento], references: [id_tipo_tratamiento], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_tratamiento_tipo")
+
+  @@unique([id_cuenta_estudiante, id_tipo_tratamiento], map: "uq_estudiante_tratamiento")
 }
 
-model BulkUploadJob {
-  id          String               @id @default(cuid())
-  universityId String
-  entityType  BulkUploadEntityType
-  status      BulkUploadStatus     @default(FILE_SELECTED)
-  fileName    String
-  storagePath String?
-  summaryJson Json?
-  university  University           @relation(fields: [universityId], references: [id])
-  rows        BulkUploadRow[]
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model horario_bloqueado {
+  id_horario_bloqueado     Int                @id @default(autoincrement())
+  id_cuenta_estudiante     Int
+  tipo_bloqueo             tipo_bloqueo_enum
+  fecha_especifica         DateTime?          @db.Date
+  dia_semana               Int?               @db.SmallInt
+  hora_inicio              DateTime           @db.Time(6)
+  hora_fin                 DateTime           @db.Time(6)
+  fecha_inicio_recurrencia DateTime?          @db.Date
+  fecha_fin_recurrencia    DateTime?          @db.Date
+  motivo                   String?
+  estado                   estado_simple_enum @default(ACTIVO)
+  fecha_creacion           DateTime           @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion      DateTime           @default(now()) @db.Timestamptz(6)
+  cuenta_estudiante        cuenta_estudiante  @relation(fields: [id_cuenta_estudiante], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_horario_bloqueado_cuenta")
 }
 
-model BulkUploadRow {
-  id          String              @id @default(cuid())
-  jobId       String
-  rowNumber   Int
-  status      BulkUploadRowStatus @default(PENDING)
-  message     String?
-  payloadJson Json?
-  job         BulkUploadJob       @relation(fields: [jobId], references: [id])
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+model localidad {
+  id_localidad    Int               @id @default(autoincrement())
+  id_ciudad       Int
+  nombre          String            @db.VarChar(120)
+  cuenta_paciente cuenta_paciente[]
+  ciudad          ciudad            @relation(fields: [id_ciudad], references: [id_ciudad], onDelete: NoAction, onUpdate: NoAction, map: "fk_localidad_ciudad")
+  sede            sede[]
+  universidad     universidad[]
 
-  @@unique([jobId, rowNumber])
+  @@unique([id_ciudad, nombre], map: "uq_localidad_ciudad_nombre")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model mensaje {
+  id_mensaje          Int           @id @default(autoincrement())
+  id_conversacion     Int
+  id_cuenta_remitente Int
+  contenido           String
+  enviado_at          DateTime      @default(now()) @db.Timestamptz(6)
+  conversacion        conversacion  @relation(fields: [id_conversacion], references: [id_conversacion], onDelete: NoAction, onUpdate: NoAction, map: "fk_mensaje_conversacion")
+  cuenta_acceso       cuenta_acceso @relation(fields: [id_cuenta_remitente], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_mensaje_remitente")
+}
+
+model notificacion {
+  id_notificacion   Int                    @id @default(autoincrement())
+  id_cuenta_destino Int
+  tipo              notificacion_tipo_enum
+  contenido         String
+  leida             Boolean                @default(false)
+  fecha_creacion    DateTime               @default(now()) @db.Timestamptz(6)
+  cuenta_acceso     cuenta_acceso          @relation(fields: [id_cuenta_destino], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_notificacion_cuenta")
+}
+
+model perfil_estudiante {
+  id_perfil_estudiante   Int               @id @default(autoincrement())
+  id_cuenta_estudiante   Int               @unique(map: "uq_perfil_estudiante_cuenta")
+  foto_url               String?
+  descripcion            String?
+  disponibilidad_general String?
+  fecha_creacion         DateTime          @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion    DateTime          @default(now()) @db.Timestamptz(6)
+  cuenta_estudiante      cuenta_estudiante @relation(fields: [id_cuenta_estudiante], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_perfil_estudiante_cuenta")
+}
+
+model persona {
+  id_persona          Int                @id @default(autoincrement())
+  id_tipo_documento   Int                @db.SmallInt
+  numero_documento    String             @db.VarChar(30)
+  nombres             String             @db.VarChar(120)
+  apellidos           String             @db.VarChar(120)
+  fecha_creacion      DateTime           @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion DateTime           @default(now()) @db.Timestamptz(6)
+  cuenta_estudiante   cuenta_estudiante?
+  cuenta_paciente     cuenta_paciente?
+  tipo_documento      tipo_documento     @relation(fields: [id_tipo_documento], references: [id_tipo_documento], onDelete: NoAction, onUpdate: NoAction, map: "fk_persona_tipo_documento")
+
+  @@unique([id_tipo_documento, numero_documento], map: "uq_persona_documento")
+}
+
+model recuperacion_cuenta {
+  id_recuperacion_cuenta Int           @id @default(autoincrement())
+  id_cuenta_acceso       Int
+  codigo_hash            String
+  expira_at              DateTime      @db.Timestamptz(6)
+  usado_at               DateTime?     @db.Timestamptz(6)
+  fecha_creacion         DateTime      @default(now()) @db.Timestamptz(6)
+  cuenta_acceso          cuenta_acceso @relation(fields: [id_cuenta_acceso], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_recuperacion_cuenta")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model reprogramacion_cita {
+  id_reprogramacion_cita                                                Int                        @id @default(autoincrement())
+  id_cita                                                               Int
+  propuesta_por_cuenta                                                  Int
+  respuesta_por_cuenta                                                  Int?
+  nueva_fecha_hora_inicio                                               DateTime                   @db.Timestamptz(6)
+  nueva_fecha_hora_fin                                                  DateTime                   @db.Timestamptz(6)
+  motivo                                                                String?
+  estado                                                                reprogramacion_estado_enum @default(PENDIENTE)
+  fecha_respuesta                                                       DateTime?                  @db.Timestamptz(6)
+  fecha_creacion                                                        DateTime                   @default(now()) @db.Timestamptz(6)
+  cita                                                                  cita                       @relation(fields: [id_cita], references: [id_cita], onDelete: NoAction, onUpdate: NoAction, map: "fk_reprogramacion_cita")
+  cuenta_acceso_reprogramacion_cita_propuesta_por_cuentaTocuenta_acceso cuenta_acceso              @relation("reprogramacion_cita_propuesta_por_cuentaTocuenta_acceso", fields: [propuesta_por_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_reprogramacion_propuesta")
+  cuenta_acceso_reprogramacion_cita_respuesta_por_cuentaTocuenta_acceso cuenta_acceso?             @relation("reprogramacion_cita_respuesta_por_cuentaTocuenta_acceso", fields: [respuesta_por_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_reprogramacion_respuesta")
+}
+
+model sede {
+  id_sede                  Int                        @id @default(autoincrement())
+  id_universidad           Int
+  id_localidad             Int
+  nombre                   String                     @db.VarChar(180)
+  direccion                String
+  estado                   estado_simple_enum         @default(ACTIVO)
+  fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion      DateTime                   @default(now()) @db.Timestamptz(6)
+  cita                     cita[]
+  estudiante_sede_practica estudiante_sede_practica[]
+  localidad                localidad                  @relation(fields: [id_localidad], references: [id_localidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_sede_localidad")
+  universidad              universidad                @relation(fields: [id_universidad], references: [id_universidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_sede_universidad")
+
+  @@unique([id_universidad, nombre], map: "uq_sede_universidad_nombre")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model solicitud {
+  id_solicitud         Int                   @id @default(autoincrement())
+  id_cuenta_paciente   Int
+  id_cuenta_estudiante Int
+  cerrada_por_cuenta   Int?
+  motivo_consulta      String?
+  estado               solicitud_estado_enum @default(PENDIENTE)
+  fecha_envio          DateTime              @default(now()) @db.Timestamptz(6)
+  fecha_respuesta      DateTime?             @db.Timestamptz(6)
+  fecha_cierre         DateTime?             @db.Timestamptz(6)
+  fecha_creacion       DateTime              @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion  DateTime              @default(now()) @db.Timestamptz(6)
+  cita                 cita[]
+  conversacion         conversacion?
+  cuenta_acceso        cuenta_acceso?        @relation(fields: [cerrada_por_cuenta], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_solicitud_cerrada_por")
+  cuenta_estudiante    cuenta_estudiante     @relation(fields: [id_cuenta_estudiante], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_solicitud_estudiante")
+  cuenta_paciente      cuenta_paciente       @relation(fields: [id_cuenta_paciente], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_solicitud_paciente")
+}
+
+model tipo_cita {
+  id_tipo_cita Int    @id @default(autoincrement())
+  nombre       String @unique(map: "uq_tipo_cita_nombre") @db.VarChar(120)
+  cita         cita[]
+}
+
+model tipo_documento {
+  id_tipo_documento Int                 @id @default(autoincrement()) @db.SmallInt
+  codigo            String              @unique(map: "uq_tipo_documento_codigo") @db.VarChar(10)
+  nombre            String              @unique(map: "uq_tipo_documento_nombre") @db.VarChar(50)
+  docente           docente[]
+  persona           persona[]
+  tutor_responsable tutor_responsable[]
+}
+
+model tipo_tratamiento {
+  id_tipo_tratamiento    Int                      @id @default(autoincrement())
+  nombre                 String                   @unique(map: "uq_tipo_tratamiento_nombre") @db.VarChar(150)
+  descripcion            String?
+  cita_tratamiento       cita_tratamiento[]
+  estudiante_tratamiento estudiante_tratamiento[]
+}
+
+model tutor_responsable {
+  id_tutor_responsable Int               @id @default(autoincrement())
+  id_tipo_documento    Int               @db.SmallInt
+  numero_documento     String            @db.VarChar(30)
+  nombres              String            @db.VarChar(120)
+  apellidos            String            @db.VarChar(120)
+  correo               String            @db.Citext
+  celular              String            @db.VarChar(30)
+  fecha_creacion       DateTime          @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion  DateTime          @default(now()) @db.Timestamptz(6)
+  cuenta_paciente      cuenta_paciente[]
+  tipo_documento       tipo_documento    @relation(fields: [id_tipo_documento], references: [id_tipo_documento], onDelete: NoAction, onUpdate: NoAction, map: "fk_tutor_tipo_documento")
+
+  @@unique([id_tipo_documento, numero_documento], map: "uq_tutor_documento")
+}
+
+model universidad {
+  id_universidad           Int                       @id @default(autoincrement())
+  id_localidad_principal   Int
+  nombre                   String                    @unique(map: "uq_universidad_nombre") @db.VarChar(200)
+  logo_url                 String?
+  estado                   estado_simple_enum        @default(ACTIVO)
+  fecha_creacion           DateTime                  @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion      DateTime                  @default(now()) @db.Timestamptz(6)
+  cuenta_admin_universidad cuenta_admin_universidad?
+  cuenta_estudiante        cuenta_estudiante[]
+  docente_universidad      docente_universidad[]
+  sede                     sede[]
+  localidad                localidad                 @relation(fields: [id_localidad_principal], references: [id_localidad], onDelete: NoAction, onUpdate: NoAction, map: "fk_universidad_localidad")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model valoracion {
+  id_valoracion                                              Int           @id @default(autoincrement())
+  id_cita                                                    Int
+  id_cuenta_emisor                                           Int
+  id_cuenta_receptor                                         Int
+  calificacion                                               Int           @db.SmallInt
+  comentario                                                 String?
+  fecha_creacion                                             DateTime      @default(now()) @db.Timestamptz(6)
+  cita                                                       cita          @relation(fields: [id_cita], references: [id_cita], onDelete: NoAction, onUpdate: NoAction, map: "fk_valoracion_cita")
+  cuenta_acceso_valoracion_id_cuenta_emisorTocuenta_acceso   cuenta_acceso @relation("valoracion_id_cuenta_emisorTocuenta_acceso", fields: [id_cuenta_emisor], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_valoracion_emisor")
+  cuenta_acceso_valoracion_id_cuenta_receptorTocuenta_acceso cuenta_acceso @relation("valoracion_id_cuenta_receptorTocuenta_acceso", fields: [id_cuenta_receptor], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_valoracion_receptor")
+
+  @@unique([id_cita, id_cuenta_emisor], map: "uq_valoracion_cita_emisor")
+}
+
+model verificacion_correo {
+  id_verificacion_correo Int           @id @default(autoincrement())
+  id_cuenta_acceso       Int
+  codigo_hash            String
+  expira_at              DateTime      @db.Timestamptz(6)
+  usado_at               DateTime?     @db.Timestamptz(6)
+  fecha_creacion         DateTime      @default(now()) @db.Timestamptz(6)
+  cuenta_acceso          cuenta_acceso @relation(fields: [id_cuenta_acceso], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_verificacion_correo_cuenta")
+}
+
+enum cita_estado_enum {
+  PROPUESTA
+  ACEPTADA
+  RECHAZADA
+  CANCELADA
+  FINALIZADA
+}
+
+enum conversacion_estado_enum {
+  ACTIVA
+  SOLO_LECTURA
+  CERRADA
+}
+
+enum estado_simple_enum {
+  ACTIVO
+  INACTIVO
+}
+
+enum notificacion_tipo_enum {
+  SOLICITUD
+  RESPUESTA_SOLICITUD
+  PROPUESTA_CITA
+  RESPUESTA_CITA
+  REPROGRAMACION
+  CANCELACION_CITA
+  RECORDATORIO
+}
+
+enum reprogramacion_estado_enum {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+}
+
+enum sexo_enum {
+  FEMENINO
+  MASCULINO
+  OTRO
+}
+
+enum solicitud_estado_enum {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  CERRADA
+  CANCELADA
+}
+
+enum tipo_bloqueo_enum {
+  ESPECIFICO
+  RECURRENTE
+}
+
+enum tipo_cuenta_enum {
+  PACIENTE
+  ESTUDIANTE
+  ADMIN_UNIVERSIDAD
+  ADMIN_PLATAFORMA
+}
+
+enum tipo_enlace_enum {
+  RED_PROFESIONAL
+  PORTAFOLIO
+  HOJA_DE_VIDA
+  OTRO
+}
+
+enum tipo_envio_credencial_enum {
+  ENVIO
+  REENVIO
 }

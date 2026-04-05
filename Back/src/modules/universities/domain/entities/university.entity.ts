@@ -1,4 +1,4 @@
-﻿export class UniversityEntity {
+export class UniversityEntity {
   id!: string;
   name!: string;
   slug!: string;

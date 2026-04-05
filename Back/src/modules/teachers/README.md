@@ -1,4 +1,4 @@
-﻿# Teachers module
+# Teachers module
 
 Registro, consulta y cambio de estado de docentes.
 

@@ -1,4 +1,4 @@
-﻿# Notifications module
+# Notifications module
 
 Envio de correos y otras notificaciones del sistema.
 

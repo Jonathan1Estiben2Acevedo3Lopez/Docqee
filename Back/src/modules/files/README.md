@@ -1,4 +1,4 @@
-﻿# Files module
+# Files module
 
 Carga y almacenamiento de archivos como logos y archivos de lote.
 

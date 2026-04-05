@@ -1,4 +1,4 @@
-﻿# Auth module
+# Auth module
 
 Autenticacion, sesiones, recuperacion y cambio de contrasena.
 

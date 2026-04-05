@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { CredentialsController } from './controller/credentials.controller';
 
 @Module({

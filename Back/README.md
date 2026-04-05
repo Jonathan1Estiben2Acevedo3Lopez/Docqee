@@ -1,4 +1,4 @@
-﻿# Docqee Backend
+# Docqee Backend
 
 Backend modular separado de Front, pensado para que el equipo pueda trabajar la API sin mezclar logica de interfaz con logica de negocio.
 

@@ -1,4 +1,4 @@
-﻿# Catalogs module
+# Catalogs module
 
 Catalogos reutilizables como ciudades, localidades y tipos de documento.
 

@@ -1,4 +1,4 @@
-﻿# PlatformAdmin module
+# PlatformAdmin module
 
 Flujos del administrador de plataforma sobre universidades y credenciales iniciales.
 

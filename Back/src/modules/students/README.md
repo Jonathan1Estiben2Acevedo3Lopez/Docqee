@@ -1,4 +1,4 @@
-﻿# Students module
+# Students module
 
 Registro, consulta y cambio de estado de estudiantes.
 

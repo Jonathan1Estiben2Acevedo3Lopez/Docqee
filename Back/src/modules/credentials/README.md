@@ -1,4 +1,4 @@
-﻿# Credentials module
+# Credentials module
 
 Generacion, envio, reenvio y eliminacion de credenciales de estudiantes.
 

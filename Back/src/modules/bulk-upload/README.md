@@ -1,4 +1,4 @@
-﻿# BulkUpload module
+# BulkUpload module
 
 Validacion y procesamiento de cargas masivas de estudiantes y docentes.
 

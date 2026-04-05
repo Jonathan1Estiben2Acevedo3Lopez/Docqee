@@ -1,4 +1,4 @@
-﻿export class CredentialEntity {
+export class CredentialEntity {
   id!: string;
   studentId!: string;
   email!: string;

@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { PlatformAdminController } from './controller/platform-admin.controller';
 
 @Module({

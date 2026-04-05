@@ -1,4 +1,4 @@
-﻿import { IsEmail, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEmail, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateStudentDto {
   @IsString()
