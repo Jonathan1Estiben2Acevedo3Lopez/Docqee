@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/main",
     "start:dev": "nest start --watch",
-    "build": "nest build",
+    "build": "prisma generate && nest build",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
@@ -36,6 +36,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
     "prisma": "^6.0.0",
+    "ts-loader": "^9.5.7",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.2"

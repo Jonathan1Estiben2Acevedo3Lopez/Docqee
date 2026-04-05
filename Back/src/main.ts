@@ -15,6 +15,12 @@ async function bootstrap() {
   app.useGlobalPipes(appValidationPipe);
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  // Health check para Railway / proxies
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/health', (_req: unknown, res: { json: (body: object) => void }) => {
+    res.json({ status: 'ok' });
+  });
+
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);
 }
