@@ -1,0 +1,15 @@
+:root {
+  --color-surface: 247 249 251;
+  --color-surface-low: 242 244 246;
+  --color-surface-high: 224 227 229;
+  --color-surface-card: 255 255 255;
+  --color-ink: 25 28 30;
+  --color-ink-muted: 65 71 84;
+  --color-primary: 0 100 124;
+  --color-primary-strong: 0 127 157;
+  --color-primary-soft: 108 211 247;
+  --color-secondary: 208 225 251;
+  --color-secondary-ink: 56 72 93;
+  --color-ghost: 113 119 134;
+  --color-glow: 183 234 255;
+}

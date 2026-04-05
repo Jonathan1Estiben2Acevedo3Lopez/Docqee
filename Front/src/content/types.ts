@@ -1,0 +1,753 @@
+export type CtaTarget =
+  | {
+      kind: 'internal';
+      label: string;
+      to: `/${string}` | '#top' | `#${string}`;
+    }
+  | {
+      href: string;
+      kind: 'external';
+      label: string;
+      newTab?: boolean;
+    };
+
+export type NavigationItem = {
+  href: '#top' | `#${string}`;
+  label: string;
+};
+
+export type HeroHighlight = {
+  description: string;
+  title: string;
+};
+
+export type HeroImage = {
+  alt: string;
+  height: number;
+  src: string;
+  width: number;
+};
+
+export type StepItem = {
+  ctaLabel: string;
+  description: string;
+  icon: 'account' | 'clipboard' | 'search';
+  title: string;
+};
+
+export type UniversityItem = {
+  icon: 'book' | 'graduation' | 'landmark' | 'shield';
+  label: string;
+  supportText: string;
+};
+
+export type LandingContent = {
+  footer: {
+    blurb: string;
+    links: NavigationItem[];
+    legalNote: string;
+  };
+  hero: {
+    badge: string;
+    description: string;
+    highlights: HeroHighlight[];
+    image: HeroImage;
+    primaryCta: CtaTarget;
+    secondaryCta: CtaTarget;
+    titleAccent: string;
+    titleEnd: string;
+    titleStart: string;
+  };
+  meta: {
+    description: string;
+    imagePath: string;
+    title: string;
+  };
+  navigation: {
+    items: NavigationItem[];
+    login: CtaTarget;
+    register: CtaTarget;
+  };
+  steps: StepItem[];
+  universities: UniversityItem[];
+};
+
+export type AuthMeta = {
+  description: string;
+  title: string;
+};
+
+export type PatientSex = 'FEMENINO' | 'MASCULINO' | 'OTRO';
+
+export type DocumentTypeOption = {
+  code: string;
+  id: string;
+  label: string;
+};
+
+export type CityOption = {
+  id: string;
+  label: string;
+};
+
+export type LocalityOption = {
+  cityId: string;
+  id: string;
+  label: string;
+};
+
+export type PatientRegisterCatalogDataSource = {
+  getCities: () => Promise<CityOption[]> | CityOption[];
+  getDocumentTypes: () => Promise<DocumentTypeOption[]> | DocumentTypeOption[];
+  getLocalitiesByCity: (cityId: string) => Promise<LocalityOption[]> | LocalityOption[];
+  loadCities?: () => Promise<CityOption[]>;
+  loadLocalitiesByCity?: (cityId: string) => Promise<LocalityOption[]>;
+};
+
+export type AsyncCatalogStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+export type AsyncCatalogState<T> = {
+  error: string | null;
+  options: T[];
+  status: AsyncCatalogStatus;
+};
+
+export type LoginFieldCopy = {
+  label: string;
+  placeholder: string;
+};
+
+export type RegisterFieldCopy = {
+  label: string;
+  placeholder: string;
+  requiredMessage: string;
+};
+
+export type RegisterEmailFieldCopy = RegisterFieldCopy & {
+  invalidMessage: string;
+};
+
+export type RegisterDateFieldCopy = RegisterFieldCopy & {
+  futureDateMessage: string;
+};
+
+export type RegisterSelectFieldCopy = {
+  emptyMessage: string;
+  errorMessage: string;
+  label: string;
+  loadingMessage: string;
+  placeholder: string;
+  requiredMessage: string;
+};
+
+export type RegisterPasswordRuleKey =
+  | 'minLength'
+  | 'uppercase'
+  | 'lowercase'
+  | 'number'
+  | 'special';
+
+export type RegisterPasswordRuleCopy = {
+  key: RegisterPasswordRuleKey;
+  label: string;
+};
+
+export type RegisterPasswordFieldCopy = RegisterFieldCopy & {
+  confirmLabel: string;
+  confirmMismatchMessage: string;
+  confirmPlaceholder: string;
+  confirmRequiredMessage: string;
+  hidePasswordLabel: string;
+  requirements: RegisterPasswordRuleCopy[];
+  requirementsMessage: string;
+  showPasswordLabel: string;
+};
+
+export type RegisterCheckboxCopy = {
+  label: string;
+  requiredMessage: string;
+};
+
+export type RegisterSectionCopy = {
+  description?: string;
+  title: string;
+};
+
+export type RegisterContent = {
+  accountSection: RegisterSectionCopy;
+  locationSection: RegisterSectionCopy;
+  loginCta: CtaTarget;
+  loginPrompt: string;
+  meta: AuthMeta;
+  password: RegisterPasswordFieldCopy;
+  patientFields: {
+    birthDate: RegisterDateFieldCopy;
+    city: RegisterSelectFieldCopy;
+    documentNumber: RegisterFieldCopy;
+    documentType: RegisterSelectFieldCopy;
+    email: RegisterEmailFieldCopy;
+    firstName: RegisterFieldCopy;
+    lastName: RegisterFieldCopy;
+    locality: RegisterSelectFieldCopy & {
+      placeholderWithoutCity: string;
+    };
+    phone: RegisterFieldCopy;
+    sex: {
+      label: string;
+      options: readonly PatientSex[];
+      requiredMessage: string;
+    };
+  };
+  personalSection: RegisterSectionCopy;
+  privacyConsent: RegisterCheckboxCopy;
+  submitLabel: string;
+  subtitle: string;
+  termsConsent: RegisterCheckboxCopy;
+  title: string;
+  tutorFields: {
+    documentNumber: RegisterFieldCopy;
+    documentType: RegisterSelectFieldCopy;
+    email: RegisterEmailFieldCopy;
+    firstName: RegisterFieldCopy;
+    lastName: RegisterFieldCopy;
+    phone: RegisterFieldCopy;
+  };
+  tutorSection: RegisterSectionCopy;
+};
+
+export type LoginContent = {
+  email: LoginFieldCopy & {
+    invalidMessage: string;
+    requiredMessage: string;
+  };
+  forgotPasswordCta: CtaTarget;
+  generalErrorMessage: string;
+  meta: AuthMeta;
+  password: LoginFieldCopy & {
+    hidePasswordLabel: string;
+    requiredMessage: string;
+    showPasswordLabel: string;
+  };
+  registerCta: CtaTarget;
+  registerPrompt: string;
+  submitLabel: string;
+  subtitle: string;
+  title: string;
+};
+
+export type AuthPlaceholderContent = {
+  description: string;
+  eyebrow: string;
+  meta: AuthMeta;
+  primaryCta: CtaTarget;
+  secondaryCta: CtaTarget;
+  title: string;
+};
+
+export type AuthActionStatus = 'error' | 'idle' | 'submitting' | 'success';
+
+export type ForgotPasswordFlowStep = 'code' | 'email' | 'password';
+
+export type ForgotPasswordRequestCodeFailureReason = 'rate_limited' | 'unexpected';
+
+export type ForgotPasswordVerifyCodeFailureReason =
+  | 'attempts_exceeded'
+  | 'blocked'
+  | 'expired'
+  | 'invalid'
+  | 'invalid_format'
+  | 'unexpected';
+
+export type ForgotPasswordResetPasswordFailureReason =
+  | 'code_expired'
+  | 'code_invalid'
+  | 'password_invalid'
+  | 'session_invalid'
+  | 'unexpected';
+
+export type ForgotPasswordRequestCodeInput = {
+  email: string;
+};
+
+export type ForgotPasswordVerifyCodeInput = {
+  code: string;
+  email: string;
+};
+
+export type ForgotPasswordResetPasswordInput = {
+  code: string;
+  email: string;
+  password: string;
+};
+
+export type ForgotPasswordRequestCodeResult =
+  | {
+      cooldownSeconds: number;
+      expiresAt: number;
+      ok: true;
+    }
+  | {
+      cooldownSeconds?: number;
+      ok: false;
+      reason: ForgotPasswordRequestCodeFailureReason;
+    };
+
+export type ForgotPasswordVerifyCodeResult =
+  | {
+      ok: true;
+    }
+  | {
+      blockedSeconds?: number;
+      ok: false;
+      reason: ForgotPasswordVerifyCodeFailureReason;
+    };
+
+export type ForgotPasswordResetPasswordResult =
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      reason: ForgotPasswordResetPasswordFailureReason;
+    };
+
+export type ForgotPasswordService = {
+  requestResetCode:
+    (input: ForgotPasswordRequestCodeInput) =>
+      Promise<ForgotPasswordRequestCodeResult> | ForgotPasswordRequestCodeResult;
+  resendResetCode:
+    (input: ForgotPasswordRequestCodeInput) =>
+      Promise<ForgotPasswordRequestCodeResult> | ForgotPasswordRequestCodeResult;
+  resetPassword:
+    (input: ForgotPasswordResetPasswordInput) =>
+      Promise<ForgotPasswordResetPasswordResult> | ForgotPasswordResetPasswordResult;
+  verifyResetCode:
+    (input: ForgotPasswordVerifyCodeInput) =>
+      Promise<ForgotPasswordVerifyCodeResult> | ForgotPasswordVerifyCodeResult;
+};
+
+export type ForgotPasswordContent = {
+  blockedMessagePrefix: string;
+  changePasswordLabel: string;
+  changePasswordSubmittingLabel: string;
+  codeExpiredMessage: string;
+  codeField: VerifyEmailCodeFieldCopy;
+  codeInstructionsPrefix: string;
+  codeValidatedMessage: string;
+  cooldownMessage: string;
+  description: string;
+  emailField: RegisterEmailFieldCopy;
+  emailStepSuccessMessage: string;
+  expiryMessagePrefix: string;
+  invalidCodeMessage: string;
+  loginCta: CtaTarget;
+  meta: AuthMeta;
+  password: RegisterPasswordFieldCopy;
+  passwordResetUnexpectedMessage: string;
+  resendCodeLabel: string;
+  resendCodeSubmittingLabel: string;
+  sendCodeLabel: string;
+  sendCodeSubmittingLabel: string;
+  sessionInvalidMessage: string;
+  successFlashMessage: string;
+  title: string;
+  tooManyAttemptsMessagePrefix: string;
+  unexpectedRequestMessage: string;
+  unexpectedVerificationMessage: string;
+  verifyCodeLabel: string;
+  verifyCodeSubmittingLabel: string;
+};
+
+export type VerifyEmailCodeFieldCopy = {
+  invalidMessage: string;
+  label: string;
+  placeholder: string;
+  requiredMessage: string;
+};
+
+export type VerifyEmailResultStatus = 'error' | 'idle' | 'resending' | 'submitting' | 'success';
+
+export type VerifyEmailVerificationFailureReason =
+  | 'expired'
+  | 'invalid'
+  | 'invalid_format'
+  | 'missing_email'
+  | 'rate_limited';
+
+export type VerifyEmailVerificationResult =
+  | {
+      ok: true;
+    }
+  | {
+      message: string;
+      ok: false;
+      reason: VerifyEmailVerificationFailureReason;
+    };
+
+export type VerifyEmailResendResult =
+  | {
+      cooldownSeconds: number;
+      message: string;
+      ok: true;
+    }
+  | {
+      cooldownSeconds?: number;
+      message: string;
+      ok: false;
+      reason: Exclude<VerifyEmailVerificationFailureReason, 'invalid' | 'invalid_format' | 'expired'>;
+    };
+
+export type VerifyEmailServiceInput = {
+  code: string;
+  email: string;
+};
+
+export type VerifyEmailResendInput = {
+  email: string;
+};
+
+export type VerifyEmailService = {
+  resendCode:
+    (input: VerifyEmailResendInput) => Promise<VerifyEmailResendResult> | VerifyEmailResendResult;
+  verifyCode:
+    (input: VerifyEmailServiceInput) =>
+      Promise<VerifyEmailVerificationResult> | VerifyEmailVerificationResult;
+};
+
+export type VerifyEmailContent = {
+  backHomeCta: CtaTarget;
+  codeField: VerifyEmailCodeFieldCopy;
+  cooldownMessage: string;
+  description: string;
+  emailFallback: string;
+  emailPrefix: string;
+  emailRequiredMessage: string;
+  loginCta: CtaTarget;
+  meta: AuthMeta;
+  resendIdleLabel: string;
+  resendSuccessMessage: string;
+  resendSubmittingLabel: string;
+  submitLabel: string;
+  submitSubmittingLabel: string;
+  title: string;
+};
+
+export type AuthContent = {
+  forgotPassword: Partial<AuthPlaceholderContent> & Partial<ForgotPasswordContent>;
+  login: LoginContent;
+  register: RegisterContent;
+  verifyEmail: VerifyEmailContent;
+};
+
+export type LoginFormValues = {
+  email: string;
+  password: string;
+};
+
+export type LoginFormErrors = Partial<Record<'email' | 'password', string>>;
+
+export type LoginFormState = {
+  errors: LoginFormErrors;
+  generalError: string | null;
+  values: LoginFormValues;
+};
+
+export type RegisterFormValues = {
+  acceptPrivacyPolicy: boolean;
+  acceptTerms: boolean;
+  birthDate: string;
+  cityId: string;
+  confirmPassword: string;
+  documentNumber: string;
+  documentTypeId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  localityId: string;
+  password: string;
+  phone: string;
+  sex: PatientSex | '';
+  tutorDocumentNumber: string;
+  tutorDocumentTypeId: string;
+  tutorEmail: string;
+  tutorFirstName: string;
+  tutorLastName: string;
+  tutorPhone: string;
+};
+
+export type RegisterFormField = keyof RegisterFormValues;
+
+export type RegisterFormErrors = Partial<Record<RegisterFormField, string>>;
+
+export type RegisterFormState = {
+  errors: RegisterFormErrors;
+  values: RegisterFormValues;
+};
+
+export type NormalizedPatientRegisterPayload = {
+  consents: {
+    acceptPrivacyPolicy: boolean;
+    acceptTerms: boolean;
+  };
+  patient: {
+    birthDate: string;
+    cityId: string;
+    documentNumber: string;
+    documentTypeId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    localityId: string;
+    password: string;
+    phone: string;
+    sex: PatientSex;
+  };
+  tutor:
+    | {
+        documentNumber: string;
+        documentTypeId: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        phone: string;
+      }
+    | null;
+};
+
+export type VerifyEmailFormValues = {
+  codeDigits: string[];
+};
+
+export type VerifyEmailFormErrors = Partial<Record<'code', string>>;
+
+export type VerifyEmailFormState = {
+  errors: VerifyEmailFormErrors;
+  status: VerifyEmailResultStatus;
+  statusMessage: string | null;
+  values: VerifyEmailFormValues;
+};
+
+export type ForgotPasswordFormValues = {
+  codeDigits: string[];
+  confirmPassword: string;
+  draftEmail: string;
+  password: string;
+};
+
+export type ForgotPasswordFormErrors = Partial<
+  Record<'code' | 'confirmPassword' | 'draftEmail' | 'password', string | undefined>
+>;
+
+export type ForgotPasswordFormState = {
+  codeVerificationStatus: AuthActionStatus;
+  email: string;
+  emailRequestStatus: AuthActionStatus;
+  errors: ForgotPasswordFormErrors;
+  messages: {
+    code: string | null;
+    email: string | null;
+    password: string | null;
+  };
+  passwordResetStatus: AuthActionStatus;
+  step: ForgotPasswordFlowStep;
+  values: ForgotPasswordFormValues;
+};
+
+export type UniversityStatus = 'active' | 'inactive' | 'pending';
+
+export type CredentialDeliveryStatus = 'generated' | 'sent';
+
+export type AdminUniversity = {
+  adminEmail: string;
+  adminFirstName: string;
+  adminLastName: string;
+  adminPhone: string | null;
+  createdAt: string;
+  credentialId: string | null;
+  id: string;
+  mainCity: string;
+  mainCityId: string;
+  mainLocality: string;
+  mainLocalityId: string;
+  name: string;
+  status: UniversityStatus;
+};
+
+export type PendingCredential = {
+  deliveryStatus: CredentialDeliveryStatus;
+  id: string;
+  lastSentAt: string | null;
+  sentCount: number;
+  universityId: string;
+};
+
+export type AdminModuleState = {
+  credentials: PendingCredential[];
+  universities: AdminUniversity[];
+};
+
+export type RegisterUniversityFormValues = {
+  adminEmail: string;
+  adminFirstName: string;
+  adminLastName: string;
+  adminPhone: string;
+  cityId: string;
+  mainLocalityId: string;
+  name: string;
+};
+
+export type RegisterUniversityFormField = keyof RegisterUniversityFormValues;
+
+export type RegisterUniversityFormErrors = Partial<Record<RegisterUniversityFormField, string>>;
+
+export type AdminShellNavigationIcon =
+  | 'badge'
+  | 'building2'
+  | 'graduation-cap'
+  | 'key-round'
+  | 'upload';
+
+export type AdminShellNavigationItem = {
+  icon: AdminShellNavigationIcon;
+  label: string;
+  matchPrefix?: `/${string}`;
+  to: `/${string}`;
+};
+
+export type AdminShellContent = {
+  adminUser: {
+    firstName: string;
+    lastName: string;
+  };
+  homePath?: `/${string}`;
+  logoutCta: {
+    label: string;
+    to: `/${string}`;
+  };
+  navigation: readonly AdminShellNavigationItem[];
+  title: string;
+};
+
+export type PersonOperationalStatus = 'active' | 'inactive';
+
+export type UniversityInstitutionProfile = {
+  adminEmail: string;
+  adminPhone: string;
+  id: string;
+  logoAlt: string;
+  logoFileName: string | null;
+  logoSrc: string | null;
+  mainCity: string;
+  mainCityId: string;
+  mainLocality: string;
+  mainLocalityId: string;
+  name: string;
+};
+
+export type UniversityStudent = {
+  createdAt: string;
+  credentialId: string | null;
+  documentNumber: string;
+  documentTypeCode: string;
+  documentTypeId: string;
+  email: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: string;
+  semester: string;
+  status: PersonOperationalStatus;
+};
+
+export type UniversityTeacher = {
+  createdAt: string;
+  documentNumber: string;
+  documentTypeCode: string;
+  documentTypeId: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  status: PersonOperationalStatus;
+};
+
+export type UniversityStudentCredential = {
+  deliveryStatus: CredentialDeliveryStatus;
+  id: string;
+  lastSentAt: string | null;
+  sentCount: number;
+  studentId: string;
+};
+
+export type UniversityBulkTemplateType = 'students' | 'teachers';
+
+export type UniversityBulkUploadStatus =
+  | 'file_selected'
+  | 'idle'
+  | 'invalid'
+  | 'processed'
+  | 'validated';
+
+export type UniversityBulkUploadState = {
+  errors: string[];
+  fileName: string | null;
+  status: UniversityBulkUploadStatus;
+  templateType: UniversityBulkTemplateType;
+};
+
+export type UniversityAdminModuleState = {
+  credentials: UniversityStudentCredential[];
+  institutionProfile: UniversityInstitutionProfile;
+  students: UniversityStudent[];
+  teachers: UniversityTeacher[];
+};
+
+export type UniversityInstitutionFormValues = {
+  adminEmail: string;
+  adminPhone: string;
+  cityId: string;
+  logoFileName: string | null;
+  logoSrc: string | null;
+  mainLocalityId: string;
+  name: string;
+};
+
+export type UniversityInstitutionFormField = keyof UniversityInstitutionFormValues;
+
+export type UniversityInstitutionFormErrors = Partial<
+  Record<UniversityInstitutionFormField, string>
+>;
+
+export type UniversityPasswordFormValues = {
+  confirmPassword: string;
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type UniversityPasswordFormField = keyof UniversityPasswordFormValues;
+
+export type UniversityPasswordFormErrors = Partial<Record<UniversityPasswordFormField, string>>;
+
+export type RegisterStudentFormValues = {
+  documentNumber: string;
+  documentTypeId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  semester: string;
+};
+
+export type RegisterStudentFormField = keyof RegisterStudentFormValues;
+
+export type RegisterStudentFormErrors = Partial<Record<RegisterStudentFormField, string>>;
+
+export type RegisterTeacherFormValues = {
+  documentNumber: string;
+  documentTypeId: string;
+  firstName: string;
+  lastName: string;
+};
+
+export type RegisterTeacherFormField = keyof RegisterTeacherFormValues;
+
+export type RegisterTeacherFormErrors = Partial<Record<RegisterTeacherFormField, string>>;

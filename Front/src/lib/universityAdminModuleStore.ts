@@ -1,0 +1,597 @@
+import { useSyncExternalStore } from 'react';
+
+import type {
+  DocumentTypeOption,
+  PersonOperationalStatus,
+  RegisterStudentFormValues,
+  RegisterTeacherFormValues,
+  UniversityAdminModuleState,
+  UniversityBulkTemplateType,
+  UniversityInstitutionFormValues,
+  UniversityInstitutionProfile,
+  UniversityStudent,
+  UniversityStudentCredential,
+  UniversityTeacher,
+} from '@/content/types';
+import { patientRegisterCatalogDataSource } from '@/lib/patientRegisterCatalogDataSource';
+
+type BulkProcessResult = {
+  createdCredentials: number;
+  createdStudents: number;
+  createdTeachers: number;
+};
+
+type UniversityAdminModuleActions = {
+  deleteStudentCredential: (credentialId: string) => void;
+  editStudentCredentialEmail: (credentialId: string, email: string) => boolean;
+  processBulkUpload: (templateType: UniversityBulkTemplateType) => BulkProcessResult;
+  registerStudent: (values: RegisterStudentFormValues) => {
+    credentialId: string;
+    studentId: string;
+  };
+  registerTeacher: (values: RegisterTeacherFormValues) => {
+    teacherId: string;
+  };
+  resendStudentCredential: (credentialId: string) => void;
+  sendAllStudentCredentials: () => number;
+  sendStudentCredential: (credentialId: string) => void;
+  toggleStudentStatus: (studentId: string) => PersonOperationalStatus | null;
+  toggleTeacherStatus: (teacherId: string) => PersonOperationalStatus | null;
+  updateInstitutionProfile: (values: UniversityInstitutionFormValues) => void;
+};
+
+const listeners = new Set<() => void>();
+
+function createInitialState(): UniversityAdminModuleState {
+  const institutionProfile: UniversityInstitutionProfile = {
+    adminEmail: 'coordinacion@clinicadelnorte.edu.co',
+    adminPhone: '3005550134',
+    id: 'institution-1',
+    logoAlt: 'Logo institucional de Universidad Clinica del Norte',
+    logoFileName: null,
+    logoSrc: null,
+    mainCity: 'Bogota',
+    mainCityId: 'city-bogota',
+    mainLocality: 'Usaquen',
+    mainLocalityId: 'locality-bogota-usaquen',
+    name: 'Universidad Clinica del Norte',
+  };
+
+  const students: UniversityStudent[] = [
+    {
+      createdAt: '2026-04-01T09:30:00.000Z',
+      credentialId: 'student-cred-1',
+      documentNumber: '1092384122',
+      documentTypeCode: 'CC',
+      documentTypeId: 'document-cc',
+      email: 'valentina.rios@clinicadelnorte.edu.co',
+      firstName: 'Valentina',
+      id: 'student-1',
+      lastName: 'Rios',
+      phone: '3005550101',
+      semester: '8',
+      status: 'active',
+    },
+    {
+      createdAt: '2026-03-29T14:45:00.000Z',
+      credentialId: 'student-cred-2',
+      documentNumber: '1012456678',
+      documentTypeCode: 'CC',
+      documentTypeId: 'document-cc',
+      email: 'tomas.herrera@clinicadelnorte.edu.co',
+      firstName: 'Tomas',
+      id: 'student-2',
+      lastName: 'Herrera',
+      phone: '3005550102',
+      semester: '6',
+      status: 'active',
+    },
+    {
+      createdAt: '2026-03-27T10:15:00.000Z',
+      credentialId: 'student-cred-3',
+      documentNumber: '1003478912',
+      documentTypeCode: 'CC',
+      documentTypeId: 'document-cc',
+      email: 'camila.vega@clinicadelnorte.edu.co',
+      firstName: 'Camila',
+      id: 'student-3',
+      lastName: 'Vega',
+      phone: '3005550103',
+      semester: '10',
+      status: 'inactive',
+    },
+    {
+      createdAt: '2026-03-22T08:05:00.000Z',
+      credentialId: null,
+      documentNumber: '1021987345',
+      documentTypeCode: 'CC',
+      documentTypeId: 'document-cc',
+      email: 'nicolas.pardo@clinicadelnorte.edu.co',
+      firstName: 'Nicolas',
+      id: 'student-4',
+      lastName: 'Pardo',
+      phone: '3005550104',
+      semester: '4',
+      status: 'active',
+    },
+  ];
+
+  const teachers: UniversityTeacher[] = [
+    {
+      createdAt: '2026-03-18T11:10:00.000Z',
+      documentNumber: '80124590',
+      documentTypeCode: 'CC',
+      documentTypeId: 'document-cc',
+      firstName: 'Mariana',
+      id: 'teacher-1',
+      lastName: 'Beltran',
+      status: 'active',
+    },
+    {
+      createdAt: '2026-03-12T15:40:00.000Z',
+      documentNumber: '80245671',
+      documentTypeCode: 'CC',
+      documentTypeId: 'document-cc',
+      firstName: 'Andres',
+      id: 'teacher-2',
+      lastName: 'Villamizar',
+      status: 'active',
+    },
+    {
+      createdAt: '2026-03-09T13:00:00.000Z',
+      documentNumber: '1030021456',
+      documentTypeCode: 'CC',
+      documentTypeId: 'document-cc',
+      firstName: 'Laura',
+      id: 'teacher-3',
+      lastName: 'Martinez',
+      status: 'inactive',
+    },
+  ];
+
+  const credentials: UniversityStudentCredential[] = [
+    {
+      deliveryStatus: 'generated',
+      id: 'student-cred-1',
+      lastSentAt: null,
+      sentCount: 0,
+      studentId: 'student-1',
+    },
+    {
+      deliveryStatus: 'sent',
+      id: 'student-cred-2',
+      lastSentAt: '2026-04-03T16:05:00.000Z',
+      sentCount: 1,
+      studentId: 'student-2',
+    },
+    {
+      deliveryStatus: 'generated',
+      id: 'student-cred-3',
+      lastSentAt: null,
+      sentCount: 0,
+      studentId: 'student-3',
+    },
+  ];
+
+  return {
+    credentials,
+    institutionProfile,
+    students,
+    teachers,
+  };
+}
+
+let state = createInitialState();
+let nextStudentSequence = state.students.length + 1;
+let nextTeacherSequence = state.teachers.length + 1;
+let nextCredentialSequence = state.credentials.length + 1;
+
+function emitChange() {
+  listeners.forEach((listener) => {
+    listener();
+  });
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot() {
+  return state;
+}
+
+function updateState(nextState: UniversityAdminModuleState) {
+  state = nextState;
+  emitChange();
+}
+
+function normalizeText(value: string) {
+  return value.trim();
+}
+
+function normalizeEmail(value: string) {
+  return normalizeText(value).toLowerCase();
+}
+
+function getDocumentTypeById(documentTypeId: string) {
+  const documentTypes = patientRegisterCatalogDataSource.getDocumentTypes();
+
+  if (!Array.isArray(documentTypes)) {
+    return null;
+  }
+
+  return documentTypes.find((item) => item.id === documentTypeId) ?? null;
+}
+
+function getCityById(cityId: string) {
+  const cities = patientRegisterCatalogDataSource.getCities();
+
+  if (!Array.isArray(cities)) {
+    return null;
+  }
+
+  return cities.find((item) => item.id === cityId) ?? null;
+}
+
+function getLocalityById(cityId: string, localityId: string) {
+  const localities = patientRegisterCatalogDataSource.getLocalitiesByCity(cityId);
+
+  if (!Array.isArray(localities)) {
+    return null;
+  }
+
+  return localities.find((item) => item.id === localityId) ?? null;
+}
+
+function createStudentDocumentType(documentTypeId: string): DocumentTypeOption | null {
+  return getDocumentTypeById(documentTypeId);
+}
+
+function markStudentCredentialAsSent(credentialId: string) {
+  updateState({
+    ...state,
+    credentials: state.credentials.map((credential) =>
+      credential.id === credentialId
+        ? {
+            ...credential,
+            deliveryStatus: 'sent',
+            lastSentAt: new Date().toISOString(),
+            sentCount: credential.sentCount + 1,
+          }
+        : credential,
+    ),
+  });
+}
+
+function registerStudent(values: RegisterStudentFormValues) {
+  const studentId = `student-${nextStudentSequence}`;
+  const credentialId = `student-cred-${nextCredentialSequence}`;
+  const documentType = createStudentDocumentType(values.documentTypeId);
+
+  nextStudentSequence += 1;
+  nextCredentialSequence += 1;
+
+  const nextStudent: UniversityStudent = {
+    createdAt: new Date().toISOString(),
+    credentialId,
+    documentNumber: normalizeText(values.documentNumber),
+    documentTypeCode: documentType?.code ?? 'CC',
+    documentTypeId: values.documentTypeId,
+    email: normalizeEmail(values.email),
+    firstName: normalizeText(values.firstName),
+    id: studentId,
+    lastName: normalizeText(values.lastName),
+    phone: normalizeText(values.phone),
+    semester: values.semester,
+    status: 'active',
+  };
+
+  const nextCredential: UniversityStudentCredential = {
+    deliveryStatus: 'generated',
+    id: credentialId,
+    lastSentAt: null,
+    sentCount: 0,
+    studentId,
+  };
+
+  updateState({
+    ...state,
+    credentials: [nextCredential, ...state.credentials],
+    students: [nextStudent, ...state.students],
+  });
+
+  return {
+    credentialId,
+    studentId,
+  };
+}
+
+function registerTeacher(values: RegisterTeacherFormValues) {
+  const teacherId = `teacher-${nextTeacherSequence}`;
+  const documentType = getDocumentTypeById(values.documentTypeId);
+
+  nextTeacherSequence += 1;
+
+  const nextTeacher: UniversityTeacher = {
+    createdAt: new Date().toISOString(),
+    documentNumber: normalizeText(values.documentNumber),
+    documentTypeCode: documentType?.code ?? 'CC',
+    documentTypeId: values.documentTypeId,
+    firstName: normalizeText(values.firstName),
+    id: teacherId,
+    lastName: normalizeText(values.lastName),
+    status: 'active',
+  };
+
+  updateState({
+    ...state,
+    teachers: [nextTeacher, ...state.teachers],
+  });
+
+  return {
+    teacherId,
+  };
+}
+
+function toggleStudentStatus(studentId: string) {
+  const currentStudent = state.students.find((student) => student.id === studentId);
+
+  if (!currentStudent) {
+    return null;
+  }
+
+  const nextStatus: PersonOperationalStatus =
+    currentStudent.status === 'active' ? 'inactive' : 'active';
+
+  updateState({
+    ...state,
+    students: state.students.map((student) =>
+      student.id === studentId ? { ...student, status: nextStatus } : student,
+    ),
+  });
+
+  return nextStatus;
+}
+
+function toggleTeacherStatus(teacherId: string) {
+  const currentTeacher = state.teachers.find((teacher) => teacher.id === teacherId);
+
+  if (!currentTeacher) {
+    return null;
+  }
+
+  const nextStatus: PersonOperationalStatus =
+    currentTeacher.status === 'active' ? 'inactive' : 'active';
+
+  updateState({
+    ...state,
+    teachers: state.teachers.map((teacher) =>
+      teacher.id === teacherId ? { ...teacher, status: nextStatus } : teacher,
+    ),
+  });
+
+  return nextStatus;
+}
+
+function sendStudentCredential(credentialId: string) {
+  markStudentCredentialAsSent(credentialId);
+}
+
+function resendStudentCredential(credentialId: string) {
+  markStudentCredentialAsSent(credentialId);
+}
+
+function sendAllStudentCredentials() {
+  const generatedCredentials = state.credentials.filter(
+    (credential) => credential.deliveryStatus === 'generated',
+  );
+
+  if (generatedCredentials.length === 0) {
+    return 0;
+  }
+
+  updateState({
+    ...state,
+    credentials: state.credentials.map((credential) =>
+      credential.deliveryStatus === 'generated'
+        ? {
+            ...credential,
+            deliveryStatus: 'sent',
+            lastSentAt: new Date().toISOString(),
+            sentCount: credential.sentCount + 1,
+          }
+        : credential,
+    ),
+  });
+
+  return generatedCredentials.length;
+}
+
+function editStudentCredentialEmail(credentialId: string, email: string) {
+  const credential = state.credentials.find((item) => item.id === credentialId);
+
+  if (!credential) {
+    return false;
+  }
+
+  updateState({
+    ...state,
+    students: state.students.map((student) =>
+      student.id === credential.studentId
+        ? {
+            ...student,
+            email: normalizeEmail(email),
+          }
+        : student,
+    ),
+  });
+
+  return true;
+}
+
+function deleteStudentCredential(credentialId: string) {
+  const credential = state.credentials.find((item) => item.id === credentialId);
+
+  if (!credential) {
+    return;
+  }
+
+  updateState({
+    ...state,
+    credentials: state.credentials.filter((item) => item.id !== credentialId),
+    students: state.students.map((student) =>
+      student.id === credential.studentId ? { ...student, credentialId: null } : student,
+    ),
+  });
+}
+
+function updateInstitutionProfile(values: UniversityInstitutionFormValues) {
+  const city = getCityById(values.cityId);
+  const locality = getLocalityById(values.cityId, values.mainLocalityId);
+
+  updateState({
+    ...state,
+    institutionProfile: {
+      ...state.institutionProfile,
+      adminEmail: normalizeEmail(values.adminEmail),
+      adminPhone: normalizeText(values.adminPhone),
+      logoFileName: values.logoFileName,
+      logoSrc: values.logoSrc,
+      mainCity: city?.label ?? state.institutionProfile.mainCity,
+      mainCityId: values.cityId,
+      mainLocality: locality?.label ?? state.institutionProfile.mainLocality,
+      mainLocalityId: values.mainLocalityId,
+      name: normalizeText(values.name),
+    },
+  });
+}
+
+function buildMockStudent(sequence: number) {
+  const studentId = `student-${sequence}`;
+  const credentialId = `student-cred-${nextCredentialSequence}`;
+  const semester = `${((sequence + 2) % 10) + 1}`;
+  const firstNames = ['Lucia', 'Samuel', 'Natalia', 'Felipe', 'Sara', 'Mateo'];
+  const lastNames = ['Mejia', 'Castro', 'Ruiz', 'Lopez', 'Montoya', 'Cortes'];
+  const firstName = firstNames[(sequence - 1) % firstNames.length] ?? 'Lucia';
+  const lastName = lastNames[(sequence - 1) % lastNames.length] ?? 'Mejia';
+
+  nextCredentialSequence += 1;
+
+  const student: UniversityStudent = {
+    createdAt: new Date().toISOString(),
+    credentialId,
+    documentNumber: `${1000000000 + sequence}`,
+    documentTypeCode: 'CC',
+    documentTypeId: 'document-cc',
+    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${sequence}@clinicadelnorte.edu.co`,
+    firstName,
+    id: studentId,
+    lastName,
+    phone: `3005550${String(sequence).padStart(3, '0')}`,
+    semester,
+    status: 'active',
+  };
+
+  const credential: UniversityStudentCredential = {
+    deliveryStatus: 'generated',
+    id: credentialId,
+    lastSentAt: null,
+    sentCount: 0,
+    studentId,
+  };
+
+  return {
+    credential,
+    student,
+  };
+}
+
+function buildMockTeacher(sequence: number) {
+  const teacherId = `teacher-${sequence}`;
+  const firstNames = ['Adriana', 'Carlos', 'Martha', 'Jorge', 'Paula', 'Nelson'];
+  const lastNames = ['Londono', 'Ramirez', 'Suarez', 'Parra', 'Bernal', 'Rivera'];
+
+  return {
+    createdAt: new Date().toISOString(),
+    documentNumber: `${80000000 + sequence}`,
+    documentTypeCode: 'CC',
+    documentTypeId: 'document-cc',
+    firstName: firstNames[(sequence - 1) % firstNames.length] ?? 'Adriana',
+    id: teacherId,
+    lastName: lastNames[(sequence - 1) % lastNames.length] ?? 'Londono',
+    status: 'active',
+  } satisfies UniversityTeacher;
+}
+
+function processBulkUpload(templateType: UniversityBulkTemplateType) {
+  if (templateType === 'students') {
+    const createdStudents = [buildMockStudent(nextStudentSequence), buildMockStudent(nextStudentSequence + 1)];
+
+    nextStudentSequence += createdStudents.length;
+
+    updateState({
+      ...state,
+      credentials: [...createdStudents.map((item) => item.credential), ...state.credentials],
+      students: [...createdStudents.map((item) => item.student), ...state.students],
+    });
+
+    return {
+      createdCredentials: createdStudents.length,
+      createdStudents: createdStudents.length,
+      createdTeachers: 0,
+    };
+  }
+
+  const createdTeachers = [
+    buildMockTeacher(nextTeacherSequence),
+    buildMockTeacher(nextTeacherSequence + 1),
+  ];
+
+  nextTeacherSequence += createdTeachers.length;
+
+  updateState({
+    ...state,
+    teachers: [...createdTeachers, ...state.teachers],
+  });
+
+  return {
+    createdCredentials: 0,
+    createdStudents: 0,
+    createdTeachers: createdTeachers.length,
+  };
+}
+
+export function resetUniversityAdminModuleState() {
+  state = createInitialState();
+  nextStudentSequence = state.students.length + 1;
+  nextTeacherSequence = state.teachers.length + 1;
+  nextCredentialSequence = state.credentials.length + 1;
+  emitChange();
+}
+
+export function useUniversityAdminModuleStore() {
+  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+  const actions: UniversityAdminModuleActions = {
+    deleteStudentCredential,
+    editStudentCredentialEmail,
+    processBulkUpload,
+    registerStudent,
+    registerTeacher,
+    resendStudentCredential,
+    sendAllStudentCredentials,
+    sendStudentCredential,
+    toggleStudentStatus,
+    toggleTeacherStatus,
+    updateInstitutionProfile,
+  };
+
+  return {
+    ...snapshot,
+    ...actions,
+  };
+}
