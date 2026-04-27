@@ -21,7 +21,6 @@ export const ROUTES = {
   studentAgenda: '/estudiante/agenda',
   studentAppointments: '/estudiante/citas',
   studentConversations: '/estudiante/conversaciones',
-  studentNotifications: '/estudiante/notificaciones',
   studentProfile: '/estudiante/mi-perfil',
   studentRequests: '/estudiante/solicitudes',
   studentRoot: '/estudiante',

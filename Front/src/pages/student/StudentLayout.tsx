@@ -73,7 +73,6 @@ export function StudentLayout() {
       avatarSrc={profile.avatarSrc}
       content={studentContent.shell}
       headerNotifications={notifications}
-      notificationsPageTo={ROUTES.studentNotifications}
       onMarkAllNotificationsRead={markAllNotificationsAsRead}
       onOpenNotification={markNotificationAsRead}
       surfacePaddingMode="inner"

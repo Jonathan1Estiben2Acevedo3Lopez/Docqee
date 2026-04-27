@@ -1,5 +1,5 @@
 import { Bell, CheckCheck, Circle, ExternalLink } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
@@ -27,6 +27,8 @@ type PortalNotificationsPageContentProps = {
 };
 
 const DEFAULT_NOTIFICATIONS_PER_PAGE = 6;
+const MIN_NOTIFICATIONS_PER_PAGE = 1;
+const NOTIFICATION_CARD_HEIGHT_FALLBACK_PX = 150;
 
 function formatNotificationDate(value: string) {
   const parsedDate = new Date(value);
@@ -74,30 +76,32 @@ export function PortalNotificationsPageContent({
   viewDetailLabel,
 }: PortalNotificationsPageContentProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [notificationsPerPage, setNotificationsPerPage] = useState(
+    DEFAULT_NOTIFICATIONS_PER_PAGE,
+  );
+  const notificationsViewportRef = useRef<HTMLDivElement | null>(null);
+  const notificationsListRef = useRef<HTMLDivElement | null>(null);
   const unreadCount = notifications.filter(
     (notification) => notification.isRead !== true,
   ).length;
   const totalPages = enablePagination
-    ? Math.max(
-        1,
-        Math.ceil(notifications.length / DEFAULT_NOTIFICATIONS_PER_PAGE),
-      )
+    ? Math.max(1, Math.ceil(notifications.length / notificationsPerPage))
     : 1;
   const clampedCurrentPage = enablePagination
     ? Math.min(currentPage, totalPages)
     : 1;
   const pageStartIndex = enablePagination
-    ? (clampedCurrentPage - 1) * DEFAULT_NOTIFICATIONS_PER_PAGE
+    ? (clampedCurrentPage - 1) * notificationsPerPage
     : 0;
   const visibleNotifications = useMemo(
     () =>
       enablePagination
         ? notifications.slice(
             pageStartIndex,
-            pageStartIndex + DEFAULT_NOTIFICATIONS_PER_PAGE,
+            pageStartIndex + notificationsPerPage,
           )
         : notifications,
-    [enablePagination, notifications, pageStartIndex],
+    [enablePagination, notifications, notificationsPerPage, pageStartIndex],
   );
   const pageStartLabel = notifications.length > 0 ? pageStartIndex + 1 : 0;
   const pageEndLabel = Math.min(
@@ -108,6 +112,78 @@ export function PortalNotificationsPageContent({
   useEffect(() => {
     setCurrentPage((currentValue) => Math.min(currentValue, totalPages));
   }, [totalPages]);
+
+  useEffect(() => {
+    if (!enablePagination) {
+      return undefined;
+    }
+
+    const viewportElement = notificationsViewportRef.current;
+
+    if (!viewportElement) {
+      return undefined;
+    }
+
+    const viewport = viewportElement;
+
+    function updateNotificationsPerPage() {
+      const nextAvailableHeight = viewport.getBoundingClientRect().height;
+
+      if (nextAvailableHeight <= 0) {
+        return;
+      }
+
+      const listElement = notificationsListRef.current;
+      const cardElements = Array.from(listElement?.children ?? []);
+      const cardHeights = cardElements
+        .map((cardElement) => cardElement.getBoundingClientRect().height)
+        .filter((cardHeight) => cardHeight > 0);
+      const listStyles = listElement
+        ? window.getComputedStyle(listElement)
+        : null;
+      const listGap = listStyles
+        ? Number.parseFloat(listStyles.rowGap || listStyles.gap || '0') || 0
+        : 0;
+      const estimatedCardHeight =
+        cardHeights.length > 0
+          ? cardHeights.reduce((sum, cardHeight) => sum + cardHeight, 0) /
+              cardHeights.length +
+            listGap
+          : NOTIFICATION_CARD_HEIGHT_FALLBACK_PX;
+      const nextNotificationsPerPage = Math.max(
+        MIN_NOTIFICATIONS_PER_PAGE,
+        Math.floor((nextAvailableHeight + listGap) / estimatedCardHeight),
+      );
+
+      setNotificationsPerPage((currentNotificationsPerPage) =>
+        currentNotificationsPerPage === nextNotificationsPerPage
+          ? currentNotificationsPerPage
+          : nextNotificationsPerPage,
+      );
+    }
+
+    updateNotificationsPerPage();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(updateNotificationsPerPage);
+      resizeObserver.observe(viewport);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+
+    window.addEventListener('resize', updateNotificationsPerPage);
+
+    return () => {
+      window.removeEventListener('resize', updateNotificationsPerPage);
+    };
+  }, [
+    enablePagination,
+    notifications.length,
+    pageStartIndex,
+    visibleNotifications.length,
+  ]);
 
   useEffect(() => {
     if (!enablePagination || !selectedNotificationId) {
@@ -122,10 +198,13 @@ export function PortalNotificationsPageContent({
       return;
     }
 
-    setCurrentPage(
-      Math.floor(selectedIndex / DEFAULT_NOTIFICATIONS_PER_PAGE) + 1,
-    );
-  }, [enablePagination, notifications, selectedNotificationId]);
+    setCurrentPage(Math.floor(selectedIndex / notificationsPerPage) + 1);
+  }, [
+    enablePagination,
+    notifications,
+    notificationsPerPage,
+    selectedNotificationId,
+  ]);
 
   useEffect(() => {
     if (
@@ -277,12 +356,19 @@ export function PortalNotificationsPageContent({
       <AdminPanelCard className="flex-1" panelClassName="bg-[#f4f8ff]">
         {notifications.length > 0 ? (
           <div
+            ref={notificationsViewportRef}
             className={classNames(
-              'admin-scrollbar min-h-0 flex-1 overflow-y-auto',
+              'min-h-0 flex-1',
+              enablePagination
+                ? 'overflow-hidden'
+                : 'admin-scrollbar overflow-y-auto',
               compact ? 'p-3 sm:p-4' : 'p-4 sm:p-5',
             )}
           >
-            <div className={compact ? 'space-y-2.5' : 'space-y-3'}>
+            <div
+              ref={notificationsListRef}
+              className={compact ? 'space-y-2.5' : 'space-y-3'}
+            >
               {visibleNotifications.map((notification) => (
                 <div
                   className={classNames(

@@ -62,6 +62,10 @@ const appointmentStatusOptions: Array<{
 ];
 
 const DEFAULT_ROWS_PER_PAGE = 6;
+const MIN_ROWS_PER_PAGE = 1;
+const TABLE_HEADER_HEIGHT_PX = 42;
+const TABLE_ROW_HEIGHT_FALLBACK_PX = 96;
+const TABLE_HEIGHT_PADDING_PX = 0;
 
 const initialAppointmentFormValues: StudentAppointmentFormValues = {
   additionalInfo: '',
@@ -385,6 +389,7 @@ export function StudentAppointmentsPage() {
   const [sortOrder, setSortOrder] = useState<AppointmentSortOrder>('arrival');
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [appointmentErrors, setAppointmentErrors] =
     useState<StudentAppointmentFormErrors>({});
@@ -410,6 +415,8 @@ export function StudentAppointmentsPage() {
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
   const statusMenuRef = useRef<HTMLDivElement | null>(null);
+  const tableViewportRef = useRef<HTMLDivElement | null>(null);
+  const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const now = new Date();
   const minAppointmentDate = formatDateInputValue(now);
@@ -540,17 +547,14 @@ export function StudentAppointmentsPage() {
   ]);
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredAppointments.length / DEFAULT_ROWS_PER_PAGE),
+    Math.ceil(filteredAppointments.length / rowsPerPage),
   );
   const clampedCurrentPage = Math.min(currentPage, totalPages);
-  const pageStartIndex = (clampedCurrentPage - 1) * DEFAULT_ROWS_PER_PAGE;
+  const pageStartIndex = (clampedCurrentPage - 1) * rowsPerPage;
   const paginatedAppointments = useMemo(
     () =>
-      filteredAppointments.slice(
-        pageStartIndex,
-        pageStartIndex + DEFAULT_ROWS_PER_PAGE,
-      ),
-    [filteredAppointments, pageStartIndex],
+      filteredAppointments.slice(pageStartIndex, pageStartIndex + rowsPerPage),
+    [filteredAppointments, pageStartIndex, rowsPerPage],
   );
   const pageStartLabel =
     filteredAppointments.length > 0 ? pageStartIndex + 1 : 0;
@@ -564,6 +568,71 @@ export function StudentAppointmentsPage() {
   useEffect(() => {
     setCurrentPage((currentValue) => Math.min(currentValue, totalPages));
   }, [totalPages]);
+  useEffect(() => {
+    const tableViewportElement = tableViewportRef.current;
+
+    if (!tableViewportElement) {
+      return undefined;
+    }
+
+    const tableViewport = tableViewportElement;
+
+    function updateRowsPerPage() {
+      const nextAvailableHeight = tableViewport.getBoundingClientRect().height;
+
+      if (nextAvailableHeight <= 0) {
+        return;
+      }
+
+      const firstHeaderCell = tableViewport.querySelector('thead th');
+      const tableHeaderHeight =
+        firstHeaderCell?.getBoundingClientRect().height ??
+        TABLE_HEADER_HEIGHT_PX;
+      const rowElements = Array.from(tableBodyRef.current?.children ?? []);
+      const rowHeights = rowElements
+        .map((rowElement) => rowElement.getBoundingClientRect().height)
+        .filter((rowHeight) => rowHeight > 0);
+      const estimatedRowHeight =
+        rowHeights.length > 0
+          ? rowHeights.reduce((sum, rowHeight) => sum + rowHeight, 0) /
+            rowHeights.length
+          : TABLE_ROW_HEIGHT_FALLBACK_PX;
+      const nextRowsPerPage = Math.max(
+        MIN_ROWS_PER_PAGE,
+        Math.floor(
+          (nextAvailableHeight - tableHeaderHeight - TABLE_HEIGHT_PADDING_PX) /
+            estimatedRowHeight,
+        ),
+      );
+
+      setRowsPerPage((currentRowsPerPage) =>
+        currentRowsPerPage === nextRowsPerPage
+          ? currentRowsPerPage
+          : nextRowsPerPage,
+      );
+    }
+
+    updateRowsPerPage();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(updateRowsPerPage);
+      resizeObserver.observe(tableViewport);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+
+    window.addEventListener('resize', updateRowsPerPage);
+
+    return () => {
+      window.removeEventListener('resize', updateRowsPerPage);
+    };
+  }, [
+    filteredAppointments.length,
+    pageStartIndex,
+    paginatedAppointments.length,
+  ]);
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       setCurrentTimestamp(Date.now());
@@ -1060,7 +1129,10 @@ export function StudentAppointmentsPage() {
           </div>
         </div>
         {filteredAppointments.length > 0 ? (
-          <div className="admin-scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+          <div
+            ref={tableViewportRef}
+            className="min-h-0 flex-1 overflow-hidden"
+          >
             <table className="w-full table-fixed">
               <colgroup>
                 <col className="w-[16%]" />
@@ -1080,7 +1152,10 @@ export function StudentAppointmentsPage() {
                   <th className="px-4 py-3 text-center sm:px-5">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/80 bg-white">
+              <tbody
+                ref={tableBodyRef}
+                className="divide-y divide-slate-200/80 bg-white"
+              >
                 {paginatedAppointments.map((appointment) => {
                   const appointmentLocality =
                     practiceSitesBySiteId.get(appointment.siteId)?.locality ??

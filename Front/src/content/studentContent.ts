@@ -56,21 +56,6 @@ export const studentContent = {
     successNoticePrefix: 'Conversacion actualizada:',
     title: 'Chat',
   },
-  notificationsPage: {
-    description:
-      'Consulta las novedades del portal, marca avisos como leidos y abre el detalle relacionado cuando lo necesites.',
-    emptyState: 'No tienes notificaciones por ahora.',
-    markAllReadLabel: 'Marcar todas como leidas',
-    markReadLabel: 'Marcar como leida',
-    meta: {
-      description:
-        'Consulta y gestiona las notificaciones del portal del estudiante dentro de Docqee.',
-      title: 'Docqee | Notificaciones del Estudiante',
-    },
-    title: 'Notificaciones',
-    unreadLabel: 'Sin leer',
-    viewDetailLabel: 'Ver detalle',
-  },
   profilePage: {
     actionLabels: {
       addLink: 'Agregar enlace',
@@ -122,12 +107,6 @@ export const studentContent = {
     },
     homePath: ROUTES.home,
     mobileAccountMenuItems: [
-      {
-        icon: 'bell',
-        label: 'Notificaciones',
-        matchPrefix: ROUTES.studentNotifications,
-        to: ROUTES.studentNotifications,
-      },
       {
         icon: 'user-round',
         label: 'Perfil',
@@ -204,12 +183,6 @@ export const studentContent = {
         to: ROUTES.studentConversations,
       },
       {
-        icon: 'bell',
-        label: 'Notificaciones',
-        matchPrefix: ROUTES.studentNotifications,
-        to: ROUTES.studentNotifications,
-      },
-      {
         icon: 'user-round',
         label: 'Perfil',
         matchPrefix: ROUTES.studentProfile,
@@ -225,7 +198,8 @@ export const studentContent = {
     },
     description: '',
     emptySitesState: 'No hay sedes asociadas a tu practica en este momento.',
-    emptyTreatmentsState: 'No hay tratamientos asociados a tu perfil en este momento.',
+    emptyTreatmentsState:
+      'No hay tratamientos asociados a tu perfil en este momento.',
     meta: {
       description:
         'Consulta el panel principal del estudiante con tratamientos, sedes, citas y comentarios dentro de Docqee.',

@@ -10,7 +10,6 @@ import { StudentAgendaPage } from '@/pages/student/agenda/StudentAgendaPage';
 import { StudentAppointmentsPage } from '@/pages/student/appointments/StudentAppointmentsPage';
 import { StudentConversationsPage } from '@/pages/student/conversations/StudentConversationsPage';
 import { StudentLayout } from '@/pages/student/StudentLayout';
-import { StudentNotificationsPage } from '@/pages/student/notifications/StudentNotificationsPage';
 import { StudentProfilePage } from '@/pages/student/profile/StudentProfilePortalPage';
 import { StudentRequestsPage } from '@/pages/student/requests/StudentRequestsPage';
 import {
@@ -30,10 +29,7 @@ function renderStudentApp(
             index
           />
           <Route element={<StudentProfilePage />} path="mi-perfil" />
-          <Route
-            element={<StudentTreatmentsPage />}
-            path="inicio"
-          />
+          <Route element={<StudentTreatmentsPage />} path="inicio" />
           <Route
             element={<Navigate replace to={ROUTES.studentTreatments} />}
             path="tratamientos-y-sedes"
@@ -41,7 +37,6 @@ function renderStudentApp(
           <Route element={<StudentAgendaPage />} path="agenda" />
           <Route element={<StudentAppointmentsPage />} path="citas" />
           <Route element={<StudentRequestsPage />} path="solicitudes" />
-          <Route element={<StudentNotificationsPage />} path="notificaciones" />
           <Route element={<StudentConversationsPage />} path="conversaciones" />
         </Route>
       </Routes>
@@ -114,7 +109,9 @@ describe('Student pages', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(
       /^tu perfil se actualizo correctamente\.$/i,
     );
-    expect(screen.getByText(/https:\/\/drive.google.com\/file\/d\/demo-cv/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/https:\/\/drive.google.com\/file\/d\/demo-cv/i),
+    ).toBeInTheDocument();
   });
 
   it('solicita confirmacion para eliminar un enlace profesional y lo guarda de inmediato', async () => {
@@ -128,13 +125,19 @@ describe('Student pages', () => {
       }),
     );
 
-    const confirmDialog = screen.getByRole('dialog', { name: /eliminar enlace/i });
+    const confirmDialog = screen.getByRole('dialog', {
+      name: /eliminar enlace/i,
+    });
     expect(
-      within(confirmDialog).getByText(/este cambio se guardará automáticamente/i),
+      within(confirmDialog).getByText(
+        /este cambio se guardará automáticamente/i,
+      ),
     ).toBeInTheDocument();
 
     await user.click(
-      within(confirmDialog).getByRole('button', { name: /sí, eliminar enlace/i }),
+      within(confirmDialog).getByRole('button', {
+        name: /sí, eliminar enlace/i,
+      }),
     );
 
     expect(await screen.findByRole('status')).toHaveTextContent(
@@ -143,7 +146,9 @@ describe('Student pages', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByText(/https:\/\/linkedin\.com\/in\/valentina-rios-docqee/i),
+        screen.queryByText(
+          /https:\/\/linkedin\.com\/in\/valentina-rios-docqee/i,
+        ),
       ).not.toBeInTheDocument();
     });
   });
@@ -155,11 +160,21 @@ describe('Student pages', () => {
 
     await user.click(screen.getByRole('button', { name: /notificaciones/i }));
 
-    expect(screen.getByRole('dialog', { name: /panel de notificaciones/i })).toBeInTheDocument();
-    expect(screen.getByText(/nueva solicitud de ana maria perez/i)).toBeInTheDocument();
-    expect(screen.getByText(/julian torres acepto la cita/i)).toBeInTheDocument();
-    expect(screen.getByText(/solicitud de reprogramacion/i)).toBeInTheDocument();
-    expect(screen.getByText(/ricardo suarez cancelo la cita/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('dialog', { name: /panel de notificaciones/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/nueva solicitud de ana maria perez/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/julian torres acepto la cita/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/solicitud de reprogramacion/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/ricardo suarez cancelo la cita/i),
+    ).toBeInTheDocument();
   });
 
   it('mantiene notificaciones en el header y perfil en el menu hamburguesa en movil', async () => {
@@ -197,19 +212,27 @@ describe('Student pages', () => {
       screen.getByRole('button', { name: /^Notificaciones(?: \(\d+\))?$/i }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /^Notificaciones(?: \(\d+\))?$/i }));
+    await user.click(
+      screen.getByRole('button', { name: /^Notificaciones(?: \(\d+\))?$/i }),
+    );
 
-    expect(screen.getByRole('dialog', { name: /panel de notificaciones/i })).toBeInTheDocument();
-    expect(screen.getByText(/nueva solicitud de ana maria perez/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('dialog', { name: /panel de notificaciones/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/nueva solicitud de ana maria perez/i),
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: /abrir men[u\u00fa] de cuenta/i }),
     );
 
     expect(
-      screen.getByRole('menuitem', { name: /notificaciones/i }),
+      screen.queryByRole('menuitem', { name: /notificaciones/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /perfil/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /perfil/i })).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: /cerrar sesi[o\u00f3]n/i }),
     ).toBeInTheDocument();
@@ -228,7 +251,7 @@ describe('Student pages', () => {
     ).toBeInTheDocument();
   });
 
-  it('abre la pantalla de notificaciones del estudiante al seleccionar una alerta', async () => {
+  it('abre el modulo relacionado al seleccionar una alerta del header', async () => {
     const user = userEvent.setup();
 
     renderStudentApp([ROUTES.studentProfile]);
@@ -236,14 +259,13 @@ describe('Student pages', () => {
     await user.click(screen.getByRole('button', { name: /notificaciones/i }));
     await user.click(screen.getByText(/nueva solicitud de ana maria perez/i));
 
-    expect(await screen.findByRole('heading', { name: /^Notificaciones$/i })).toBeInTheDocument();
-    expect(screen.getByText(/dolor dental persistente y revision general/i)).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /^Solicitudes$/i }),
+    ).toBeInTheDocument();
     expect(
       within(
-        screen.getByTestId(
-          'portal-notification-card-student-request-student-request-1-PENDIENTE',
-        ),
-      ).getByRole('link', { name: /ver detalle/i }),
+        screen.getByTestId('student-request-row-student-request-1'),
+      ).getByText(/dolor dental persistente y revision general/i),
     ).toBeInTheDocument();
   });
 
@@ -257,17 +279,29 @@ describe('Student pages', () => {
     expect(screen.getByText(/4.7 de 5 en 3 valoraciones/i)).toBeInTheDocument();
     expect(screen.getByText(/comentarios de tus citas/i)).toBeInTheDocument();
     expect(
-      within(screen.getByTestId('student-review-comments-dashboard')).getByText(/^3$/i),
+      within(screen.getByTestId('student-review-comments-dashboard')).getByText(
+        /^3$/i,
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByTestId('student-review-card-student-review-1')).toHaveTextContent(
-      /me senti muy bien acompanado durante la cita/i,
+    expect(
+      screen.getByTestId('student-review-card-student-review-1'),
+    ).toHaveTextContent(/me senti muy bien acompanado durante la cita/i);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: /filtrar comentarios por estrellas/i,
+      }),
+    );
+    await user.click(
+      screen.getByRole('menuitemradio', { name: /4 estrellas/i }),
     );
 
-    await user.click(screen.getByRole('button', { name: /filtrar comentarios por estrellas/i }));
-    await user.click(screen.getByRole('menuitemradio', { name: /4 estrellas/i }));
-
-    expect(screen.queryByTestId('student-review-card-student-review-1')).not.toBeInTheDocument();
-    expect(screen.getByTestId('student-review-card-student-review-2')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('student-review-card-student-review-1'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId('student-review-card-student-review-2'),
+    ).toBeInTheDocument();
   });
 
   it('permite gestionar tratamientos y sedes desde mi perfil', async () => {
@@ -292,7 +326,9 @@ describe('Student pages', () => {
 
     await user.click(
       within(
-        screen.getByTestId('student-profile-practice-site-card-practice-site-1'),
+        screen.getByTestId(
+          'student-profile-practice-site-card-practice-site-1',
+        ),
       ).getByRole('button', {
         name: /inactivar/i,
       }),
@@ -300,7 +336,9 @@ describe('Student pages', () => {
     await waitFor(() => {
       expect(
         within(
-          screen.getByTestId('student-profile-practice-site-card-practice-site-1'),
+          screen.getByTestId(
+            'student-profile-practice-site-card-practice-site-1',
+          ),
         ).getByText(/^Inactivo$/i),
       ).toBeInTheDocument();
     });
@@ -311,20 +349,37 @@ describe('Student pages', () => {
 
     renderStudentApp([ROUTES.studentAgenda]);
 
-    expect(screen.getByRole('button', { name: /^Semana$/i })).toBeInTheDocument();
-    expect(screen.getAllByText(/valoracion inicial/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('button', { name: /^Semana$/i }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/valoracion inicial/i).length).toBeGreaterThan(
+      0,
+    );
 
     await user.click(screen.getByRole('button', { name: /agregar bloqueo/i }));
 
-    const createDialog = screen.getByRole('dialog', { name: /agregar bloqueo/i });
-    await user.type(within(createDialog).getByLabelText(/fecha especifica/i), '2026-04-10');
-    await user.type(within(createDialog).getByLabelText(/hora de inicio/i), '07:00');
-    await user.type(within(createDialog).getByLabelText(/hora de finalizacion/i), '09:00');
+    const createDialog = screen.getByRole('dialog', {
+      name: /agregar bloqueo/i,
+    });
+    await user.type(
+      within(createDialog).getByLabelText(/fecha especifica/i),
+      '2026-04-10',
+    );
+    await user.type(
+      within(createDialog).getByLabelText(/hora de inicio/i),
+      '07:00',
+    );
+    await user.type(
+      within(createDialog).getByLabelText(/hora de finalizacion/i),
+      '09:00',
+    );
     await user.type(
       within(createDialog).getByLabelText(/motivo opcional/i),
       'Espacio reservado para practica externa.',
     );
-    await user.click(within(createDialog).getByRole('button', { name: /agregar bloqueo/i }));
+    await user.click(
+      within(createDialog).getByRole('button', { name: /agregar bloqueo/i }),
+    );
 
     expect(await screen.findByRole('status')).toHaveTextContent(
       /el bloqueo de agenda se agrego correctamente/i,
@@ -335,22 +390,42 @@ describe('Student pages', () => {
     );
     await user.click(scheduleEvent);
 
-    const manageDialog = screen.getByRole('dialog', { name: /gestionar bloqueo/i });
-    expect(within(manageDialog).getByText(/espacio reservado para practica externa/i)).toBeInTheDocument();
-    await user.click(within(manageDialog).getByRole('button', { name: /inactivar/i }));
+    const manageDialog = screen.getByRole('dialog', {
+      name: /gestionar bloqueo/i,
+    });
+    expect(
+      within(manageDialog).getByText(
+        /espacio reservado para practica externa/i,
+      ),
+    ).toBeInTheDocument();
+    await user.click(
+      within(manageDialog).getByRole('button', { name: /inactivar/i }),
+    );
 
     expect(await screen.findByRole('status')).toHaveTextContent(
       /el bloqueo de agenda se inactivo correctamente/i,
     );
 
-    await user.click(await screen.findByTestId('student-agenda-block-event-schedule-block-4'));
-    const secondManageDialog = screen.getByRole('dialog', { name: /gestionar bloqueo/i });
-    expect(within(secondManageDialog).getByText(/^Inactivo$/i)).toBeInTheDocument();
-    await user.click(within(secondManageDialog).getByRole('button', { name: /eliminar/i }));
-
-    const confirmDialog = screen.getByRole('dialog', { name: /eliminar bloqueo/i });
     await user.click(
-      within(confirmDialog).getByRole('button', { name: /si, eliminar bloqueo/i }),
+      await screen.findByTestId('student-agenda-block-event-schedule-block-4'),
+    );
+    const secondManageDialog = screen.getByRole('dialog', {
+      name: /gestionar bloqueo/i,
+    });
+    expect(
+      within(secondManageDialog).getByText(/^Inactivo$/i),
+    ).toBeInTheDocument();
+    await user.click(
+      within(secondManageDialog).getByRole('button', { name: /eliminar/i }),
+    );
+
+    const confirmDialog = screen.getByRole('dialog', {
+      name: /eliminar bloqueo/i,
+    });
+    await user.click(
+      within(confirmDialog).getByRole('button', {
+        name: /si, eliminar bloqueo/i,
+      }),
     );
 
     expect(await screen.findByRole('status')).toHaveTextContent(
@@ -374,25 +449,43 @@ describe('Student pages', () => {
 
     const dialog = screen.getByRole('dialog', { name: /agendar cita/i });
     await user.click(within(dialog).getByLabelText(/solicitud aceptada/i));
-    await user.click(within(dialog).getByRole('option', { name: /julian torres/i }));
+    await user.click(
+      within(dialog).getByRole('option', { name: /julian torres/i }),
+    );
     await user.click(within(dialog).getByLabelText(/^sede$/i));
-    await user.click(within(dialog).getByRole('option', { name: /sede norte/i }));
+    await user.click(
+      within(dialog).getByRole('option', { name: /sede norte/i }),
+    );
     await user.click(within(dialog).getByLabelText(/tipo de cita/i));
     await user.click(
       within(dialog).getByRole('option', { name: /control restaurativo/i }),
     );
-    await user.type(within(dialog).getByLabelText(/fecha de la cita/i), '2026-04-11');
+    await user.type(
+      within(dialog).getByLabelText(/fecha de la cita/i),
+      '2026-04-11',
+    );
     await user.type(within(dialog).getByLabelText(/hora de inicio/i), '08:00');
-    await user.type(within(dialog).getByLabelText(/hora de finalizacion/i), '09:00');
+    await user.type(
+      within(dialog).getByLabelText(/hora de finalizacion/i),
+      '09:00',
+    );
     await user.click(within(dialog).getByLabelText(/docente supervisor/i));
-    await user.click(within(dialog).getByRole('option', { name: /catalina mora/i }));
-    await user.click(within(dialog).getByRole('button', { name: /operatoria basica/i }));
-    await user.click(within(dialog).getByRole('button', { name: /promocion y prevencion/i }));
+    await user.click(
+      within(dialog).getByRole('option', { name: /catalina mora/i }),
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: /operatoria basica/i }),
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: /promocion y prevencion/i }),
+    );
     await user.type(
       within(dialog).getByLabelText(/informacion adicional/i),
       'Paciente listo para propuesta de control preventivo.',
     );
-    await user.click(within(dialog).getByRole('button', { name: /guardar cita/i }));
+    await user.click(
+      within(dialog).getByRole('button', { name: /guardar cita/i }),
+    );
 
     await waitFor(() => {
       expect(
@@ -401,15 +494,16 @@ describe('Student pages', () => {
     });
 
     await user.click(
-      within(screen.getByTestId('student-appointment-row-student-appointment-6')).getByRole(
-        'button',
-        {
-          name: /cancelar cita/i,
-        },
-      ),
+      within(
+        screen.getByTestId('student-appointment-row-student-appointment-6'),
+      ).getByRole('button', {
+        name: /cancelar cita/i,
+      }),
     );
 
-    const confirmDialog = screen.getByRole('dialog', { name: /cancelar cita/i });
+    const confirmDialog = screen.getByRole('dialog', {
+      name: /cancelar cita/i,
+    });
     await user.click(
       within(confirmDialog).getByRole('button', { name: /si, cancelar cita/i }),
     );
@@ -418,9 +512,9 @@ describe('Student pages', () => {
       /la cita ahora esta cancelada/i,
     );
     expect(
-      within(screen.getByTestId('student-appointment-row-student-appointment-6')).getByText(
-        /^Cancelada$/i,
-      ),
+      within(
+        screen.getByTestId('student-appointment-row-student-appointment-6'),
+      ).getByText(/^Cancelada$/i),
     ).toBeInTheDocument();
   });
 
@@ -432,21 +526,29 @@ describe('Student pages', () => {
     expect(
       screen.queryByText(/revisa las solicitudes de pacientes/i),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText(/^Conversaciones activas$/i)).not.toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/buscar por nombre del paciente/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/^Conversaciones activas$/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/buscar por nombre del paciente/i),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('columnheader', { name: /^Seguimiento$/i }),
     ).not.toBeInTheDocument();
     expect(
-      within(screen.getByTestId('student-request-row-student-request-1')).getByText(
-        /bogota - chapinero/i,
-      ),
+      within(
+        screen.getByTestId('student-request-row-student-request-1'),
+      ).getByText(/bogota - chapinero/i),
     ).toBeInTheDocument();
     expect(
-      within(screen.getByTestId('student-request-row-student-request-1')).getByText(/envio:/i),
+      within(
+        screen.getByTestId('student-request-row-student-request-1'),
+      ).getByText(/envio:/i),
     ).toBeInTheDocument();
     expect(
-      within(screen.getByTestId('student-request-row-student-request-1')).queryByText(/a\u00f1os/i),
+      within(
+        screen.getByTestId('student-request-row-student-request-1'),
+      ).queryByText(/a\u00f1os/i),
     ).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/buscar paciente/i), 'Soacha');
@@ -455,14 +557,18 @@ describe('Student pages', () => {
 
     await user.clear(screen.getByLabelText(/buscar paciente/i));
 
-    await user.click(screen.getByRole('button', { name: /filtrar solicitudes por estado/i }));
+    await user.click(
+      screen.getByRole('button', { name: /filtrar solicitudes por estado/i }),
+    );
     await user.click(screen.getByRole('menuitemradio', { name: /pendiente/i }));
 
     expect(screen.getByText(/ana maria perez/i)).toBeInTheDocument();
     expect(screen.queryByText(/julian torres/i)).not.toBeInTheDocument();
 
     await user.click(
-      within(screen.getByTestId('student-request-row-student-request-1')).getByRole('button', {
+      within(
+        screen.getByTestId('student-request-row-student-request-1'),
+      ).getByRole('button', {
         name: /aceptar/i,
       }),
     );
@@ -474,14 +580,16 @@ describe('Student pages', () => {
       expect(screen.queryByText(/ana maria perez/i)).not.toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /filtrar solicitudes por estado/i }));
+    await user.click(
+      screen.getByRole('button', { name: /filtrar solicitudes por estado/i }),
+    );
     await user.click(screen.getByRole('menuitemradio', { name: /aceptada/i }));
 
     expect(screen.getByText(/ana maria perez/i)).toBeInTheDocument();
     expect(
-      within(screen.getByTestId('student-request-row-student-request-1')).getByText(
-        /^Aceptada$/i,
-      ),
+      within(
+        screen.getByTestId('student-request-row-student-request-1'),
+      ).getByText(/^Aceptada$/i),
     ).toBeInTheDocument();
   });
 
@@ -491,12 +599,16 @@ describe('Student pages', () => {
     renderStudentApp([ROUTES.studentRequests]);
 
     await user.click(
-      within(screen.getByTestId('student-request-row-student-request-1')).getByRole('button', {
+      within(
+        screen.getByTestId('student-request-row-student-request-1'),
+      ).getByRole('button', {
         name: /ver perfil de ana maria perez/i,
       }),
     );
 
-    const dialog = screen.getByRole('dialog', { name: /perfil de ana maria perez/i });
+    const dialog = screen.getByRole('dialog', {
+      name: /perfil de ana maria perez/i,
+    });
 
     expect(within(dialog).queryByText(/^Numero$/i)).not.toBeInTheDocument();
     expect(within(dialog).queryByText(/^3001234567$/i)).not.toBeInTheDocument();
@@ -510,9 +622,13 @@ describe('Student pages', () => {
       ),
     ).toBeInTheDocument();
 
-    await user.click(within(dialog).getByRole('button', { name: /^Aceptar$/i }));
+    await user.click(
+      within(dialog).getByRole('button', { name: /^Aceptar$/i }),
+    );
 
-    expect(await screen.findByRole('status')).toHaveTextContent(/la solicitud fue aceptada/i);
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      /la solicitud fue aceptada/i,
+    );
     await waitFor(() => {
       expect(
         screen.queryByRole('dialog', { name: /perfil de ana maria perez/i }),
@@ -526,17 +642,25 @@ describe('Student pages', () => {
     renderStudentApp([ROUTES.studentConversations]);
 
     expect(
-      screen.queryByText(/mantiene las conversaciones activas con los pacientes/i),
+      screen.queryByText(
+        /mantiene las conversaciones activas con los pacientes/i,
+      ),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText(/^Conversaciones activas$/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/^Mensajes pendientes$/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/^Conversaciones activas$/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/^Mensajes pendientes$/i),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByTestId('student-conversation-card-student-conversation-1'),
     ).toHaveTextContent(/julian torres/i);
     expect(
-      within(screen.getByTestId('student-conversation-thread-student-conversation-1')).getByText(
-        /perfecto, quedo atento al horario que me sugieras/i,
-      ),
+      within(
+        screen.getByTestId(
+          'student-conversation-thread-student-conversation-1',
+        ),
+      ).getByText(/perfecto, quedo atento al horario que me sugieras/i),
     ).toBeInTheDocument();
 
     await user.type(
@@ -546,7 +670,11 @@ describe('Student pages', () => {
     await user.click(screen.getByRole('button', { name: /enviar mensaje/i }));
 
     expect(
-      await within(screen.getByTestId('student-conversation-thread-student-conversation-1')).findByText(
+      await within(
+        screen.getByTestId(
+          'student-conversation-thread-student-conversation-1',
+        ),
+      ).findByText(
         /hola julian, manana en la tarde te puedo compartir una propuesta de horario/i,
       ),
     ).toBeInTheDocument();

@@ -509,9 +509,10 @@ export function AdminShell({
                             <div className="max-h-[22rem] overflow-y-auto">
                               {visibleNotifications.map((notification) => {
                                 const notificationDestination =
-                                  notificationsPageTo
+                                  notification.to ??
+                                  (notificationsPageTo
                                     ? `${notificationsPageTo}?notification=${encodeURIComponent(notification.id)}`
-                                    : notification.to;
+                                    : undefined);
                                 const itemContent = (
                                   <div
                                     className={classNames(

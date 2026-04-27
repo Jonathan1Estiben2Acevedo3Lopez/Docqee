@@ -19,39 +19,40 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.register,
     lazy: async () => {
-      const { RegisterPage } = await import('@/pages/auth/register/RegisterPage');
+      const { RegisterPage } =
+        await import('@/pages/auth/register/RegisterPage');
       return { Component: RegisterPage };
     },
   },
   {
     path: ROUTES.verifyEmail,
     lazy: async () => {
-      const { VerifyEmailPage } = await import('@/pages/auth/verify-email/VerifyEmailPage');
+      const { VerifyEmailPage } =
+        await import('@/pages/auth/verify-email/VerifyEmailPage');
       return { Component: VerifyEmailPage };
     },
   },
   {
     path: ROUTES.firstLoginPassword,
     lazy: async () => {
-      const { FirstLoginPasswordPage } = await import(
-        '@/pages/auth/first-login/FirstLoginPasswordPage'
-      );
+      const { FirstLoginPasswordPage } =
+        await import('@/pages/auth/first-login/FirstLoginPasswordPage');
       return { Component: FirstLoginPasswordPage };
     },
   },
   {
     path: ROUTES.privacyPolicy,
     lazy: async () => {
-      const { PrivacyPolicyPage } = await import('@/pages/home/LegalPlaceholderPage');
+      const { PrivacyPolicyPage } =
+        await import('@/pages/home/LegalPlaceholderPage');
       return { Component: PrivacyPolicyPage };
     },
   },
   {
     path: ROUTES.termsAndConditions,
     lazy: async () => {
-      const { TermsAndConditionsPage } = await import(
-        '@/pages/home/LegalPlaceholderPage'
-      );
+      const { TermsAndConditionsPage } =
+        await import('@/pages/home/LegalPlaceholderPage');
       return { Component: TermsAndConditionsPage };
     },
   },
@@ -71,21 +72,24 @@ export const router = createBrowserRouter([
       {
         path: 'universidades',
         lazy: async () => {
-          const { AdminUniversitiesPage } = await import('@/pages/admin/universities/AdminUniversitiesPage');
+          const { AdminUniversitiesPage } =
+            await import('@/pages/admin/universities/AdminUniversitiesPage');
           return { Component: AdminUniversitiesPage };
         },
       },
       {
         path: 'universidades/registrar',
         lazy: async () => {
-          const { AdminRegisterUniversityPage } = await import('@/pages/admin/register-university/AdminRegisterUniversityPage');
+          const { AdminRegisterUniversityPage } =
+            await import('@/pages/admin/register-university/AdminRegisterUniversityPage');
           return { Component: AdminRegisterUniversityPage };
         },
       },
       {
         path: 'credenciales',
         lazy: async () => {
-          const { AdminCredentialsPage } = await import('@/pages/admin/credentials/AdminCredentialsPage');
+          const { AdminCredentialsPage } =
+            await import('@/pages/admin/credentials/AdminCredentialsPage');
           return { Component: AdminCredentialsPage };
         },
       },
@@ -94,9 +98,8 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.universityRoot,
     lazy: async () => {
-      const { UniversityAdminLayout } = await import(
-        '@/pages/university-admin/UniversityAdminLayout'
-      );
+      const { UniversityAdminLayout } =
+        await import('@/pages/university-admin/UniversityAdminLayout');
       return { Component: UniversityAdminLayout };
     },
     children: [
@@ -109,72 +112,64 @@ export const router = createBrowserRouter([
       {
         path: 'inicio',
         lazy: async () => {
-          const { UniversityHomePage } = await import(
-            '@/pages/university-admin/home/UniversityHomePage'
-          );
+          const { UniversityHomePage } =
+            await import('@/pages/university-admin/home/UniversityHomePage');
           return { Component: UniversityHomePage };
         },
       },
       {
         path: 'informacion-institucional',
         lazy: async () => {
-          const { UniversityInstitutionPage } = await import(
-            '@/pages/university-admin/institution/UniversityInstitutionPage'
-          );
+          const { UniversityInstitutionPage } =
+            await import('@/pages/university-admin/institution/UniversityInstitutionPage');
           return { Component: UniversityInstitutionPage };
         },
       },
       {
         path: 'estudiantes',
         lazy: async () => {
-          const { UniversityStudentsPage } = await import(
-            '@/pages/university-admin/students/UniversityStudentsPage'
-          );
+          const { UniversityStudentsPage } =
+            await import('@/pages/university-admin/students/UniversityStudentsPage');
           return { Component: UniversityStudentsPage };
         },
       },
       {
         path: 'estudiantes/registrar',
         lazy: async () => {
-          const { UniversityRegisterStudentPage } = await import(
-            '@/pages/university-admin/students/UniversityRegisterStudentPage'
-          );
+          const { UniversityRegisterStudentPage } =
+            await import('@/pages/university-admin/students/UniversityRegisterStudentPage');
           return { Component: UniversityRegisterStudentPage };
         },
       },
       {
         path: 'docentes',
         lazy: async () => {
-          const { UniversityTeachersPage } = await import(
-            '@/pages/university-admin/teachers/UniversityTeachersPage'
-          );
+          const { UniversityTeachersPage } =
+            await import('@/pages/university-admin/teachers/UniversityTeachersPage');
           return { Component: UniversityTeachersPage };
         },
       },
       {
         path: 'docentes/registrar',
         lazy: async () => {
-          const { UniversityRegisterTeacherPage } = await import(
-            '@/pages/university-admin/teachers/UniversityRegisterTeacherPage'
-          );
+          const { UniversityRegisterTeacherPage } =
+            await import('@/pages/university-admin/teachers/UniversityRegisterTeacherPage');
           return { Component: UniversityRegisterTeacherPage };
         },
       },
       {
         path: 'carga-masiva',
         lazy: async () => {
-          const { UniversityBulkUploadPage } = await import(
-            '@/pages/university-admin/bulk-upload/UniversityBulkUploadPage'
-          );
+          const { UniversityBulkUploadPage } =
+            await import('@/pages/university-admin/bulk-upload/UniversityBulkUploadPage');
           return { Component: UniversityBulkUploadPage };
         },
       },
       {
         path: 'credenciales',
         lazy: async () => {
-          const { UniversityCredentialsPage } = await import(
-            '@/pages/university-admin/credentials/UniversityCredentialsPage'
-          );
+          const { UniversityCredentialsPage } =
+            await import('@/pages/university-admin/credentials/UniversityCredentialsPage');
           return { Component: UniversityCredentialsPage };
         },
       },
@@ -196,68 +191,64 @@ export const router = createBrowserRouter([
       {
         path: 'inicio',
         lazy: async () => {
-          const { PatientHomePage } = await import(
-            '@/pages/patient/home/PatientHomePage'
-          );
+          const { PatientHomePage } =
+            await import('@/pages/patient/home/PatientHomePage');
           return { Component: PatientHomePage };
         },
       },
       {
         path: 'buscar-estudiantes',
         lazy: async () => {
-          const { PatientSearchStudentsPage } = await import(
-            '@/pages/patient/search/PatientSearchStudentsPage'
-          );
+          const { PatientSearchStudentsPage } =
+            await import('@/pages/patient/search/PatientSearchStudentsPage');
           return { Component: PatientSearchStudentsPage };
         },
       },
       {
         path: 'solicitudes',
         lazy: async () => {
-          const { PatientRequestsPage } = await import('@/pages/patient/requests/PatientRequestsPage');
+          const { PatientRequestsPage } =
+            await import('@/pages/patient/requests/PatientRequestsPage');
           return { Component: PatientRequestsPage };
         },
       },
       {
         path: 'agenda',
         lazy: async () => {
-          const { PatientAgendaPage } = await import(
-            '@/pages/patient/agenda/PatientAgendaPage'
-          );
+          const { PatientAgendaPage } =
+            await import('@/pages/patient/agenda/PatientAgendaPage');
           return { Component: PatientAgendaPage };
         },
       },
       {
         path: 'notificaciones',
         lazy: async () => {
-          const { PatientNotificationsPage } = await import(
-            '@/pages/patient/notifications/PatientNotificationsPage'
-          );
+          const { PatientNotificationsPage } =
+            await import('@/pages/patient/notifications/PatientNotificationsPage');
           return { Component: PatientNotificationsPage };
         },
       },
       {
         path: 'conversaciones',
         lazy: async () => {
-          const { PatientConversationsPage } = await import(
-            '@/pages/patient/conversations/PatientConversationsPage'
-          );
+          const { PatientConversationsPage } =
+            await import('@/pages/patient/conversations/PatientConversationsPage');
           return { Component: PatientConversationsPage };
         },
       },
       {
         path: 'citas',
         lazy: async () => {
-          const { PatientAppointmentsPage } = await import(
-            '@/pages/patient/appointments/PatientAppointmentsPage'
-          );
+          const { PatientAppointmentsPage } =
+            await import('@/pages/patient/appointments/PatientAppointmentsPage');
           return { Component: PatientAppointmentsPage };
         },
       },
       {
         path: 'mi-perfil',
         lazy: async () => {
-          const { PatientProfilePage } = await import('@/pages/patient/profile/PatientProfilePage');
+          const { PatientProfilePage } =
+            await import('@/pages/patient/profile/PatientProfilePage');
           return { Component: PatientProfilePage };
         },
       },
@@ -279,18 +270,16 @@ export const router = createBrowserRouter([
       {
         path: 'mi-perfil',
         lazy: async () => {
-          const { StudentProfilePage } = await import(
-            '@/pages/student/profile/StudentProfilePortalPage'
-          );
+          const { StudentProfilePage } =
+            await import('@/pages/student/profile/StudentProfilePortalPage');
           return { Component: StudentProfilePage };
         },
       },
       {
         path: 'inicio',
         lazy: async () => {
-          const { StudentTreatmentsPage } = await import(
-            '@/pages/student/treatments/StudentTreatmentsPage'
-          );
+          const { StudentTreatmentsPage } =
+            await import('@/pages/student/treatments/StudentTreatmentsPage');
           return { Component: StudentTreatmentsPage };
         },
       },
@@ -303,43 +292,38 @@ export const router = createBrowserRouter([
       {
         path: 'agenda',
         lazy: async () => {
-          const { StudentAgendaPage } = await import('@/pages/student/agenda/StudentAgendaPage');
+          const { StudentAgendaPage } =
+            await import('@/pages/student/agenda/StudentAgendaPage');
           return { Component: StudentAgendaPage };
         },
       },
       {
         path: 'citas',
         lazy: async () => {
-          const { StudentAppointmentsPage } = await import(
-            '@/pages/student/appointments/StudentAppointmentsPage'
-          );
+          const { StudentAppointmentsPage } =
+            await import('@/pages/student/appointments/StudentAppointmentsPage');
           return { Component: StudentAppointmentsPage };
         },
       },
       {
         path: 'solicitudes',
         lazy: async () => {
-          const { StudentRequestsPage } = await import(
-            '@/pages/student/requests/StudentRequestsPage'
-          );
+          const { StudentRequestsPage } =
+            await import('@/pages/student/requests/StudentRequestsPage');
           return { Component: StudentRequestsPage };
         },
       },
       {
         path: 'notificaciones',
-        lazy: async () => {
-          const { StudentNotificationsPage } = await import(
-            '@/pages/student/notifications/StudentNotificationsPage'
-          );
-          return { Component: StudentNotificationsPage };
+        Component: function StudentNotificationsRemovedRedirect() {
+          return <Navigate replace to={ROUTES.studentTreatments} />;
         },
       },
       {
         path: 'conversaciones',
         lazy: async () => {
-          const { StudentConversationsPage } = await import(
-            '@/pages/student/conversations/StudentConversationsPage'
-          );
+          const { StudentConversationsPage } =
+            await import('@/pages/student/conversations/StudentConversationsPage');
           return { Component: StudentConversationsPage };
         },
       },
@@ -348,7 +332,8 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.forgotPassword,
     lazy: async () => {
-      const { ForgotPasswordPage } = await import('@/pages/auth/forgot-password/ForgotPasswordPage');
+      const { ForgotPasswordPage } =
+        await import('@/pages/auth/forgot-password/ForgotPasswordPage');
       return { Component: ForgotPasswordPage };
     },
   },
