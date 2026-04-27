@@ -829,16 +829,16 @@ export function StudentRequestsPage() {
                     </td>
                     <td className="px-1.5 py-2 text-center sm:px-4 sm:py-3">
                       {request.status === 'PENDIENTE' ? (
-                        <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 xl:flex-nowrap">
+                        <div className="flex flex-nowrap items-center justify-center gap-0.5 sm:gap-1.5">
                           <button
                             aria-label={`Ver perfil de ${request.patientName}`}
-                            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-1.5 py-1 text-[0.66rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-slate-100 px-1 py-1 text-[0.6rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
                             type="button"
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye
                               aria-hidden="true"
-                              className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+                              className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
                             />
                             <span>
                               {
@@ -848,7 +848,7 @@ export function StudentRequestsPage() {
                             </span>
                           </button>
                           <button
-                            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-emerald-50 px-1.5 py-1 text-[0.66rem] font-semibold text-emerald-700 transition duration-200 hover:bg-emerald-100 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-emerald-50 px-1 py-1 text-[0.6rem] font-semibold text-emerald-700 transition duration-200 hover:bg-emerald-100 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
                             type="button"
                             onClick={() =>
                               handleRequestAction(
@@ -860,14 +860,14 @@ export function StudentRequestsPage() {
                           >
                             <Check
                               aria-hidden="true"
-                              className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+                              className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
                             />
                             <span>
                               {studentContent.requestsPage.actionLabels.accept}
                             </span>
                           </button>
                           <button
-                            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-rose-50 px-1.5 py-1 text-[0.66rem] font-semibold text-rose-700 transition duration-200 hover:bg-rose-100 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-rose-50 px-1 py-1 text-[0.6rem] font-semibold text-rose-700 transition duration-200 hover:bg-rose-100 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
                             type="button"
                             onClick={() =>
                               handleRequestAction(
@@ -879,7 +879,7 @@ export function StudentRequestsPage() {
                           >
                             <XCircle
                               aria-hidden="true"
-                              className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+                              className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
                             />
                             <span>
                               {studentContent.requestsPage.actionLabels.reject}
