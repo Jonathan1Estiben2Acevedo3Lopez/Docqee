@@ -83,6 +83,12 @@ export function getStudentDisplayName(firstName: string, lastName: string) {
   };
 }
 
+function formatReviewSummary(averageRatingValue: number, reviewCount: number) {
+  const reviewLabel = reviewCount === 1 ? 'reseña' : 'reseñas';
+
+  return `${averageRatingValue.toFixed(1)} · (${reviewCount} ${reviewLabel})`;
+}
+
 export function StudentTreatmentsPage() {
   const {
     errorMessage,
@@ -383,7 +389,7 @@ export function StudentTreatmentsPage() {
       >
         <div className="flex flex-col gap-3 px-4 py-3.5 sm:px-5 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-3 2xl:px-6">
           <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
-            <div className="order-2 shrink-0 lg:order-1">
+            <div className="shrink-0">
               {profile.avatarSrc ? (
                 <img
                   alt={profile.avatarAlt}
@@ -397,9 +403,9 @@ export function StudentTreatmentsPage() {
                 </span>
               )}
             </div>
-            <div className="order-1 flex min-w-0 flex-1 flex-col gap-1.5 lg:order-2">
-              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
-                <h2 className="max-w-[14rem] truncate font-headline text-[1.05rem] font-extrabold tracking-tight text-white sm:max-w-[16rem] sm:text-[1.18rem] lg:max-w-none lg:whitespace-normal lg:overflow-visible xl:max-w-none">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2.5">
+                <h2 className="max-w-[8rem] truncate font-headline text-[1.02rem] font-extrabold tracking-tight text-white sm:max-w-[16rem] sm:text-[1.18rem] lg:max-w-none lg:whitespace-normal lg:overflow-visible xl:max-w-none">
                   {studentDisplayName.compactName ===
                   studentDisplayName.fullName ? (
                     <>Bienvenido, {studentDisplayName.fullName}</>
@@ -414,6 +420,19 @@ export function StudentTreatmentsPage() {
                     </>
                   )}
                 </h2>
+                {reviews.length > 0 ? (
+                  <span className="inline-flex min-w-0 shrink-0 items-center gap-1 rounded-full bg-white/12 px-2 py-1 text-white/92 sm:gap-2 sm:px-2.5">
+                    <span className="flex shrink-0 items-center gap-0.5">
+                      {renderStars(
+                        averageRating,
+                        'h-2.5 w-2.5 sm:h-3.5 sm:w-3.5',
+                      )}
+                    </span>
+                    <span className="max-w-[5.7rem] truncate text-[0.68rem] font-semibold sm:max-w-[12rem] sm:text-[0.75rem] xl:max-w-[14rem]">
+                      {formatReviewSummary(averageRating, reviews.length)}
+                    </span>
+                  </span>
+                ) : null}
               </div>
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[0.75rem] font-semibold text-white/88">
@@ -428,16 +447,6 @@ export function StudentTreatmentsPage() {
                 <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[0.75rem] font-semibold text-white/88">
                   <GraduationCap aria-hidden="true" className="h-3.5 w-3.5" />
                   <span>Semestre {profile.semester}</span>
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-2.5 py-1 text-white/92">
-                  <div className="flex shrink-0 items-center gap-0.5">
-                    {renderStars(averageRating, 'h-3.5 w-3.5')}
-                  </div>
-                  {reviews.length > 0 ? (
-                    <span className="max-w-[10rem] truncate text-[0.75rem] font-semibold sm:max-w-[12rem] xl:max-w-[14rem]">
-                      {`${averageRating.toFixed(1)} de 5 en ${reviews.length} valoraciones`}
-                    </span>
-                  ) : null}
                 </span>
               </div>
             </div>
@@ -761,7 +770,7 @@ export function StudentTreatmentsPage() {
                 </div>
                 <p className="text-sm font-semibold">
                   {reviews.length > 0
-                    ? `${averageRating.toFixed(1)} de 5 en ${reviews.length} valoraciones`
+                    ? formatReviewSummary(averageRating, reviews.length)
                     : 'Aun no tienes valoraciones registradas'}
                 </p>
               </div>

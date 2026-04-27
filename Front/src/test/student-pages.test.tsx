@@ -276,7 +276,7 @@ describe('Student pages', () => {
 
     expect(screen.getByRole('link', { name: /^inicio$/i })).toBeInTheDocument();
     expect(screen.getByText(/bienvenido, valentina rios/i)).toBeInTheDocument();
-    expect(screen.getByText(/4.7 de 5 en 3 valoraciones/i)).toBeInTheDocument();
+    expect(screen.getByText(/4\.7 · \(3 reseñas\)/i)).toBeInTheDocument();
     expect(screen.getByText(/comentarios de tus citas/i)).toBeInTheDocument();
     expect(
       screen.getByRole('columnheader', { name: /^Valoración$/i }),
