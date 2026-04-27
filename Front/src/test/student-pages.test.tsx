@@ -575,6 +575,7 @@ describe('Student pages', () => {
     expect(
       screen.queryByRole('columnheader', { name: /^Seguimiento$/i }),
     ).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Sin acciones$/i)).not.toBeInTheDocument();
     const initialRequestRows = screen
       .getAllByRole('row')
       .slice(1)

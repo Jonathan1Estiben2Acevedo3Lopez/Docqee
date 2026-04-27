@@ -965,7 +965,7 @@ export function StudentRequestsPage() {
                               aria-hidden="true"
                               className="h-2 w-2 sm:h-3.5 sm:w-3.5"
                             />
-                            <span>
+                            <span className="text-[0.45rem] leading-none sm:text-xs">
                               {
                                 studentContent.requestsPage.actionLabels
                                   .viewProfile
@@ -987,7 +987,7 @@ export function StudentRequestsPage() {
                               aria-hidden="true"
                               className="h-2 w-2 sm:h-3.5 sm:w-3.5"
                             />
-                            <span>
+                            <span className="text-[0.45rem] leading-none sm:text-xs">
                               {studentContent.requestsPage.actionLabels.accept}
                             </span>
                           </button>
@@ -1006,7 +1006,7 @@ export function StudentRequestsPage() {
                               aria-hidden="true"
                               className="h-2 w-2 sm:h-3.5 sm:w-3.5"
                             />
-                            <span>
+                            <span className="text-[0.45rem] leading-none sm:text-xs">
                               {studentContent.requestsPage.actionLabels.reject}
                             </span>
                           </button>
@@ -1023,7 +1023,7 @@ export function StudentRequestsPage() {
                               aria-hidden="true"
                               className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
                             />
-                            <span>
+                            <span className="text-[0.52rem] leading-none sm:text-xs">
                               {
                                 studentContent.requestsPage.actionLabels
                                   .viewProfile
@@ -1039,7 +1039,7 @@ export function StudentRequestsPage() {
                               aria-hidden="true"
                               className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
                             />
-                            <span>
+                            <span className="text-[0.52rem] leading-none sm:text-xs">
                               {studentContent.requestsPage.actionLabels.close}
                             </span>
                           </button>
@@ -1056,16 +1056,13 @@ export function StudentRequestsPage() {
                               aria-hidden="true"
                               className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
                             />
-                            <span>
+                            <span className="text-[0.52rem] leading-none sm:text-xs">
                               {
                                 studentContent.requestsPage.actionLabels
                                   .viewProfile
                               }
                             </span>
                           </button>
-                          <span className="text-[0.56rem] font-medium text-ink-muted sm:text-xs">
-                            Sin acciones
-                          </span>
                         </div>
                       )}
                     </td>
