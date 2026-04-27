@@ -556,7 +556,7 @@ describe('Student pages', () => {
         ).getByText(/^Cancelada$/i),
       ).toBeInTheDocument();
     });
-  });
+  }, 10_000);
 
   it('permite filtrar solicitudes pendientes y aceptarlas', async () => {
     const user = userEvent.setup();

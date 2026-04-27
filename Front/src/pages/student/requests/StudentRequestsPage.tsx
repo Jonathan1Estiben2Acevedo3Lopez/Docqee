@@ -766,25 +766,29 @@ export function StudentRequestsPage() {
           className="min-w-0 overflow-hidden bg-brand-gradient text-white"
           paddingClassName="p-0"
         >
-          <div className="flex items-center gap-2.5 px-3.5 py-1.5 sm:py-2">
-            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.8rem] bg-white/12 text-white sm:h-8 sm:w-8 sm:rounded-[0.9rem]">
+          <div className="flex items-center gap-2 px-3 py-1.5 sm:gap-2 sm:px-3 sm:py-1.5">
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.8rem] bg-white/12 text-white sm:h-7 sm:w-7 sm:rounded-[0.8rem]">
               <UserRound
                 aria-hidden="true"
-                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                className="h-3.5 w-3.5 sm:h-3.5 sm:w-3.5"
               />
             </span>
-            <span className="font-headline text-[1.12rem] font-extrabold tracking-tight text-white sm:text-[1.28rem]">
+            <span className="font-headline text-[1.12rem] font-extrabold tracking-tight text-white sm:text-[1.08rem]">
               {pendingCount}
             </span>
-            <p className="min-w-0 text-[0.76rem] font-semibold text-white/90 sm:text-[0.82rem]">
+            <p className="min-w-0 text-[0.76rem] font-semibold text-white/90 sm:text-[0.76rem]">
               Solicitudes pendientes
             </p>
           </div>
         </SurfaceCard>
       </div>
-      <AdminPanelCard className="flex-1" panelClassName="bg-[#f4f8ff]">
-        <div className="border-b border-slate-200/80 px-4 py-3.5 sm:px-5 sm:py-3.5">
-          <div className="flex items-center gap-2 sm:justify-between sm:gap-3">
+      <AdminPanelCard
+        className="flex-1"
+        panelClassName="bg-[#f4f8ff]"
+        shellPaddingClassName="p-0.5 sm:p-1"
+      >
+        <div className="border-b border-slate-200/80 px-4 py-3.5 sm:px-4 sm:py-2.5">
+          <div className="flex items-center gap-2 sm:justify-between sm:gap-2.5">
             <label
               className="relative min-w-0 flex-1 sm:max-w-[30rem] xl:max-w-[34rem]"
               htmlFor="student-request-search"
@@ -794,10 +798,10 @@ export function StudentRequestsPage() {
               </span>
               <Search
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ghost sm:left-4 sm:h-4 sm:w-4"
+                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ghost sm:left-3.5 sm:h-3.5 sm:w-3.5"
               />
               <input
-                className="h-9 w-full rounded-full border border-slate-200/90 bg-white/98 py-0 pl-9 pr-3 text-[0.8rem] text-ink shadow-[0_10px_28px_-18px_rgba(15,23,42,0.38)] transition duration-300 placeholder:text-ghost/80 focus-visible:border-primary focus-visible:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 sm:h-11 sm:pl-11 sm:pr-4 sm:text-sm"
+                className="h-9 w-full rounded-full border border-slate-200/90 bg-white/98 py-0 pl-9 pr-3 text-[0.8rem] text-ink shadow-[0_10px_28px_-18px_rgba(15,23,42,0.38)] transition duration-300 placeholder:text-ghost/80 focus-visible:border-primary focus-visible:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 sm:h-10 sm:pl-10 sm:pr-3.5 sm:text-[0.82rem]"
                 id="student-request-search"
                 placeholder={studentContent.requestsPage.searchPlaceholder}
                 type="search"
@@ -820,7 +824,7 @@ export function StudentRequestsPage() {
                       }`
                 }
                 className={classNames(
-                  'relative inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white/98 text-ink shadow-[0_10px_28px_-18px_rgba(15,23,42,0.38)] transition duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 sm:h-11 sm:w-11',
+                  'relative inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white/98 text-ink shadow-[0_10px_28px_-18px_rgba(15,23,42,0.38)] transition duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 sm:h-10 sm:w-10',
                   statusFilter === 'all'
                     ? 'border-slate-200/90 hover:border-primary/30 hover:bg-white'
                     : 'border-primary/25 bg-primary/[0.08] text-primary hover:bg-primary/[0.12]',
@@ -832,7 +836,7 @@ export function StudentRequestsPage() {
               >
                 <SlidersHorizontal
                   aria-hidden="true"
-                  className="h-4 w-4 sm:h-[1.05rem] sm:w-[1.05rem]"
+                  className="h-4 w-4 sm:h-4 sm:w-4"
                 />
                 {statusFilter !== 'all' ? (
                   <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-white" />
@@ -897,17 +901,17 @@ export function StudentRequestsPage() {
           >
             <table className="w-full table-fixed">
               <thead className="sticky top-0 z-10 bg-slate-100 text-left">
-                <tr className="text-[0.55rem] font-bold uppercase leading-[0.72rem] tracking-[0.1em] text-ink-muted sm:text-[0.68rem] sm:leading-none sm:tracking-[0.18em]">
-                  <th className="w-[36%] px-1.5 py-1 sm:px-4 sm:py-2.5 md:w-[27%]">
+                <tr className="text-[0.55rem] font-bold uppercase leading-[0.72rem] tracking-[0.1em] text-ink-muted sm:text-[0.62rem] sm:leading-none sm:tracking-[0.16em]">
+                  <th className="w-[36%] px-1.5 py-1 sm:px-3 sm:py-2 md:w-[27%]">
                     Paciente
                   </th>
-                  <th className="hidden px-2 py-1.5 sm:px-4 sm:py-2.5 md:table-cell md:w-[28%]">
+                  <th className="hidden px-2 py-1.5 sm:px-3 sm:py-2 md:table-cell md:w-[28%]">
                     Motivo
                   </th>
-                  <th className="w-[19%] px-1 py-1 text-left sm:px-4 sm:py-2.5 md:w-[15%]">
+                  <th className="w-[19%] px-1 py-1 text-left sm:px-3 sm:py-2 md:w-[15%]">
                     Estado
                   </th>
-                  <th className="w-[45%] px-1 py-1 text-center sm:px-4 sm:py-2.5 md:w-[30%]">
+                  <th className="w-[45%] px-1 py-1 text-center sm:px-3 sm:py-2 md:w-[30%]">
                     Acciones
                   </th>
                 </tr>
@@ -922,15 +926,15 @@ export function StudentRequestsPage() {
                     className="align-top"
                     data-testid={`student-request-row-${request.id}`}
                   >
-                    <td className="px-1.5 py-1.5 sm:px-4 sm:py-3">
-                      <div className="min-w-0 space-y-0.5 sm:space-y-1">
-                        <p className="break-words text-[0.76rem] font-semibold leading-4 text-ink sm:text-sm sm:leading-5">
+                    <td className="px-1.5 py-1.5 sm:px-3 sm:py-2">
+                      <div className="min-w-0 space-y-0.5 sm:space-y-0.5">
+                        <p className="break-words text-[0.76rem] font-semibold leading-4 text-ink sm:text-[0.82rem] sm:leading-4">
                           {request.patientName}
                         </p>
-                        <p className="break-words text-[0.66rem] leading-[0.92rem] text-ink-muted sm:text-xs sm:leading-5">
+                        <p className="break-words text-[0.66rem] leading-[0.92rem] text-ink-muted sm:text-[0.72rem] sm:leading-4">
                           {getPatientLocationLabel(request)}
                         </p>
-                        <p className="text-[0.66rem] leading-[0.92rem] text-ink-muted sm:text-xs">
+                        <p className="text-[0.66rem] leading-[0.92rem] text-ink-muted sm:text-[0.72rem]">
                           Envió:{' '}
                           <span className="font-medium text-ink">
                             {formatRequestDate(request.sentAt)}
@@ -938,35 +942,35 @@ export function StudentRequestsPage() {
                         </p>
                       </div>
                     </td>
-                    <td className="hidden px-2 py-2 sm:px-4 sm:py-3 md:table-cell">
-                      <p className="line-clamp-3 break-words text-sm leading-5 text-ink-muted">
+                    <td className="hidden px-2 py-2 sm:px-3 sm:py-2 md:table-cell">
+                      <p className="line-clamp-2 break-words text-[0.8rem] leading-4 text-ink-muted">
                         {request.reason ?? 'Sin motivo registrado.'}
                       </p>
                     </td>
-                    <td className="px-1 py-1.5 sm:px-4 sm:py-3">
+                    <td className="px-1 py-1.5 sm:px-3 sm:py-2">
                       <span
                         className={classNames(
-                          'inline-flex max-w-full rounded-full px-1 py-0.5 text-[0.6rem] font-semibold leading-3 ring-1 ring-inset sm:px-2.5 sm:py-1 sm:text-xs sm:leading-4',
+                          'inline-flex max-w-full rounded-full px-1 py-0.5 text-[0.6rem] font-semibold leading-3 ring-1 ring-inset sm:px-2 sm:py-0.5 sm:text-[0.68rem] sm:leading-4',
                           getStatusBadgeClasses(request.status),
                         )}
                       >
                         {getStatusLabel(request.status)}
                       </span>
                     </td>
-                    <td className="px-0.5 py-1.5 text-center sm:px-4 sm:py-3">
+                    <td className="px-0.5 py-1.5 text-center sm:px-3 sm:py-2">
                       {request.status === 'PENDIENTE' ? (
-                        <div className="flex flex-nowrap items-center justify-center gap-0.5 sm:gap-1.5">
+                        <div className="flex flex-nowrap items-center justify-center gap-0.5 sm:gap-1">
                           <button
                             aria-label={`Ver perfil de ${request.patientName}`}
-                            className="inline-flex shrink-0 items-center gap-[0.08rem] whitespace-nowrap rounded-full bg-slate-100 px-0.5 py-0.5 text-[0.5rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-[0.08rem] whitespace-nowrap rounded-full bg-slate-100 px-0.5 py-0.5 text-[0.5rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
                             type="button"
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye
                               aria-hidden="true"
-                              className="h-2 w-2 sm:h-3.5 sm:w-3.5"
+                              className="h-2 w-2 sm:h-3 sm:w-3"
                             />
-                            <span className="text-[0.45rem] leading-none sm:text-xs">
+                            <span className="text-[0.45rem] leading-none sm:text-[0.72rem]">
                               {
                                 studentContent.requestsPage.actionLabels
                                   .viewProfile
@@ -974,7 +978,7 @@ export function StudentRequestsPage() {
                             </span>
                           </button>
                           <button
-                            className="inline-flex shrink-0 items-center gap-[0.08rem] whitespace-nowrap rounded-full bg-emerald-50 px-0.5 py-0.5 text-[0.5rem] font-semibold text-emerald-700 transition duration-200 hover:bg-emerald-100 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-[0.08rem] whitespace-nowrap rounded-full bg-emerald-50 px-0.5 py-0.5 text-[0.5rem] font-semibold text-emerald-700 transition duration-200 hover:bg-emerald-100 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
                             type="button"
                             onClick={() =>
                               handleResponsiveRequestAction(
@@ -986,14 +990,14 @@ export function StudentRequestsPage() {
                           >
                             <Check
                               aria-hidden="true"
-                              className="h-2 w-2 sm:h-3.5 sm:w-3.5"
+                              className="h-2 w-2 sm:h-3 sm:w-3"
                             />
-                            <span className="text-[0.45rem] leading-none sm:text-xs">
+                            <span className="text-[0.45rem] leading-none sm:text-[0.72rem]">
                               {studentContent.requestsPage.actionLabels.accept}
                             </span>
                           </button>
                           <button
-                            className="inline-flex shrink-0 items-center gap-[0.08rem] whitespace-nowrap rounded-full bg-rose-50 px-0.5 py-0.5 text-[0.5rem] font-semibold text-rose-700 transition duration-200 hover:bg-rose-100 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-[0.08rem] whitespace-nowrap rounded-full bg-rose-50 px-0.5 py-0.5 text-[0.5rem] font-semibold text-rose-700 transition duration-200 hover:bg-rose-100 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
                             type="button"
                             onClick={() =>
                               handleResponsiveRequestAction(
@@ -1005,26 +1009,26 @@ export function StudentRequestsPage() {
                           >
                             <XCircle
                               aria-hidden="true"
-                              className="h-2 w-2 sm:h-3.5 sm:w-3.5"
+                              className="h-2 w-2 sm:h-3 sm:w-3"
                             />
-                            <span className="text-[0.45rem] leading-none sm:text-xs">
+                            <span className="text-[0.45rem] leading-none sm:text-[0.72rem]">
                               {studentContent.requestsPage.actionLabels.reject}
                             </span>
                           </button>
                         </div>
                       ) : request.status === 'ACEPTADA' ? (
-                        <div className="flex flex-wrap items-center justify-center gap-0.5 sm:gap-1.5 xl:flex-nowrap">
+                        <div className="flex flex-wrap items-center justify-center gap-0.5 sm:gap-1 xl:flex-nowrap">
                           <button
                             aria-label={`Ver perfil de ${request.patientName}`}
-                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-slate-100 px-1 py-0.5 text-[0.56rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-slate-100 px-1 py-0.5 text-[0.56rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
                             type="button"
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye
                               aria-hidden="true"
-                              className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
+                              className="h-2.5 w-2.5 sm:h-3 sm:w-3"
                             />
-                            <span className="text-[0.52rem] leading-none sm:text-xs">
+                            <span className="text-[0.52rem] leading-none sm:text-[0.72rem]">
                               {
                                 studentContent.requestsPage.actionLabels
                                   .viewProfile
@@ -1032,32 +1036,32 @@ export function StudentRequestsPage() {
                             </span>
                           </button>
                           <button
-                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-slate-100 px-1 py-0.5 text-[0.56rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-slate-100 px-1 py-0.5 text-[0.56rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
                             type="button"
                             onClick={() => setRequestToClose(request)}
                           >
                             <ShieldX
                               aria-hidden="true"
-                              className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
+                              className="h-2.5 w-2.5 sm:h-3 sm:w-3"
                             />
-                            <span className="text-[0.52rem] leading-none sm:text-xs">
+                            <span className="text-[0.52rem] leading-none sm:text-[0.72rem]">
                               {studentContent.requestsPage.actionLabels.close}
                             </span>
                           </button>
                         </div>
                       ) : (
-                        <div className="flex flex-wrap items-center justify-center gap-0.5 sm:gap-1.5 xl:flex-nowrap">
+                        <div className="flex flex-wrap items-center justify-center gap-0.5 sm:gap-1 xl:flex-nowrap">
                           <button
                             aria-label={`Ver perfil de ${request.patientName}`}
-                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-slate-100 px-1 py-0.5 text-[0.56rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                            className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full bg-slate-100 px-1 py-0.5 text-[0.56rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
                             type="button"
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye
                               aria-hidden="true"
-                              className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5"
+                              className="h-2.5 w-2.5 sm:h-3 sm:w-3"
                             />
-                            <span className="text-[0.52rem] leading-none sm:text-xs">
+                            <span className="text-[0.52rem] leading-none sm:text-[0.72rem]">
                               {
                                 studentContent.requestsPage.actionLabels
                                   .viewProfile
