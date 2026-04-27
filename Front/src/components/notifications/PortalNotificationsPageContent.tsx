@@ -1,9 +1,10 @@
 import { Bell, CheckCheck, Circle, ExternalLink } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminPanelCard } from '@/components/admin/AdminPanelCard';
+import { AdminTablePagination } from '@/components/admin/AdminTablePagination';
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import type { PortalNotification } from '@/content/types';
 import { classNames } from '@/lib/classNames';
@@ -12,6 +13,7 @@ type PortalNotificationsPageContentProps = {
   compact?: boolean;
   description: string;
   emptyState: string;
+  enablePagination?: boolean;
   isLoading?: boolean;
   markAllReadLabel: string;
   markReadLabel: string;
@@ -23,6 +25,8 @@ type PortalNotificationsPageContentProps = {
   unreadLabel: string;
   viewDetailLabel: string;
 };
+
+const DEFAULT_NOTIFICATIONS_PER_PAGE = 6;
 
 function formatNotificationDate(value: string) {
   const parsedDate = new Date(value);
@@ -57,6 +61,7 @@ export function PortalNotificationsPageContent({
   compact = false,
   description,
   emptyState,
+  enablePagination = false,
   isLoading = false,
   markAllReadLabel,
   markReadLabel,
@@ -68,9 +73,59 @@ export function PortalNotificationsPageContent({
   unreadLabel,
   viewDetailLabel,
 }: PortalNotificationsPageContentProps) {
+  const [currentPage, setCurrentPage] = useState(1);
   const unreadCount = notifications.filter(
     (notification) => notification.isRead !== true,
   ).length;
+  const totalPages = enablePagination
+    ? Math.max(
+        1,
+        Math.ceil(notifications.length / DEFAULT_NOTIFICATIONS_PER_PAGE),
+      )
+    : 1;
+  const clampedCurrentPage = enablePagination
+    ? Math.min(currentPage, totalPages)
+    : 1;
+  const pageStartIndex = enablePagination
+    ? (clampedCurrentPage - 1) * DEFAULT_NOTIFICATIONS_PER_PAGE
+    : 0;
+  const visibleNotifications = useMemo(
+    () =>
+      enablePagination
+        ? notifications.slice(
+            pageStartIndex,
+            pageStartIndex + DEFAULT_NOTIFICATIONS_PER_PAGE,
+          )
+        : notifications,
+    [enablePagination, notifications, pageStartIndex],
+  );
+  const pageStartLabel = notifications.length > 0 ? pageStartIndex + 1 : 0;
+  const pageEndLabel = Math.min(
+    pageStartIndex + visibleNotifications.length,
+    notifications.length,
+  );
+
+  useEffect(() => {
+    setCurrentPage((currentValue) => Math.min(currentValue, totalPages));
+  }, [totalPages]);
+
+  useEffect(() => {
+    if (!enablePagination || !selectedNotificationId) {
+      return;
+    }
+
+    const selectedIndex = notifications.findIndex(
+      (notification) => notification.id === selectedNotificationId,
+    );
+
+    if (selectedIndex < 0) {
+      return;
+    }
+
+    setCurrentPage(
+      Math.floor(selectedIndex / DEFAULT_NOTIFICATIONS_PER_PAGE) + 1,
+    );
+  }, [enablePagination, notifications, selectedNotificationId]);
 
   useEffect(() => {
     if (
@@ -98,7 +153,7 @@ export function PortalNotificationsPageContent({
         block: 'center',
       });
     }
-  }, [notifications, onMarkRead, selectedNotificationId]);
+  }, [clampedCurrentPage, notifications, onMarkRead, selectedNotificationId]);
 
   return (
     <div
@@ -128,16 +183,32 @@ export function PortalNotificationsPageContent({
         description={description}
         title={title}
       />
-      <div className={classNames('grid md:grid-cols-2', compact ? 'gap-2.5' : 'gap-3')}>
-        <SurfaceCard className="min-w-0 overflow-hidden bg-brand-gradient text-white" paddingClassName="p-0">
-          <div className={classNames('flex items-center gap-3', compact ? 'px-3.5 py-2.5' : 'px-4 py-3')}>
+      <div
+        className={classNames(
+          'grid md:grid-cols-2',
+          compact ? 'gap-2.5' : 'gap-3',
+        )}
+      >
+        <SurfaceCard
+          className="min-w-0 overflow-hidden bg-brand-gradient text-white"
+          paddingClassName="p-0"
+        >
+          <div
+            className={classNames(
+              'flex items-center gap-3',
+              compact ? 'px-3.5 py-2.5' : 'px-4 py-3',
+            )}
+          >
             <span
               className={classNames(
                 'inline-flex shrink-0 items-center justify-center rounded-[1rem] bg-white/12 text-white ring-1 ring-white/18',
                 compact ? 'h-8 w-8' : 'h-9 w-9',
               )}
             >
-              <Bell aria-hidden="true" className={compact ? 'h-4 w-4' : 'h-4.5 w-4.5'} />
+              <Bell
+                aria-hidden="true"
+                className={compact ? 'h-4 w-4' : 'h-4.5 w-4.5'}
+              />
             </span>
             <div>
               <p
@@ -148,21 +219,38 @@ export function PortalNotificationsPageContent({
               >
                 {unreadCount}
               </p>
-              <p className={compact ? 'text-[0.82rem] font-semibold text-white/90' : 'text-sm font-semibold text-white/90'}>
+              <p
+                className={
+                  compact
+                    ? 'text-[0.82rem] font-semibold text-white/90'
+                    : 'text-sm font-semibold text-white/90'
+                }
+              >
                 Notificaciones sin leer
               </p>
             </div>
           </div>
         </SurfaceCard>
-        <SurfaceCard className="border border-slate-200/80 bg-white shadow-none" paddingClassName="p-0">
-          <div className={classNames('flex items-center gap-3', compact ? 'px-3.5 py-2.5' : 'px-4 py-3')}>
+        <SurfaceCard
+          className="border border-slate-200/80 bg-white shadow-none"
+          paddingClassName="p-0"
+        >
+          <div
+            className={classNames(
+              'flex items-center gap-3',
+              compact ? 'px-3.5 py-2.5' : 'px-4 py-3',
+            )}
+          >
             <span
               className={classNames(
                 'inline-flex shrink-0 items-center justify-center rounded-[1rem] bg-primary/10 text-primary ring-1 ring-primary/10',
                 compact ? 'h-8 w-8' : 'h-9 w-9',
               )}
             >
-              <CheckCheck aria-hidden="true" className={compact ? 'h-4 w-4' : 'h-4.5 w-4.5'} />
+              <CheckCheck
+                aria-hidden="true"
+                className={compact ? 'h-4 w-4' : 'h-4.5 w-4.5'}
+              />
             </span>
             <div>
               <p
@@ -173,7 +261,13 @@ export function PortalNotificationsPageContent({
               >
                 {notifications.length}
               </p>
-              <p className={compact ? 'text-[0.82rem] font-semibold text-ink-muted' : 'text-sm font-semibold text-ink-muted'}>
+              <p
+                className={
+                  compact
+                    ? 'text-[0.82rem] font-semibold text-ink-muted'
+                    : 'text-sm font-semibold text-ink-muted'
+                }
+              >
                 Total de notificaciones
               </p>
             </div>
@@ -189,7 +283,7 @@ export function PortalNotificationsPageContent({
             )}
           >
             <div className={compact ? 'space-y-2.5' : 'space-y-3'}>
-              {notifications.map((notification) => (
+              {visibleNotifications.map((notification) => (
                 <div
                   className={classNames(
                     'rounded-[1.5rem] border transition duration-200',
@@ -204,8 +298,18 @@ export function PortalNotificationsPageContent({
                   id={`portal-notification-${notification.id}`}
                   key={notification.id}
                 >
-                  <div className={classNames('flex flex-col sm:flex-row sm:items-start sm:justify-between', compact ? 'gap-2.5' : 'gap-3')}>
-                    <div className={classNames('min-w-0', compact ? 'space-y-1.5' : 'space-y-2')}>
+                  <div
+                    className={classNames(
+                      'flex flex-col sm:flex-row sm:items-start sm:justify-between',
+                      compact ? 'gap-2.5' : 'gap-3',
+                    )}
+                  >
+                    <div
+                      className={classNames(
+                        'min-w-0',
+                        compact ? 'space-y-1.5' : 'space-y-2',
+                      )}
+                    >
                       <div className="flex flex-wrap items-center gap-2">
                         <span
                           className={classNames(
@@ -216,52 +320,90 @@ export function PortalNotificationsPageContent({
                         >
                           <Circle
                             aria-hidden="true"
-                            className={classNames('fill-current', compact ? 'h-3 w-3' : 'h-3.5 w-3.5')}
+                            className={classNames(
+                              'fill-current',
+                              compact ? 'h-3 w-3' : 'h-3.5 w-3.5',
+                            )}
                           />
                         </span>
-                        <h3 className={compact ? 'text-[0.92rem] font-semibold text-ink' : 'text-base font-semibold text-ink'}>
+                        <h3
+                          className={
+                            compact
+                              ? 'text-[0.92rem] font-semibold text-ink'
+                              : 'text-base font-semibold text-ink'
+                          }
+                        >
                           {notification.title}
                         </h3>
                         {notification.isRead ? null : (
                           <span
                             className={classNames(
                               'inline-flex rounded-full bg-amber-50 font-semibold text-amber-700 ring-1 ring-amber-200',
-                              compact ? 'px-2 py-0.5 text-[0.62rem]' : 'px-2.5 py-1 text-[0.68rem]',
+                              compact
+                                ? 'px-2 py-0.5 text-[0.62rem]'
+                                : 'px-2.5 py-1 text-[0.68rem]',
                             )}
                           >
                             {unreadLabel}
                           </span>
                         )}
                       </div>
-                      <p className={compact ? 'text-[0.82rem] leading-5 text-ink-muted' : 'text-sm leading-6 text-ink-muted'}>
+                      <p
+                        className={
+                          compact
+                            ? 'text-[0.82rem] leading-5 text-ink-muted'
+                            : 'text-sm leading-6 text-ink-muted'
+                        }
+                      >
                         {notification.description}
                       </p>
                     </div>
-                    <p className={compact ? 'shrink-0 text-[0.72rem] font-medium text-ink-muted' : 'shrink-0 text-[0.78rem] font-medium text-ink-muted'}>
+                    <p
+                      className={
+                        compact
+                          ? 'shrink-0 text-[0.72rem] font-medium text-ink-muted'
+                          : 'shrink-0 text-[0.78rem] font-medium text-ink-muted'
+                      }
+                    >
                       {formatNotificationDate(notification.createdAt)}
                     </p>
                   </div>
-                  <div className={classNames('flex flex-wrap items-center gap-2', compact ? 'mt-3' : 'mt-4')}>
+                  <div
+                    className={classNames(
+                      'flex flex-wrap items-center gap-2',
+                      compact ? 'mt-3' : 'mt-4',
+                    )}
+                  >
                     {notification.isRead ? (
                       <span
                         className={classNames(
                           'inline-flex items-center gap-2 rounded-full bg-slate-100 font-semibold text-slate-700',
-                          compact ? 'px-2.5 py-1 text-[0.72rem]' : 'px-3 py-1.5 text-xs',
+                          compact
+                            ? 'px-2.5 py-1 text-[0.72rem]'
+                            : 'px-3 py-1.5 text-xs',
                         )}
                       >
-                        <CheckCheck aria-hidden="true" className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+                        <CheckCheck
+                          aria-hidden="true"
+                          className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}
+                        />
                         <span>Leida</span>
                       </span>
                     ) : (
                       <button
                         className={classNames(
                           'inline-flex items-center gap-2 rounded-full bg-primary/10 font-semibold text-primary transition duration-200 hover:bg-primary/15',
-                          compact ? 'px-2.5 py-1 text-[0.72rem]' : 'px-3 py-1.5 text-xs',
+                          compact
+                            ? 'px-2.5 py-1 text-[0.72rem]'
+                            : 'px-3 py-1.5 text-xs',
                         )}
                         type="button"
                         onClick={() => onMarkRead(notification.id)}
                       >
-                        <CheckCheck aria-hidden="true" className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+                        <CheckCheck
+                          aria-hidden="true"
+                          className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}
+                        />
                         <span>{markReadLabel}</span>
                       </button>
                     )}
@@ -269,12 +411,17 @@ export function PortalNotificationsPageContent({
                       <Link
                         className={classNames(
                           'inline-flex items-center gap-2 rounded-full bg-slate-100 font-semibold text-slate-700 transition duration-200 hover:bg-slate-200',
-                          compact ? 'px-2.5 py-1 text-[0.72rem]' : 'px-3 py-1.5 text-xs',
+                          compact
+                            ? 'px-2.5 py-1 text-[0.72rem]'
+                            : 'px-3 py-1.5 text-xs',
                         )}
                         to={notification.to}
                         onClick={() => onMarkRead(notification.id)}
                       >
-                        <ExternalLink aria-hidden="true" className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+                        <ExternalLink
+                          aria-hidden="true"
+                          className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}
+                        />
                         <span>{viewDetailLabel}</span>
                       </Link>
                     ) : null}
@@ -290,11 +437,34 @@ export function PortalNotificationsPageContent({
               compact ? 'px-3.5 py-8 sm:px-4' : 'px-4 py-10 sm:px-5',
             )}
           >
-            <p className={compact ? 'text-[0.82rem] font-medium text-ink-muted' : 'text-sm font-medium text-ink-muted'}>
+            <p
+              className={
+                compact
+                  ? 'text-[0.82rem] font-medium text-ink-muted'
+                  : 'text-sm font-medium text-ink-muted'
+              }
+            >
               {isLoading ? 'Cargando notificaciones...' : emptyState}
             </p>
           </div>
         )}
+        {enablePagination ? (
+          <AdminTablePagination
+            currentPage={clampedCurrentPage}
+            pageEndLabel={pageEndLabel}
+            pageStartLabel={pageStartLabel}
+            totalItems={notifications.length}
+            totalPages={totalPages}
+            onNext={() =>
+              setCurrentPage((currentValue) =>
+                Math.min(totalPages, currentValue + 1),
+              )
+            }
+            onPrevious={() =>
+              setCurrentPage((currentValue) => Math.max(1, currentValue - 1))
+            }
+          />
+        ) : null}
       </AdminPanelCard>
     </div>
   );

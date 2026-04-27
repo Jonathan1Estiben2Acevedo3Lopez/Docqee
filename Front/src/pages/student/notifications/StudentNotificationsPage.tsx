@@ -8,16 +8,14 @@ import { useStudentModuleStore } from '@/lib/studentModuleStore';
 
 export function StudentNotificationsPage() {
   const [searchParams] = useSearchParams();
-  const { appointments, conversations, isLoading, requests } = useStudentModuleStore();
-  const {
-    markAllNotificationsAsRead,
-    markNotificationAsRead,
-    notifications,
-  } = useStudentPortalNotifications({
-    appointments,
-    conversations,
-    requests,
-  });
+  const { appointments, conversations, isLoading, requests } =
+    useStudentModuleStore();
+  const { markAllNotificationsAsRead, markNotificationAsRead, notifications } =
+    useStudentPortalNotifications({
+      appointments,
+      conversations,
+      requests,
+    });
 
   return (
     <>
@@ -31,6 +29,7 @@ export function StudentNotificationsPage() {
           compact
           description={studentContent.notificationsPage.description}
           emptyState={studentContent.notificationsPage.emptyState}
+          enablePagination
           isLoading={isLoading}
           markAllReadLabel={studentContent.notificationsPage.markAllReadLabel}
           markReadLabel={studentContent.notificationsPage.markReadLabel}

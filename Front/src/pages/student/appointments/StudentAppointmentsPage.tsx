@@ -26,6 +26,7 @@ import { StudentRatingModal } from '@/components/student/StudentRatingModal';
 import { AdminDropdownField } from '@/components/admin/AdminDropdownField';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminPanelCard } from '@/components/admin/AdminPanelCard';
+import { AdminTablePagination } from '@/components/admin/AdminTablePagination';
 import { AdminTextField } from '@/components/admin/AdminTextField';
 import { AdminTimePickerField } from '@/components/admin/AdminTimePickerField';
 import { Seo } from '@/components/ui/Seo';
@@ -59,6 +60,8 @@ const appointmentStatusOptions: Array<{
   { label: 'Cancelada', value: 'CANCELADA' },
   { label: 'Finalizada', value: 'FINALIZADA' },
 ];
+
+const DEFAULT_ROWS_PER_PAGE = 6;
 
 const initialAppointmentFormValues: StudentAppointmentFormValues = {
   additionalInfo: '',
@@ -117,7 +120,10 @@ function buildLocalDateTime(dateValue: string, timeValue: string) {
 
 function getCurrentBogotaMinute() {
   const now = new Date();
-  return buildLocalDateTime(formatDateInputValue(now), formatTimeInputValue(now));
+  return buildLocalDateTime(
+    formatDateInputValue(now),
+    formatTimeInputValue(now),
+  );
 }
 
 function StudentAppointmentsDialogFrame({
@@ -378,6 +384,7 @@ export function StudentAppointmentsPage() {
     useState<AppointmentStatusFilter>('all');
   const [sortOrder, setSortOrder] = useState<AppointmentSortOrder>('arrival');
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [appointmentErrors, setAppointmentErrors] =
     useState<StudentAppointmentFormErrors>({});
@@ -458,7 +465,10 @@ export function StudentAppointmentsPage() {
   const practiceSitesBySiteId = useMemo(
     () =>
       new Map(
-        practiceSites.map((practiceSite) => [practiceSite.siteId, practiceSite]),
+        practiceSites.map((practiceSite) => [
+          practiceSite.siteId,
+          practiceSite,
+        ]),
       ),
     [practiceSites],
   );
@@ -480,9 +490,9 @@ export function StudentAppointmentsPage() {
       ? 'Ver cita'
       : appointmentDialogMode === 'reschedule'
         ? 'Reprogramar cita'
-      : appointmentDialogMode === 'edit'
-        ? 'Editar cita'
-        : 'Agendar cita';
+        : appointmentDialogMode === 'edit'
+          ? 'Editar cita'
+          : 'Agendar cita';
   const appointmentDialogDescription =
     appointmentDialogMode === 'view'
       ? canEditCurrentDialogAppointment
@@ -490,7 +500,7 @@ export function StudentAppointmentsPage() {
         : 'Consulta los detalles de la cita.'
       : appointmentDialogMode === 'reschedule'
         ? 'Propón una nueva fecha, hora, sede y docente para la cita ya aceptada.'
-      : 'Agenda una cita a partir de una solicitud aceptada, con sede, docente supervisor y tratamientos validos.';
+        : 'Agenda una cita a partir de una solicitud aceptada, con sede, docente supervisor y tratamientos validos.';
   const filteredAppointments = useMemo(() => {
     const filtered = appointments.filter((appointment) => {
       const matchesSearch = appointment.patientName
@@ -528,6 +538,32 @@ export function StudentAppointmentsPage() {
     sortOrder,
     statusFilter,
   ]);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredAppointments.length / DEFAULT_ROWS_PER_PAGE),
+  );
+  const clampedCurrentPage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (clampedCurrentPage - 1) * DEFAULT_ROWS_PER_PAGE;
+  const paginatedAppointments = useMemo(
+    () =>
+      filteredAppointments.slice(
+        pageStartIndex,
+        pageStartIndex + DEFAULT_ROWS_PER_PAGE,
+      ),
+    [filteredAppointments, pageStartIndex],
+  );
+  const pageStartLabel =
+    filteredAppointments.length > 0 ? pageStartIndex + 1 : 0;
+  const pageEndLabel = Math.min(
+    pageStartIndex + paginatedAppointments.length,
+    filteredAppointments.length,
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [normalizedSearch, sortOrder, statusFilter]);
+  useEffect(() => {
+    setCurrentPage((currentValue) => Math.min(currentValue, totalPages));
+  }, [totalPages]);
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       setCurrentTimestamp(Date.now());
@@ -1038,12 +1074,14 @@ export function StudentAppointmentsPage() {
                   <th className="px-4 py-3 sm:px-5">Paciente</th>
                   <th className="py-3 pl-0 pr-4">Atención clínica</th>
                   <th className="py-3 pl-0 pr-4">Programación</th>
-                  <th className="w-[9.5rem] py-3 pl-0 pr-4 text-left">Estado</th>
+                  <th className="w-[9.5rem] py-3 pl-0 pr-4 text-left">
+                    Estado
+                  </th>
                   <th className="px-4 py-3 text-center sm:px-5">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/80 bg-white">
-                {filteredAppointments.map((appointment) => {
+                {paginatedAppointments.map((appointment) => {
                   const appointmentLocality =
                     practiceSitesBySiteId.get(appointment.siteId)?.locality ??
                     appointment.city;
@@ -1094,7 +1132,9 @@ export function StudentAppointmentsPage() {
                               className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary"
                             />
                             <span className="min-w-0 break-words">
-                              {formatTreatmentSummary(appointment.treatmentNames)}
+                              {formatTreatmentSummary(
+                                appointment.treatmentNames,
+                              )}
                             </span>
                           </p>
                         </div>
@@ -1124,140 +1164,137 @@ export function StudentAppointmentsPage() {
                           </p>
                         </div>
                       </td>
-                    <td className="w-[9.5rem] py-3 pl-0 pr-4">
-                      <span
-                        className={classNames(
-                          'inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset',
-                          getStatusBadgeClasses(displayStatus),
-                        )}
-                      >
-                        {getStatusLabel(displayStatus)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center sm:px-5">
-                      {displayStatus === 'PROPUESTA' ||
-                      displayStatus === 'REPROGRAMACION_PENDIENTE' ? (
-                        <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
-                          <button
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white px-2.5 py-1.5 text-xs font-semibold text-primary ring-1 ring-slate-200 transition duration-200 hover:bg-slate-100"
-                            type="button"
-                            onClick={() => handleViewAppointment(appointment)}
-                          >
-                            <Eye
-                              aria-hidden="true"
-                              className="h-3.5 w-3.5"
-                            />
-                            <span>Ver cita</span>
-                          </button>
-                          <button
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition duration-200 hover:bg-rose-100"
-                            type="button"
-                            onClick={() => setAppointmentToCancel(appointment)}
-                          >
-                            <Ban aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>
-                              {
-                                studentContent.appointmentsPage.actionLabels
-                                  .cancel
-                              }
-                            </span>
-                          </button>
-                        </div>
-                      ) : displayStatus === 'ACEPTADA' ? (
-                        <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
-                          <button
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white px-2 py-1.5 text-[0.68rem] font-semibold text-primary ring-1 ring-slate-200 transition duration-200 hover:bg-slate-100"
-                            type="button"
-                            onClick={() => handleViewAppointment(appointment)}
-                          >
-                            <Eye
-                              aria-hidden="true"
-                              className="h-3.5 w-3.5"
-                            />
-                            <span>Ver cita</span>
-                          </button>
-                          <button
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-sky-50 px-2 py-1.5 text-[0.68rem] font-semibold text-sky-700 transition duration-200 hover:bg-sky-100"
-                            type="button"
-                            onClick={() =>
-                              handleRescheduleAppointment(appointment)
-                            }
-                          >
-                            <CalendarDays
-                              aria-hidden="true"
-                              className="h-3.5 w-3.5"
-                            />
-                            <span>Reprogramar</span>
-                          </button>
-                          <button
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-rose-50 px-2 py-1.5 text-[0.68rem] font-semibold text-rose-700 transition duration-200 hover:bg-rose-100"
-                            type="button"
-                            onClick={() => setAppointmentToCancel(appointment)}
-                          >
-                            <Ban aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>
-                              {
-                                studentContent.appointmentsPage.actionLabels
-                                  .cancel
-                              }
-                            </span>
-                          </button>
-                        </div>
-                      ) : displayStatus === 'FINALIZADA' ? (
-                        <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
-                          <button
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white px-2.5 py-1.5 text-xs font-semibold text-primary ring-1 ring-slate-200 transition duration-200 hover:bg-slate-100"
-                            type="button"
-                            onClick={() => handleViewAppointment(appointment)}
-                          >
-                            <Eye
-                              aria-hidden="true"
-                              className="h-3.5 w-3.5"
-                            />
-                            <span>Ver cita</span>
-                          </button>
-                          {!appointment.myRating ? (
+                      <td className="w-[9.5rem] py-3 pl-0 pr-4">
+                        <span
+                          className={classNames(
+                            'inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset',
+                            getStatusBadgeClasses(displayStatus),
+                          )}
+                        >
+                          {getStatusLabel(displayStatus)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center sm:px-5">
+                        {displayStatus === 'PROPUESTA' ||
+                        displayStatus === 'REPROGRAMACION_PENDIENTE' ? (
+                          <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
                             <button
-                              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition duration-200 hover:bg-amber-100"
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white px-2.5 py-1.5 text-xs font-semibold text-primary ring-1 ring-slate-200 transition duration-200 hover:bg-slate-100"
+                              type="button"
+                              onClick={() => handleViewAppointment(appointment)}
+                            >
+                              <Eye aria-hidden="true" className="h-3.5 w-3.5" />
+                              <span>Ver cita</span>
+                            </button>
+                            <button
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition duration-200 hover:bg-rose-100"
                               type="button"
                               onClick={() =>
-                                handleOpenRatingAppointment(appointment)
+                                setAppointmentToCancel(appointment)
                               }
                             >
-                              <Star
+                              <Ban aria-hidden="true" className="h-3.5 w-3.5" />
+                              <span>
+                                {
+                                  studentContent.appointmentsPage.actionLabels
+                                    .cancel
+                                }
+                              </span>
+                            </button>
+                          </div>
+                        ) : displayStatus === 'ACEPTADA' ? (
+                          <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
+                            <button
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white px-2 py-1.5 text-[0.68rem] font-semibold text-primary ring-1 ring-slate-200 transition duration-200 hover:bg-slate-100"
+                              type="button"
+                              onClick={() => handleViewAppointment(appointment)}
+                            >
+                              <Eye aria-hidden="true" className="h-3.5 w-3.5" />
+                              <span>Ver cita</span>
+                            </button>
+                            <button
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-sky-50 px-2 py-1.5 text-[0.68rem] font-semibold text-sky-700 transition duration-200 hover:bg-sky-100"
+                              type="button"
+                              onClick={() =>
+                                handleRescheduleAppointment(appointment)
+                              }
+                            >
+                              <CalendarDays
                                 aria-hidden="true"
                                 className="h-3.5 w-3.5"
                               />
-                              <span>Calificar paciente</span>
+                              <span>Reprogramar</span>
                             </button>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-600">
-                              <Star
+                            <button
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-rose-50 px-2 py-1.5 text-[0.68rem] font-semibold text-rose-700 transition duration-200 hover:bg-rose-100"
+                              type="button"
+                              onClick={() =>
+                                setAppointmentToCancel(appointment)
+                              }
+                            >
+                              <Ban aria-hidden="true" className="h-3.5 w-3.5" />
+                              <span>
+                                {
+                                  studentContent.appointmentsPage.actionLabels
+                                    .cancel
+                                }
+                              </span>
+                            </button>
+                          </div>
+                        ) : displayStatus === 'FINALIZADA' ? (
+                          <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
+                            <button
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white px-2.5 py-1.5 text-xs font-semibold text-primary ring-1 ring-slate-200 transition duration-200 hover:bg-slate-100"
+                              type="button"
+                              onClick={() => handleViewAppointment(appointment)}
+                            >
+                              <Eye aria-hidden="true" className="h-3.5 w-3.5" />
+                              <span>Ver cita</span>
+                            </button>
+                            {!appointment.myRating ? (
+                              <button
+                                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition duration-200 hover:bg-amber-100"
+                                type="button"
+                                onClick={() =>
+                                  handleOpenRatingAppointment(appointment)
+                                }
+                              >
+                                <Star
+                                  aria-hidden="true"
+                                  className="h-3.5 w-3.5"
+                                />
+                                <span>Calificar paciente</span>
+                              </button>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-600">
+                                <Star
+                                  aria-hidden="true"
+                                  className="h-3 w-3 fill-amber-400 text-amber-400"
+                                />
+                                {appointment.myRating}/5
+                              </span>
+                            )}
+                            <button
+                              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition duration-200 hover:bg-slate-200"
+                              type="button"
+                              onClick={() =>
+                                setCommentsAppointment(appointment)
+                              }
+                            >
+                              <MessageSquare
                                 aria-hidden="true"
-                                className="h-3 w-3 fill-amber-400 text-amber-400"
+                                className="h-3.5 w-3.5"
                               />
-                              {appointment.myRating}/5
-                            </span>
-                          )}
-                          <button
-                            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition duration-200 hover:bg-slate-200"
-                            type="button"
-                            onClick={() => setCommentsAppointment(appointment)}
-                          >
-                            <MessageSquare
-                              aria-hidden="true"
-                              className="h-3.5 w-3.5"
-                            />
-                            <span>Ver comentarios</span>
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="inline-flex justify-center text-xs font-medium text-ink-muted">
-                          Sin acciones
-                        </span>
-                      )}
-                    </td>
-                  </tr>
+                              <span>Ver comentarios</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="inline-flex justify-center text-xs font-medium text-ink-muted">
+                            Sin acciones
+                          </span>
+                        )}
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
@@ -1272,6 +1309,21 @@ export function StudentAppointmentsPage() {
             </p>
           </div>
         )}
+        <AdminTablePagination
+          currentPage={clampedCurrentPage}
+          pageEndLabel={pageEndLabel}
+          pageStartLabel={pageStartLabel}
+          totalItems={filteredAppointments.length}
+          totalPages={totalPages}
+          onNext={() =>
+            setCurrentPage((currentValue) =>
+              Math.min(totalPages, currentValue + 1),
+            )
+          }
+          onPrevious={() =>
+            setCurrentPage((currentValue) => Math.max(1, currentValue - 1))
+          }
+        />
       </AdminPanelCard>
       {isAppointmentDialogOpen ? (
         <StudentAppointmentsDialogFrame
@@ -1534,12 +1586,13 @@ export function StudentAppointmentsPage() {
                       ? studentContent.appointmentsPage.actionLabels.update
                       : appointmentDialogMode === 'reschedule'
                         ? 'Enviar reprogramacion'
-                      : studentContent.appointmentsPage.actionLabels.save}
+                        : studentContent.appointmentsPage.actionLabels.save}
                   </span>
                 </button>
               )}
             </div>
-            {appointmentDialogMode === 'create' && acceptedRequests.length === 0 ? (
+            {appointmentDialogMode === 'create' &&
+            acceptedRequests.length === 0 ? (
               <p className="text-[0.72rem] font-medium text-amber-700">
                 Necesitas una solicitud aceptada para poder programar nuevas
                 citas.

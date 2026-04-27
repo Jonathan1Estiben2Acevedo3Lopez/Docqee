@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 import { AdminConfirmationDialog } from '@/components/admin/AdminConfirmationDialog';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminPanelCard } from '@/components/admin/AdminPanelCard';
+import { AdminTablePagination } from '@/components/admin/AdminTablePagination';
 import { Seo } from '@/components/ui/Seo';
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { ROUTES } from '@/constants/routes';
@@ -36,13 +37,18 @@ type StudentRequestProfileDialogProps = {
 
 const preloadedPatientAvatarUrls = new Set<string>();
 
-const requestStatusOptions: Array<{ label: string; value: RequestStatusFilter }> = [
+const requestStatusOptions: Array<{
+  label: string;
+  value: RequestStatusFilter;
+}> = [
   { label: 'Todas', value: 'all' },
   { label: 'Pendiente', value: 'PENDIENTE' },
   { label: 'Aceptada', value: 'ACEPTADA' },
   { label: 'Rechazada', value: 'RECHAZADA' },
   { label: 'Cancelada', value: 'CANCELADA' },
 ];
+
+const DEFAULT_ROWS_PER_PAGE = 6;
 
 const requestProfileDateFormatter = new Intl.DateTimeFormat('es-CO', {
   day: 'numeric',
@@ -55,7 +61,9 @@ function formatRequestDate(value: string) {
 }
 
 function getPatientLocationLabel(request: StudentRequest) {
-  return [request.patientCity, request.patientLocality].filter(Boolean).join(' - ');
+  return [request.patientCity, request.patientLocality]
+    .filter(Boolean)
+    .join(' - ');
 }
 
 function renderRatingStars(value: number, sizeClassName = 'h-4 w-4') {
@@ -127,7 +135,11 @@ function getRequestPatientAvatarSrc(src: string | null | undefined) {
 }
 
 function preloadPatientAvatar(src: string | undefined) {
-  if (!src || preloadedPatientAvatarUrls.has(src) || typeof Image === 'undefined') {
+  if (
+    !src ||
+    preloadedPatientAvatarUrls.has(src) ||
+    typeof Image === 'undefined'
+  ) {
     return;
   }
 
@@ -145,9 +157,13 @@ function StudentRequestProfileDialog({
 }: StudentRequestProfileDialogProps) {
   const patientProfile = request.patientProfile ?? null;
   const patientReviews = patientProfile?.reviews ?? [];
-  const patientComments = patientReviews.filter((review) => Boolean(review.comment?.trim()));
+  const patientComments = patientReviews.filter((review) =>
+    Boolean(review.comment?.trim()),
+  );
   const patientInitials = getPatientInitials(request.patientName);
-  const optimizedAvatarSrc = getRequestPatientAvatarSrc(patientProfile?.avatarSrc);
+  const optimizedAvatarSrc = getRequestPatientAvatarSrc(
+    patientProfile?.avatarSrc,
+  );
   const averageRating = patientProfile?.averageRating ?? null;
 
   return (
@@ -194,7 +210,8 @@ function StudentRequestProfileDialog({
                   {optimizedAvatarSrc ? (
                     <img
                       alt={
-                        patientProfile?.avatarAlt ?? `Foto de perfil de ${request.patientName}`
+                        patientProfile?.avatarAlt ??
+                        `Foto de perfil de ${request.patientName}`
                       }
                       className="h-20 w-20 rounded-[1.55rem] object-cover ring-4 ring-white/20 sm:h-24 sm:w-24"
                       decoding="async"
@@ -240,7 +257,9 @@ function StudentRequestProfileDialog({
                     Solicitud enviada
                   </p>
                   <p className="mt-1 text-sm font-semibold text-white">
-                    {requestProfileDateFormatter.format(new Date(request.sentAt))}
+                    {requestProfileDateFormatter.format(
+                      new Date(request.sentAt),
+                    )}
                   </p>
                 </div>
               </div>
@@ -285,14 +304,21 @@ function StudentRequestProfileDialog({
                         >
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold text-ink">{review.authorName}</p>
+                              <p className="text-sm font-semibold text-ink">
+                                {review.authorName}
+                              </p>
                               <p className="text-xs text-ink-muted">
-                                {requestProfileDateFormatter.format(new Date(review.createdAt))}
+                                {requestProfileDateFormatter.format(
+                                  new Date(review.createdAt),
+                                )}
                               </p>
                             </div>
                             <div className="flex items-center gap-2 text-xs font-semibold text-amber-700">
                               <span className="flex items-center gap-1">
-                                {renderRatingStars(review.rating, 'h-3.5 w-3.5')}
+                                {renderRatingStars(
+                                  review.rating,
+                                  'h-3.5 w-3.5',
+                                )}
                               </span>
                               <span>{review.rating.toFixed(1)}</span>
                             </div>
@@ -305,7 +331,8 @@ function StudentRequestProfileDialog({
                     </div>
                   ) : (
                     <div className="rounded-[1.2rem] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-ink-muted">
-                      Este paciente aun no tiene comentarios escritos por otros estudiantes.
+                      Este paciente aun no tiene comentarios escritos por otros
+                      estudiantes.
                     </div>
                   )}
                 </div>
@@ -328,7 +355,9 @@ function StudentRequestProfileDialog({
                     onClick={onReject}
                   >
                     <XCircle aria-hidden="true" className="h-4 w-4" />
-                    <span>{studentContent.requestsPage.actionLabels.reject}</span>
+                    <span>
+                      {studentContent.requestsPage.actionLabels.reject}
+                    </span>
                   </button>
                   <button
                     className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition duration-200 hover:bg-emerald-100"
@@ -336,7 +365,9 @@ function StudentRequestProfileDialog({
                     onClick={onAccept}
                   >
                     <Check aria-hidden="true" className="h-4 w-4" />
-                    <span>{studentContent.requestsPage.actionLabels.accept}</span>
+                    <span>
+                      {studentContent.requestsPage.actionLabels.accept}
+                    </span>
                   </button>
                 </>
               ) : null}
@@ -349,13 +380,19 @@ function StudentRequestProfileDialog({
 }
 
 export function StudentRequestsPage() {
-  const { errorMessage, isLoading, requests, respondToRequest } = useStudentModuleStore();
+  const { errorMessage, isLoading, requests, respondToRequest } =
+    useStudentModuleStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<RequestStatusFilter>('all');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [requestToClose, setRequestToClose] = useState<StudentRequest | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null,
+  );
+  const [requestToClose, setRequestToClose] = useState<StudentRequest | null>(
+    null,
+  );
   const statusMenuRef = useRef<HTMLDivElement | null>(null);
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const visibleRequests = useMemo(
@@ -363,22 +400,64 @@ export function StudentRequestsPage() {
     [requests],
   );
   const pendingCount = useMemo(
-    () => visibleRequests.filter((request) => request.status === 'PENDIENTE').length,
+    () =>
+      visibleRequests.filter((request) => request.status === 'PENDIENTE')
+        .length,
     [visibleRequests],
   );
-  const filteredRequests = visibleRequests.filter((request) => {
-    const matchesSearch = request.patientName.toLowerCase().includes(normalizedSearch);
+  const filteredRequests = useMemo(
+    () =>
+      visibleRequests.filter((request) => {
+        const matchesSearch = request.patientName
+          .toLowerCase()
+          .includes(normalizedSearch);
 
-    return matchesSearch && (statusFilter === 'all' || request.status === statusFilter);
-  });
+        return (
+          matchesSearch &&
+          (statusFilter === 'all' || request.status === statusFilter)
+        );
+      }),
+    [normalizedSearch, statusFilter, visibleRequests],
+  );
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredRequests.length / DEFAULT_ROWS_PER_PAGE),
+  );
+  const clampedCurrentPage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (clampedCurrentPage - 1) * DEFAULT_ROWS_PER_PAGE;
+  const paginatedRequests = useMemo(
+    () =>
+      filteredRequests.slice(
+        pageStartIndex,
+        pageStartIndex + DEFAULT_ROWS_PER_PAGE,
+      ),
+    [filteredRequests, pageStartIndex],
+  );
+  const pageStartLabel = filteredRequests.length > 0 ? pageStartIndex + 1 : 0;
+  const pageEndLabel = Math.min(
+    pageStartIndex + paginatedRequests.length,
+    filteredRequests.length,
+  );
   const selectedRequest = useMemo(
-    () => visibleRequests.find((request) => request.id === selectedRequestId) ?? null,
+    () =>
+      visibleRequests.find((request) => request.id === selectedRequestId) ??
+      null,
     [visibleRequests, selectedRequestId],
   );
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [normalizedSearch, statusFilter]);
+
+  useEffect(() => {
+    setCurrentPage((currentValue) => Math.min(currentValue, totalPages));
+  }, [totalPages]);
+
+  useEffect(() => {
     visibleRequests.forEach((request) => {
-      preloadPatientAvatar(getRequestPatientAvatarSrc(request.patientProfile?.avatarSrc));
+      preloadPatientAvatar(
+        getRequestPatientAvatarSrc(request.patientProfile?.avatarSrc),
+      );
     });
   }, [visibleRequests]);
 
@@ -519,7 +598,9 @@ export function StudentRequestsPage() {
               className="relative min-w-0 flex-1 sm:max-w-[30rem] xl:max-w-[34rem]"
               htmlFor="student-request-search"
             >
-              <span className="sr-only">{studentContent.requestsPage.searchLabel}</span>
+              <span className="sr-only">
+                {studentContent.requestsPage.searchLabel}
+              </span>
               <Search
                 aria-hidden="true"
                 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ghost"
@@ -542,7 +623,9 @@ export function StudentRequestsPage() {
                   statusFilter === 'all'
                     ? 'Filtrar solicitudes por estado'
                     : `Filtrar solicitudes por estado. Actual: ${
-                        requestStatusOptions.find((option) => option.value === statusFilter)?.label
+                        requestStatusOptions.find(
+                          (option) => option.value === statusFilter,
+                        )?.label
                       }`
                 }
                 className={classNames(
@@ -552,9 +635,14 @@ export function StudentRequestsPage() {
                     : 'border-primary/25 bg-primary/[0.08] text-primary hover:bg-primary/[0.12]',
                 )}
                 type="button"
-                onClick={() => setIsStatusMenuOpen((currentValue) => !currentValue)}
+                onClick={() =>
+                  setIsStatusMenuOpen((currentValue) => !currentValue)
+                }
               >
-                <SlidersHorizontal aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+                <SlidersHorizontal
+                  aria-hidden="true"
+                  className="h-[1.05rem] w-[1.05rem]"
+                />
                 {statusFilter !== 'all' ? (
                   <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-white" />
                 ) : null}
@@ -595,7 +683,9 @@ export function StudentRequestsPage() {
                           <span
                             className={classNames(
                               'inline-flex h-5 w-5 items-center justify-center rounded-full',
-                              isSelected ? 'bg-white/18 text-white' : 'bg-white text-slate-300',
+                              isSelected
+                                ? 'bg-white/18 text-white'
+                                : 'bg-white text-slate-300',
                             )}
                           >
                             <Check aria-hidden="true" className="h-3.5 w-3.5" />
@@ -627,7 +717,7 @@ export function StudentRequestsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/80 bg-white">
-                {filteredRequests.map((request) => (
+                {paginatedRequests.map((request) => (
                   <tr
                     key={request.id}
                     className="align-top"
@@ -674,7 +764,12 @@ export function StudentRequestsPage() {
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>{studentContent.requestsPage.actionLabels.viewProfile}</span>
+                            <span>
+                              {
+                                studentContent.requestsPage.actionLabels
+                                  .viewProfile
+                              }
+                            </span>
                           </button>
                           <button
                             className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 transition duration-200 hover:bg-emerald-100"
@@ -688,7 +783,9 @@ export function StudentRequestsPage() {
                             }
                           >
                             <Check aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>{studentContent.requestsPage.actionLabels.accept}</span>
+                            <span>
+                              {studentContent.requestsPage.actionLabels.accept}
+                            </span>
                           </button>
                           <button
                             className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition duration-200 hover:bg-rose-100"
@@ -701,8 +798,13 @@ export function StudentRequestsPage() {
                               )
                             }
                           >
-                            <XCircle aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>{studentContent.requestsPage.actionLabels.reject}</span>
+                            <XCircle
+                              aria-hidden="true"
+                              className="h-3.5 w-3.5"
+                            />
+                            <span>
+                              {studentContent.requestsPage.actionLabels.reject}
+                            </span>
                           </button>
                         </div>
                       ) : request.status === 'ACEPTADA' ? (
@@ -714,16 +816,27 @@ export function StudentRequestsPage() {
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>{studentContent.requestsPage.actionLabels.viewProfile}</span>
+                            <span>
+                              {
+                                studentContent.requestsPage.actionLabels
+                                  .viewProfile
+                              }
+                            </span>
                           </button>
                           {request.conversationId ? (
                             <Link
                               className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary transition duration-200 hover:bg-primary/15"
                               to={`${ROUTES.studentConversations}?conversation=${request.conversationId}`}
                             >
-                              <MessageSquareMore aria-hidden="true" className="h-3.5 w-3.5" />
+                              <MessageSquareMore
+                                aria-hidden="true"
+                                className="h-3.5 w-3.5"
+                              />
                               <span>
-                                {studentContent.conversationsPage.actionLabels.openConversation}
+                                {
+                                  studentContent.conversationsPage.actionLabels
+                                    .openConversation
+                                }
                               </span>
                             </Link>
                           ) : null}
@@ -732,8 +845,13 @@ export function StudentRequestsPage() {
                             type="button"
                             onClick={() => setRequestToClose(request)}
                           >
-                            <ShieldX aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>{studentContent.requestsPage.actionLabels.close}</span>
+                            <ShieldX
+                              aria-hidden="true"
+                              className="h-3.5 w-3.5"
+                            />
+                            <span>
+                              {studentContent.requestsPage.actionLabels.close}
+                            </span>
                           </button>
                         </div>
                       ) : request.conversationId ? (
@@ -745,15 +863,26 @@ export function StudentRequestsPage() {
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>{studentContent.requestsPage.actionLabels.viewProfile}</span>
+                            <span>
+                              {
+                                studentContent.requestsPage.actionLabels
+                                  .viewProfile
+                              }
+                            </span>
                           </button>
                           <Link
                             className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition duration-200 hover:bg-slate-200"
                             to={`${ROUTES.studentConversations}?conversation=${request.conversationId}`}
                           >
-                            <MessageSquareMore aria-hidden="true" className="h-3.5 w-3.5" />
+                            <MessageSquareMore
+                              aria-hidden="true"
+                              className="h-3.5 w-3.5"
+                            />
                             <span>
-                              {studentContent.conversationsPage.actionLabels.viewConversation}
+                              {
+                                studentContent.conversationsPage.actionLabels
+                                  .viewConversation
+                              }
                             </span>
                           </Link>
                         </div>
@@ -766,9 +895,16 @@ export function StudentRequestsPage() {
                             onClick={() => setSelectedRequestId(request.id)}
                           >
                             <Eye aria-hidden="true" className="h-3.5 w-3.5" />
-                            <span>{studentContent.requestsPage.actionLabels.viewProfile}</span>
+                            <span>
+                              {
+                                studentContent.requestsPage.actionLabels
+                                  .viewProfile
+                              }
+                            </span>
                           </button>
-                          <span className="text-xs font-medium text-ink-muted">Sin acciones</span>
+                          <span className="text-xs font-medium text-ink-muted">
+                            Sin acciones
+                          </span>
                         </div>
                       )}
                     </td>
@@ -780,10 +916,27 @@ export function StudentRequestsPage() {
         ) : (
           <div className="px-4 py-8 text-center sm:px-5">
             <p className="text-sm font-medium text-ink-muted">
-              {isLoading ? 'Cargando solicitudes...' : studentContent.requestsPage.emptyState}
+              {isLoading
+                ? 'Cargando solicitudes...'
+                : studentContent.requestsPage.emptyState}
             </p>
           </div>
         )}
+        <AdminTablePagination
+          currentPage={clampedCurrentPage}
+          pageEndLabel={pageEndLabel}
+          pageStartLabel={pageStartLabel}
+          totalItems={filteredRequests.length}
+          totalPages={totalPages}
+          onNext={() =>
+            setCurrentPage((currentValue) =>
+              Math.min(totalPages, currentValue + 1),
+            )
+          }
+          onPrevious={() =>
+            setCurrentPage((currentValue) => Math.max(1, currentValue - 1))
+          }
+        />
       </AdminPanelCard>
 
       {selectedRequest ? (
