@@ -7,10 +7,8 @@ import { ROUTES } from '@/constants/routes';
 import { ForgotPasswordPage } from '@/pages/auth/forgot-password/ForgotPasswordPage';
 import { LoginPage } from '@/pages/auth/login/LoginPage';
 import { HomePage } from '@/pages/home/HomePage';
-import {
-  PrivacyPolicyPage,
-  TermsAndConditionsPage,
-} from '@/pages/home/LegalPlaceholderPage';
+import { PrivacyPolicyPage } from '@/pages/home/legal/PrivacyPolicyPage';
+import { TermsAndConditionsPage } from '@/pages/home/legal/TermsAndConditionsPage';
 import { NotFoundPage } from '@/pages/home/NotFoundPage';
 
 function renderApp(initialEntries: string[] = [ROUTES.home]) {

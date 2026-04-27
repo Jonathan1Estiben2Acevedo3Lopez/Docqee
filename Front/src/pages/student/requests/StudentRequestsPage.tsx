@@ -49,7 +49,6 @@ const requestStatusOptions: {
   { label: 'Pendiente', value: 'PENDIENTE' },
   { label: 'Aceptada', value: 'ACEPTADA' },
   { label: 'Rechazada', value: 'RECHAZADA' },
-  { label: 'Cancelada', value: 'CANCELADA' },
 ];
 
 const DEFAULT_ROWS_PER_PAGE = 6;
@@ -126,9 +125,11 @@ function getRequestStatusPriority(status: StudentRequestStatus) {
     case 'PENDIENTE':
       return 0;
     case 'ACEPTADA':
+      return 1;
+    case 'RECHAZADA':
       return 2;
     default:
-      return 1;
+      return 3;
   }
 }
 
@@ -896,7 +897,7 @@ export function StudentRequestsPage() {
           >
             <table className="w-full table-fixed">
               <thead className="sticky top-0 z-10 bg-slate-100 text-left">
-                <tr className="text-[0.52rem] font-bold uppercase leading-[0.7rem] tracking-[0.1em] text-ink-muted sm:text-[0.68rem] sm:leading-none sm:tracking-[0.18em]">
+                <tr className="text-[0.55rem] font-bold uppercase leading-[0.72rem] tracking-[0.1em] text-ink-muted sm:text-[0.68rem] sm:leading-none sm:tracking-[0.18em]">
                   <th className="w-[36%] px-1.5 py-1 sm:px-4 sm:py-2.5 md:w-[27%]">
                     Paciente
                   </th>
@@ -923,13 +924,13 @@ export function StudentRequestsPage() {
                   >
                     <td className="px-1.5 py-1.5 sm:px-4 sm:py-3">
                       <div className="min-w-0 space-y-0.5 sm:space-y-1">
-                        <p className="break-words text-[0.72rem] font-semibold leading-[0.95rem] text-ink sm:text-sm sm:leading-5">
+                        <p className="break-words text-[0.76rem] font-semibold leading-4 text-ink sm:text-sm sm:leading-5">
                           {request.patientName}
                         </p>
-                        <p className="break-words text-[0.62rem] leading-[0.85rem] text-ink-muted sm:text-xs sm:leading-5">
+                        <p className="break-words text-[0.66rem] leading-[0.92rem] text-ink-muted sm:text-xs sm:leading-5">
                           {getPatientLocationLabel(request)}
                         </p>
-                        <p className="text-[0.62rem] leading-[0.85rem] text-ink-muted sm:text-xs">
+                        <p className="text-[0.66rem] leading-[0.92rem] text-ink-muted sm:text-xs">
                           Envió:{' '}
                           <span className="font-medium text-ink">
                             {formatRequestDate(request.sentAt)}
@@ -945,7 +946,7 @@ export function StudentRequestsPage() {
                     <td className="px-1 py-1.5 sm:px-4 sm:py-3">
                       <span
                         className={classNames(
-                          'inline-flex max-w-full rounded-full px-1 py-0.5 text-[0.56rem] font-semibold leading-3 ring-1 ring-inset sm:px-2.5 sm:py-1 sm:text-xs sm:leading-4',
+                          'inline-flex max-w-full rounded-full px-1 py-0.5 text-[0.6rem] font-semibold leading-3 ring-1 ring-inset sm:px-2.5 sm:py-1 sm:text-xs sm:leading-4',
                           getStatusBadgeClasses(request.status),
                         )}
                       >

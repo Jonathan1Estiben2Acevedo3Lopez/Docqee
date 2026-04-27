@@ -581,7 +581,8 @@ describe('Student pages', () => {
       .slice(1)
       .map((row) => row.textContent ?? '');
     expect(initialRequestRows[0]).toMatch(/ana maria perez/i);
-    expect(initialRequestRows.at(-1)).toMatch(/julian torres/i);
+    expect(initialRequestRows[1]).toMatch(/julian torres/i);
+    expect(initialRequestRows.at(-1)).toMatch(/claudia moreno/i);
     expect(
       within(
         screen.getByTestId('student-request-row-student-request-1'),

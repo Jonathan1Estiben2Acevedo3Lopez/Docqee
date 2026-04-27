@@ -44,7 +44,7 @@ export const router = createBrowserRouter([
     path: ROUTES.privacyPolicy,
     lazy: async () => {
       const { PrivacyPolicyPage } =
-        await import('@/pages/home/LegalPlaceholderPage');
+        await import('@/pages/home/legal/PrivacyPolicyPage');
       return { Component: PrivacyPolicyPage };
     },
   },
@@ -52,7 +52,7 @@ export const router = createBrowserRouter([
     path: ROUTES.termsAndConditions,
     lazy: async () => {
       const { TermsAndConditionsPage } =
-        await import('@/pages/home/LegalPlaceholderPage');
+        await import('@/pages/home/legal/TermsAndConditionsPage');
       return { Component: TermsAndConditionsPage };
     },
   },

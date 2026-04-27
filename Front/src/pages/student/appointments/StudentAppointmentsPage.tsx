@@ -48,10 +48,10 @@ import {
 type AppointmentStatusFilter = StudentAgendaAppointmentStatus | 'all';
 type AppointmentSortOrder = 'arrival' | 'proximity';
 
-const appointmentStatusOptions: Array<{
+const appointmentStatusOptions: {
   label: string;
   value: AppointmentStatusFilter;
-}> = [
+}[] = [
   { label: 'Todas', value: 'all' },
   { label: 'Propuesta', value: 'PROPUESTA' },
   { label: 'Aceptada', value: 'ACEPTADA' },
@@ -762,10 +762,6 @@ export function StudentAppointmentsPage() {
     setIsAppointmentDialogOpen(true);
   };
 
-  const handleEditAppointment = (appointment: StudentAgendaAppointment) => {
-    openAppointmentDialog(appointment, 'edit');
-  };
-
   const handleViewAppointment = (appointment: StudentAgendaAppointment) => {
     openAppointmentDialog(appointment, 'view');
   };
@@ -1148,22 +1144,22 @@ export function StudentAppointmentsPage() {
             <table className="w-full table-fixed">
               <thead className="sticky top-0 z-10 bg-slate-100 text-left">
                 <tr className="text-[0.56rem] font-bold uppercase leading-3 tracking-[0.12em] text-ink-muted sm:text-[0.68rem] sm:leading-none sm:tracking-[0.18em]">
-                  <th className="w-[20%] px-2 py-1.5 sm:px-5 sm:py-3 md:w-[14%]">
+                  <th className="w-[39%] px-2 py-1.5 sm:w-[20%] sm:px-5 sm:py-3 md:w-[14%]">
                     Paciente
                   </th>
                   <th className="hidden py-1.5 pl-0 pr-2 sm:py-3 sm:pr-4 md:table-cell md:w-[20%]">
                     Atención clínica
                   </th>
-                  <th className="w-[27%] py-1.5 pl-0 pr-2 sm:py-3 sm:pr-4 md:w-[20%]">
+                  <th className="hidden w-[27%] py-1.5 pl-0 pr-2 sm:table-cell sm:py-3 sm:pr-4 md:w-[20%]">
                     Programación
                   </th>
-                  <th className="w-[15%] py-1.5 pl-0 pr-2 text-left sm:py-3 sm:pr-4 md:w-[12%]">
+                  <th className="w-[21%] py-1.5 pl-0 pr-2 text-left sm:w-[15%] sm:py-3 sm:pr-4 md:w-[12%]">
                     Estado
                   </th>
-                  <th className="w-[13%] py-1.5 pl-0 pr-2 text-left sm:py-3 sm:pr-4 md:w-[12%]">
+                  <th className="w-[17%] py-1.5 pl-0 pr-2 text-center sm:w-[13%] sm:py-3 sm:pr-4 sm:text-left md:w-[12%]">
                     Valoración
                   </th>
-                  <th className="w-[25%] px-1.5 py-1.5 text-center sm:px-5 sm:py-3 md:w-[22%]">
+                  <th className="w-[23%] px-1.5 py-1.5 text-center sm:w-[25%] sm:px-5 sm:py-3 md:w-[22%]">
                     Acciones
                   </th>
                 </tr>
@@ -1196,6 +1192,29 @@ export function StudentAppointmentsPage() {
                           <p className="break-words text-[0.76rem] font-semibold leading-4 text-ink sm:text-sm sm:leading-5">
                             {appointment.patientName}
                           </p>
+                          <div className="mt-1.5 space-y-0.5 text-[0.62rem] leading-[0.85rem] text-ink-muted sm:hidden">
+                            <p className="flex items-start gap-1">
+                              <Clock3
+                                aria-hidden="true"
+                                className="mt-0.5 h-2.5 w-2.5 shrink-0 text-primary"
+                              />
+                              <span className="min-w-0 break-words">
+                                {formatDateTimeRange(
+                                  appointment.startAt,
+                                  appointment.endAt,
+                                )}
+                              </span>
+                            </p>
+                            <p className="flex items-start gap-1">
+                              <MapPin
+                                aria-hidden="true"
+                                className="mt-0.5 h-2.5 w-2.5 shrink-0 text-primary"
+                              />
+                              <span className="min-w-0 break-words">
+                                {appointment.siteName} - {appointmentLocality}
+                              </span>
+                            </p>
+                          </div>
                         </div>
                       </td>
                       <td className="hidden py-2 pl-0 pr-2 sm:py-3 sm:pr-4 md:table-cell">
@@ -1234,7 +1253,7 @@ export function StudentAppointmentsPage() {
                           </p>
                         </div>
                       </td>
-                      <td className="py-2 pl-0 pr-2 sm:py-3 sm:pr-4">
+                      <td className="hidden py-2 pl-0 pr-2 sm:table-cell sm:py-3 sm:pr-4">
                         <div className="min-w-0 space-y-0.5 text-[0.68rem] leading-4 text-ink-muted sm:text-[0.82rem] sm:leading-5">
                           <p className="flex items-start gap-1.5 font-semibold text-ink">
                             <Clock3
@@ -1259,7 +1278,7 @@ export function StudentAppointmentsPage() {
                           </p>
                         </div>
                       </td>
-                      <td className="py-2 pl-0 pr-2 sm:py-3 sm:pr-4">
+                      <td className="py-2 pl-0 pr-2 text-center sm:py-3 sm:pr-4 sm:text-left">
                         <span
                           className={classNames(
                             'inline-flex rounded-full px-1.5 py-0.5 text-[0.6rem] font-semibold leading-4 ring-1 ring-inset sm:px-3 sm:py-1 sm:text-xs',
@@ -1279,7 +1298,7 @@ export function StudentAppointmentsPage() {
                             {appointmentRating}/5
                           </span>
                         ) : (
-                          <span className="text-[0.62rem] font-medium leading-4 text-ink-muted sm:text-xs">
+                          <span className="inline-flex w-full justify-center text-[0.62rem] font-medium leading-4 text-ink-muted sm:justify-start sm:text-xs">
                             {displayStatus === 'FINALIZADA'
                               ? 'Sin valorar'
                               : '-'}
@@ -1420,8 +1439,8 @@ export function StudentAppointmentsPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="inline-flex justify-center text-[0.62rem] font-medium text-ink-muted sm:text-xs">
-                            Sin acciones
+                          <span className="inline-flex w-full justify-center text-[0.62rem] font-medium text-ink-muted sm:text-xs">
+                            -
                           </span>
                         )}
                       </td>
@@ -1787,8 +1806,6 @@ function AppointmentCommentsModal({
   reviews: StudentAppointmentReview[];
   onClose: () => void;
 }) {
-  const overlayRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') onClose();
@@ -1799,16 +1816,19 @@ function AppointmentCommentsModal({
 
   return (
     <div
-      ref={overlayRef}
       aria-label="Comentarios de la cita"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4 backdrop-blur-sm"
       role="dialog"
-      onClick={(event) => {
-        if (event.target === overlayRef.current) onClose();
-      }}
     >
-      <div className="w-full max-w-md overflow-hidden rounded-[1.4rem] border border-slate-200/80 bg-white shadow-[0_32px_80px_-24px_rgba(15,23,42,0.38)]">
+      <button
+        aria-hidden="true"
+        className="absolute inset-0 cursor-default bg-transparent"
+        tabIndex={-1}
+        type="button"
+        onClick={onClose}
+      />
+      <div className="relative z-10 w-full max-w-md overflow-hidden rounded-[1.4rem] border border-slate-200/80 bg-white shadow-[0_32px_80px_-24px_rgba(15,23,42,0.38)]">
         <div className="flex justify-end border-b border-slate-100 px-4 py-3">
           <button
             aria-label="Cerrar"
