@@ -39,6 +39,7 @@ type SessionAccount = {
   correo: string;
   password_hash: string;
   tipo_cuenta: tipo_cuenta_enum;
+  estado: estado_simple_enum;
   correo_verificado: boolean;
   primer_ingreso_pendiente: boolean;
   cuenta_admin_plataforma: {
@@ -71,6 +72,7 @@ type SessionAccountBase = Pick<
   | 'correo_verificado'
   | 'id_cuenta'
   | 'password_hash'
+  | 'estado'
   | 'primer_ingreso_pendiente'
   | 'tipo_cuenta'
 >;
@@ -470,6 +472,7 @@ export class AuthService implements OnModuleInit {
         correo: true,
         password_hash: true,
         tipo_cuenta: true,
+        estado: true,
         correo_verificado: true,
         primer_ingreso_pendiente: true,
       },
@@ -484,6 +487,7 @@ export class AuthService implements OnModuleInit {
         correo: true,
         password_hash: true,
         tipo_cuenta: true,
+        estado: true,
         correo_verificado: true,
         primer_ingreso_pendiente: true,
       },
@@ -574,6 +578,15 @@ export class AuthService implements OnModuleInit {
       account.correo_verificado !== true
     ) {
       throw new UnauthorizedException('Debes verificar tu correo antes de iniciar sesion.');
+    }
+
+    if (
+      account.tipo_cuenta === tipo_cuenta_enum.ESTUDIANTE &&
+      account.estado === estado_simple_enum.INACTIVO
+    ) {
+      throw new UnauthorizedException(
+        'Tu cuenta de estudiante se encuentra inactiva. Contacta al administrador de tu universidad.',
+      );
     }
 
     if (
