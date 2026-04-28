@@ -386,7 +386,7 @@ export function StudentAgendaCalendar({
         <div
           className={classNames(
             viewMode === 'month'
-              ? 'grid grid-cols-7 gap-1'
+              ? 'grid grid-cols-7 gap-0.5 sm:gap-1'
               : viewMode === 'week'
                 ? 'grid gap-1.5 xl:grid-cols-7'
                 : 'space-y-2',
@@ -533,7 +533,7 @@ export function StudentAgendaCalendar({
               <div
                 key={dayKey}
                 className={classNames(
-                  'flex min-h-[4.9rem] flex-col rounded-[0.85rem] border px-1.5 py-1 text-left transition duration-200 sm:min-h-[4.75rem] sm:px-1.5 sm:py-1 xl:min-h-[4.95rem] xl:px-1.5 xl:py-1 2xl:min-h-[5.25rem]',
+                  'flex min-h-[4.1rem] flex-col rounded-[0.72rem] border px-1 py-0.5 text-left transition duration-200 sm:min-h-[4rem] sm:px-1 sm:py-0.5 xl:min-h-[4.15rem] xl:px-1 xl:py-0.5 2xl:min-h-[4.35rem]',
                   dayKey === selectedDateKey
                     ? 'border-primary/45 bg-[linear-gradient(180deg,rgba(22,78,99,0.08)_0%,rgba(255,255,255,0.96)_100%)]'
                     : 'border-slate-200/85 bg-white/72 hover:border-primary/25 hover:bg-white',
@@ -549,29 +549,29 @@ export function StudentAgendaCalendar({
                   }
                 }}
               >
-                <div className="mb-1 flex items-center justify-between">
+                <div className="mb-0.5 flex items-center justify-between">
                   <span
                     className={classNames(
-                      'inline-flex h-5 w-5 items-center justify-center rounded-full text-[0.74rem] font-bold sm:h-5 sm:w-5 sm:text-[0.7rem] xl:h-5.5 xl:w-5.5 xl:text-[0.74rem]',
+                      'inline-flex h-4.5 w-4.5 items-center justify-center rounded-full text-[0.66rem] font-bold sm:h-4.5 sm:w-4.5 sm:text-[0.64rem] xl:h-5 xl:w-5 xl:text-[0.68rem]',
                       dayKey === todayDateKey ? 'bg-brand-gradient text-white' : 'text-ink',
                     )}
                   >
                     {day.getDate()}
                   </span>
                   {dayEvents.length > 0 ? (
-                    <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[0.5rem] font-semibold uppercase tracking-[0.08em] text-ink-muted sm:text-[0.52rem]">
+                    <span className="rounded-full bg-slate-100 px-1 py-px text-[0.46rem] font-semibold uppercase tracking-[0.06em] text-ink-muted sm:text-[0.48rem]">
                       {dayEvents.length}
                     </span>
                   ) : null}
                 </div>
-                <div className="space-y-0.5 sm:space-y-1">
+                <div className="space-y-0.5">
                   {dayEvents.slice(0, 1).map((event) =>
                     event.source === 'schedule-block' ? (
                       <button
                         key={event.id}
                         aria-label={`Gestionar bloqueo ${event.timeLabel}`}
                         className={classNames(
-                          'w-full truncate rounded-[0.6rem] px-1.5 py-0.5 text-left text-[0.56rem] font-semibold transition duration-200 sm:text-[0.54rem] xl:px-1.5 xl:py-0.5 xl:text-[0.56rem]',
+                          'w-full truncate rounded-[0.5rem] px-1 py-px text-left text-[0.5rem] font-semibold leading-3 transition duration-200 sm:text-[0.5rem] xl:px-1 xl:py-px xl:text-[0.52rem]',
                           getToneClasses(event.tone).pill,
                           isInactiveBlockEvent(event) && 'opacity-70',
                         )}
@@ -585,7 +585,7 @@ export function StudentAgendaCalendar({
                       <div
                         key={event.id}
                         className={classNames(
-                          'truncate rounded-[0.6rem] px-1.5 py-0.5 text-[0.56rem] font-semibold sm:text-[0.54rem] xl:px-1.5 xl:py-0.5 xl:text-[0.56rem]',
+                          'truncate rounded-[0.5rem] px-1 py-px text-[0.5rem] font-semibold leading-3 sm:text-[0.5rem] xl:px-1 xl:py-px xl:text-[0.52rem]',
                           getToneClasses(event.tone).pill,
                         )}
                       >
@@ -594,7 +594,7 @@ export function StudentAgendaCalendar({
                     ),
                   )}
                   {dayEvents.length > 1 ? (
-                    <p className="text-[0.52rem] font-semibold text-ink-muted sm:text-[0.52rem]">
+                    <p className="text-[0.48rem] font-semibold leading-3 text-ink-muted sm:text-[0.48rem]">
                       +{dayEvents.length - 1} mas
                     </p>
                   ) : null}
