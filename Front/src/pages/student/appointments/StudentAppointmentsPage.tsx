@@ -1290,6 +1290,9 @@ export function StudentAppointmentsPage() {
                     reviews.find(
                       (review) => review.appointmentId === appointment.id,
                     )?.rating ?? appointment.myRating;
+                  const hasAppointmentRating =
+                    appointmentRating !== null &&
+                    appointmentRating !== undefined;
 
                   return (
                     <tr
@@ -1399,7 +1402,7 @@ export function StudentAppointmentsPage() {
                         </span>
                       </td>
                       <td className="py-2 pl-0 pr-2 text-center sm:py-2 sm:pr-3">
-                        {appointmentRating ? (
+                        {hasAppointmentRating ? (
                           <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[0.62rem] font-semibold leading-4 text-amber-600 sm:gap-1 sm:px-2 sm:py-0.5 sm:text-[0.68rem]">
                             <Star
                               aria-hidden="true"
@@ -1407,11 +1410,26 @@ export function StudentAppointmentsPage() {
                             />
                             {appointmentRating}/5
                           </span>
+                        ) : displayStatus === 'FINALIZADA' ? (
+                          <button
+                            aria-label={`Calificar paciente ${appointment.patientName}`}
+                            className="inline-flex max-w-full items-center justify-center gap-0.5 whitespace-nowrap rounded-full bg-amber-50 px-1.5 py-1 text-[0.58rem] font-semibold leading-none text-amber-700 transition duration-200 hover:bg-amber-100 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.68rem]"
+                            type="button"
+                            onClick={() =>
+                              handleOpenRatingAppointment(appointment)
+                            }
+                          >
+                            <Star
+                              aria-hidden="true"
+                              className="h-2.5 w-2.5 sm:h-3 sm:w-3"
+                            />
+                            <span className="sr-only sm:not-sr-only">
+                              Calificar
+                            </span>
+                          </button>
                         ) : (
                           <span className="inline-flex w-full justify-center text-[0.62rem] font-medium leading-4 text-ink-muted sm:text-[0.72rem]">
-                            {displayStatus === 'FINALIZADA'
-                              ? 'Sin valorar'
-                              : '-'}
+                            -
                           </span>
                         )}
                       </td>
@@ -1515,23 +1533,6 @@ export function StudentAppointmentsPage() {
                                 Ver cita
                               </span>
                             </button>
-                            {!appointment.myRating ? (
-                              <button
-                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-1.5 py-1 text-[0.62rem] font-semibold text-amber-700 transition duration-200 hover:bg-amber-100 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
-                                type="button"
-                                onClick={() =>
-                                  handleOpenRatingAppointment(appointment)
-                                }
-                              >
-                                <Star
-                                  aria-hidden="true"
-                                  className="h-3 w-3 sm:h-3 sm:w-3"
-                                />
-                                <span className="sr-only sm:not-sr-only">
-                                  Calificar paciente
-                                </span>
-                              </button>
-                            ) : null}
                             <button
                               className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-1.5 py-1 text-[0.62rem] font-semibold text-slate-700 transition duration-200 hover:bg-slate-200 sm:gap-1 sm:px-2 sm:py-1 sm:text-[0.72rem]"
                               type="button"
