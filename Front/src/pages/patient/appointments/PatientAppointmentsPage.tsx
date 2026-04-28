@@ -18,6 +18,7 @@ import { Seo } from '@/components/ui/Seo';
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { patientContent } from '@/content/patientContent';
 import type { PatientAppointment, PatientAppointmentStatus } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { classNames } from '@/lib/classNames';
 import { usePatientModuleStore } from '@/lib/patientModuleStore';
 
@@ -149,6 +150,11 @@ export function PatientAppointmentsPage() {
   const statusMenuRef = useRef<HTMLDivElement | null>(null);
   const autoRejectedAppointmentIdsRef = useRef<Set<string>>(new Set());
   const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  useAutoDismissSystemMessage(successMessage, () => {
+    setSuccessMessage(null);
+  });
+
   const proposalCount = useMemo(
     () =>
       appointments.filter(

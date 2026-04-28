@@ -17,6 +17,7 @@ import {
   preloadLandingRouteForSession,
 } from '@/lib/authRouting';
 import type { LoginFormErrors, LoginFormState, LoginFormValues } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { classNames } from '@/lib/classNames';
 import {
   clearPasswordResetSuccessNotice,
@@ -100,6 +101,13 @@ export function LoginPage() {
   const registerPath =
     content.registerCta.kind === 'internal' ? content.registerCta.to : ROUTES.register;
 
+  useAutoDismissSystemMessage(formState.generalError, () => {
+    setFormState((currentState) => ({
+      ...currentState,
+      generalError: null,
+    }));
+  });
+
   useEffect(() => {
     if (!successNotice) {
       return undefined;
@@ -107,7 +115,7 @@ export function LoginPage() {
 
     const timeoutId = window.setTimeout(() => {
       setSuccessNotice(null);
-    }, 4500);
+    }, 2000);
 
     return () => {
       window.clearTimeout(timeoutId);

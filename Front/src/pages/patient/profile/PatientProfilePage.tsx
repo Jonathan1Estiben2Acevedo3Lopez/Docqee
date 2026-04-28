@@ -23,11 +23,13 @@ import type {
   PatientProfileFormErrors,
   PatientProfileFormValues,
 } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import {
   getOptimizedAvatarUrl,
   readOptimizedImageFileAsDataUrl,
 } from '@/lib/imageOptimization';
 import { usePatientModuleStore } from '@/lib/patientModuleStore';
+import { calculateAverageRating } from '@/lib/ratings';
 
 function getInitialValues(profile: PatientProfile): PatientProfileFormValues {
   return {
@@ -61,11 +63,16 @@ export function PatientProfilePage() {
   const { errorMessage, isLoading, profile, reviews, updateProfile } = usePatientModuleStore();
   const averageRating = useMemo(() => {
     if (reviews.length === 0) return null;
-    return reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    return calculateAverageRating(reviews.map((review) => review.rating));
   }, [reviews]);
   const [values, setValues] = useState<PatientProfileFormValues>(() => getInitialValues(profile));
   const [errors, setErrors] = useState<PatientProfileFormErrors>({});
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  useAutoDismissSystemMessage(saveMessage, () => {
+    setSaveMessage(null);
+  });
+
   const patientInitials = useMemo(
     () => `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase(),
     [profile.firstName, profile.lastName],

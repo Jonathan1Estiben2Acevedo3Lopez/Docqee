@@ -26,6 +26,7 @@ import {
   persistUniversityAdminProfileCache,
   resetUniversityAdminProfileState,
 } from '@/lib/universityAdminProfileStore';
+import { scheduleSystemMessageDismiss } from '@/lib/systemMessages';
 import {
   prependUniversityAdminStudentRecord,
   resetUniversityAdminStudentRecordsState,
@@ -304,6 +305,7 @@ let nextStudentSequence = initialMockState.students.length + 1;
 let nextTeacherSequence = initialMockState.teachers.length + 1;
 let nextCredentialSequence = initialMockState.credentials.length + 1;
 let runtimeLoadPromise: Promise<UniversityAdminStoreState> | null = null;
+let errorMessageDismissTimerId: number | null = null;
 
 function emitChange() {
   listeners.forEach((listener) => {
@@ -323,8 +325,31 @@ function getSnapshot() {
   return state;
 }
 
+function scheduleErrorMessageDismiss(nextErrorMessage: string | null) {
+  if (IS_TEST_MODE) {
+    return;
+  }
+
+  errorMessageDismissTimerId = scheduleSystemMessageDismiss(
+    errorMessageDismissTimerId,
+    nextErrorMessage,
+    (message) => {
+      if (state.errorMessage === message) {
+        patchState({ errorMessage: null });
+      }
+    },
+  );
+}
+
 function updateState(nextState: UniversityAdminStoreState) {
+  const previousErrorMessage = state.errorMessage;
+
   state = nextState;
+
+  if (previousErrorMessage !== nextState.errorMessage) {
+    scheduleErrorMessageDismiss(nextState.errorMessage);
+  }
+
   emitChange();
 }
 

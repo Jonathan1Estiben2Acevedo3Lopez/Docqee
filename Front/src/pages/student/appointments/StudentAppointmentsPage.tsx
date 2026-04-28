@@ -431,7 +431,6 @@ export function StudentAppointmentsPage() {
     appointmentId: string;
     patientName: string;
   } | null>(null);
-  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
   const statusMenuRef = useRef<HTMLDivElement | null>(null);
   const tableViewportRef = useRef<HTMLDivElement | null>(null);
@@ -724,7 +723,7 @@ export function StudentAppointmentsPage() {
 
     const timeoutId = window.setTimeout(() => {
       setAppointmentSaveNotice(null);
-    }, 4_000);
+    }, 2000);
 
     return () => window.clearTimeout(timeoutId);
   }, [appointmentSaveNotice, isAppointmentSavePending]);
@@ -1903,20 +1902,12 @@ export function StudentAppointmentsPage() {
       {ratingTarget ? (
         <StudentRatingModal
           appointmentId={ratingTarget.appointmentId}
-          isSubmitting={isSubmittingRating}
+          isSubmitting={false}
           patientName={ratingTarget.patientName}
           onClose={() => setRatingTarget(null)}
           onSubmit={(appointmentId, rating, comment) => {
-            void (async () => {
-              setIsSubmittingRating(true);
-              const success = await submitAppointmentReview(
-                appointmentId,
-                rating,
-                comment,
-              );
-              setIsSubmittingRating(false);
-              if (success) setRatingTarget(null);
-            })();
+            setRatingTarget(null);
+            void submitAppointmentReview(appointmentId, rating, comment);
           }}
         />
       ) : null}

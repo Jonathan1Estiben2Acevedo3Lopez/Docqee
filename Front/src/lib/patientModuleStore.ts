@@ -15,6 +15,7 @@ import type {
 } from '@/content/types';
 import { ApiError, IS_TEST_MODE } from '@/lib/apiClient';
 import { readAuthSession } from '@/lib/authSession';
+import { scheduleSystemMessageDismiss } from '@/lib/systemMessages';
 import {
   createPatientPortalRequest,
   getPatientPortalConversation,
@@ -802,6 +803,7 @@ let nextMessageSequence =
     0,
   ) + 1;
 let runtimeLoadPromise: Promise<PatientStoreState> | null = null;
+let errorMessageDismissTimerId: number | null = null;
 
 function emitChange() {
   listeners.forEach((listener) => {
@@ -821,8 +823,31 @@ function getSnapshot() {
   return state;
 }
 
+function scheduleErrorMessageDismiss(nextErrorMessage: string | null) {
+  if (IS_TEST_MODE) {
+    return;
+  }
+
+  errorMessageDismissTimerId = scheduleSystemMessageDismiss(
+    errorMessageDismissTimerId,
+    nextErrorMessage,
+    (message) => {
+      if (state.errorMessage === message) {
+        patchState({ errorMessage: null });
+      }
+    },
+  );
+}
+
 function updateState(nextState: PatientStoreState) {
+  const previousErrorMessage = state.errorMessage;
+
   state = nextState;
+
+  if (previousErrorMessage !== nextState.errorMessage) {
+    scheduleErrorMessageDismiss(nextState.errorMessage);
+  }
+
   emitChange();
 }
 

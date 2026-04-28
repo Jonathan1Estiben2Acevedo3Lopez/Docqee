@@ -26,6 +26,7 @@ import {
   getOptimizedAvatarUrl,
   getOptimizedLogoUrl,
 } from '@/lib/imageOptimization';
+import { calculateAverageRating, getStarFillRatio } from '@/lib/ratings';
 import { useStudentModuleStore } from '@/lib/studentModuleStore';
 
 const reviewDateFormatter = new Intl.DateTimeFormat('es-CO', {
@@ -46,20 +47,31 @@ function renderStars(
   tone: 'dark' | 'light' = 'light',
 ) {
   return Array.from({ length: 5 }, (_, index) => {
-    const isFilled = index < Math.round(value);
+    const fillRatio = getStarFillRatio(value, index);
+    const emptyClassName =
+      tone === 'light' ? 'text-white/35' : 'text-slate-300/85';
 
     return (
-      <Star
+      <span
         key={`star-${value}-${index}`}
         aria-hidden="true"
-        className={`${sizeClassName} ${
-          isFilled
-            ? 'fill-amber-300 text-amber-300'
-            : tone === 'light'
-              ? 'text-white/35'
-              : 'text-slate-300/85'
-        }`}
-      />
+        className={classNames('relative inline-flex shrink-0', sizeClassName)}
+      >
+        <Star className={classNames('h-full w-full', emptyClassName)} />
+        {fillRatio > 0 ? (
+          <span
+            className="absolute inset-y-0 left-0 overflow-hidden"
+            style={{ width: `${fillRatio * 100}%` }}
+          >
+            <Star
+              className={classNames(
+                'block max-w-none fill-amber-300 text-amber-300',
+                sizeClassName,
+              )}
+            />
+          </span>
+        ) : null}
+      </span>
     );
   });
 }
@@ -175,11 +187,7 @@ export function StudentTreatmentsPage() {
       return 0;
     }
 
-    const totalRating = reviews.reduce(
-      (total, review) => total + review.rating,
-      0,
-    );
-    return totalRating / reviews.length;
+    return calculateAverageRating(reviews.map((review) => review.rating));
   }, [reviews]);
   const commentsCount = useMemo(
     () => reviews.filter((review) => Boolean(review.comment?.trim())).length,

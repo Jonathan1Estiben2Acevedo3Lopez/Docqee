@@ -6,6 +6,7 @@ import type {
   InstitutionalAllianceContent,
   InstitutionalAllianceInterestValue,
 } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { ApiError } from '@/lib/apiClient';
 import { classNames } from '@/lib/classNames';
 import { submitInstitutionalAllianceRequest } from '@/lib/institutionalAllianceApi';
@@ -115,6 +116,11 @@ export function InstitutionalAllianceSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusTone, setStatusTone] = useState<'error' | 'success' | null>(null);
+
+  useAutoDismissSystemMessage(statusMessage, () => {
+    setStatusMessage(null);
+    setStatusTone(null);
+  });
 
   function updateField<K extends keyof InstitutionalAllianceFormValues>(
     field: K,

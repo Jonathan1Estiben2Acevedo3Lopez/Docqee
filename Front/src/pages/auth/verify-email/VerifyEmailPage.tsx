@@ -10,6 +10,7 @@ import { Seo } from '@/components/ui/Seo';
 import { ROUTES } from '@/constants/routes';
 import { authContent } from '@/content/authContent';
 import type { VerifyEmailFormState, VerifyEmailService } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { IS_TEST_MODE } from '@/lib/apiClient';
 import { classNames } from '@/lib/classNames';
 import {
@@ -69,6 +70,17 @@ export function VerifyEmailPage({ service = verifyEmailService }: VerifyEmailPag
   const isResending = formState.status === 'resending';
   const isBusy = isSubmitting || isResending;
   const loginPath = content.loginCta.kind === 'internal' ? content.loginCta.to : ROUTES.login;
+
+  useAutoDismissSystemMessage(formState.statusMessage, () => {
+    setFormState((currentState) => ({
+      ...currentState,
+      status:
+        currentState.status === 'error' || currentState.status === 'success'
+          ? 'idle'
+          : currentState.status,
+      statusMessage: null,
+    }));
+  });
 
   useEffect(() => {
     if (emailFromState) {

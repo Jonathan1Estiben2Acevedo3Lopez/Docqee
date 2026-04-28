@@ -129,11 +129,22 @@ export class MailService {
     city: string,
     startAt: string,
     endAt: string,
+    siteAddress?: string | null,
+    universityName?: string | null,
   ) {
+    const universityLine = universityName
+      ? `<p style="margin:4px 0;"><strong>Universidad:</strong> ${universityName}</p>`
+      : '';
+    const siteAddressLine = siteAddress
+      ? `<p style="margin:4px 0;"><strong>Direcci&oacute;n:</strong> ${siteAddress}</p>`
+      : '';
+
     return `
       <div style="background:#f4f8ff;border-radius:10px;padding:18px 20px;margin:16px 0;font-size:14px;line-height:1.7;">
         <p style="margin:4px 0;"><strong>Tipo de cita:</strong> ${appointmentType}</p>
+        ${universityLine}
         <p style="margin:4px 0;"><strong>Sede:</strong> ${siteName} - ${city}</p>
+        ${siteAddressLine}
         <p style="margin:4px 0;"><strong>Fecha:</strong> ${this.formatAppointmentDate(startAt)}</p>
         <p style="margin:4px 0;"><strong>Hora:</strong> ${this.formatAppointmentTime(startAt)} – ${this.formatAppointmentTime(endAt)}</p>
       </div>
@@ -347,6 +358,8 @@ export class MailService {
     startAt: string,
     endAt: string,
     timing: AppointmentReminderTiming = 'tomorrow',
+    siteAddress?: string | null,
+    universityName?: string | null,
   ) {
     const reminderCopy = this.getAppointmentReminderCopy(timing);
 
@@ -360,8 +373,8 @@ export class MailService {
             <h2 style="color:#2563eb;">Recordatorio de cita</h2>
             <p>Hola <strong>${studentName}</strong>,</p>
             <p>Te recordamos que ${reminderCopy.phrase} tienes una cita con el paciente <strong>${patientName}</strong>.</p>
-            ${this.appointmentDetailsBlock(appointmentType, siteName, city, startAt, endAt)}
-            <p style="color:#666;font-size:13px;">Asegurate de estar disponible y preparado para la sesion.</p>
+            ${this.appointmentDetailsBlock(appointmentType, siteName, city, startAt, endAt, siteAddress, universityName)}
+            <p style="color:#666;font-size:13px;">Aseg&uacute;rate de estar disponible y preparado para la sesi&oacute;n.</p>
           </div>
         `,
       });
@@ -381,6 +394,8 @@ export class MailService {
     startAt: string,
     endAt: string,
     timing: AppointmentReminderTiming = 'tomorrow',
+    siteAddress?: string | null,
+    universityName?: string | null,
   ) {
     const reminderCopy = this.getAppointmentReminderCopy(timing);
 
@@ -394,8 +409,8 @@ export class MailService {
             <h2 style="color:#2563eb;">Recordatorio de cita</h2>
             <p>Hola <strong>${patientName}</strong>,</p>
             <p>Te recordamos que ${reminderCopy.phrase} tienes una cita con el estudiante <strong>${studentName}</strong>.</p>
-            ${this.appointmentDetailsBlock(appointmentType, siteName, city, startAt, endAt)}
-            <p style="color:#666;font-size:13px;">Si necesitas mas informacion, contacta al estudiante por el chat de Docqee.</p>
+            ${this.appointmentDetailsBlock(appointmentType, siteName, city, startAt, endAt, siteAddress, universityName)}
+            <p style="color:#666;font-size:13px;">Si necesitas m&aacute;s informaci&oacute;n, contacta al estudiante por el chat de Docqee.</p>
           </div>
         `,
       });

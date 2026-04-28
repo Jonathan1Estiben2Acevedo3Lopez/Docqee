@@ -30,6 +30,7 @@ import type {
   StudentProfileFormValues,
   StudentTreatmentType,
 } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { IS_TEST_MODE } from '@/lib/apiClient';
 import { classNames } from '@/lib/classNames';
 import {
@@ -118,6 +119,18 @@ export function StudentProfilePage() {
   const [selectedSiteIds, setSelectedSiteIds] = useState<Set<string>>(() =>
     new Set(practiceSites.map((s) => s.siteId)),
   );
+
+  useAutoDismissSystemMessage(saveMessage, () => {
+    setSaveMessage(null);
+  });
+
+  useAutoDismissSystemMessage(
+    avatarUploadStatus === 'uploading' ? null : avatarUploadMessage,
+    () => {
+      setAvatarUploadMessage(null);
+    },
+  );
+
   const [treatmentTypes, setTreatmentTypes] = useState<StudentTreatmentType[]>([]);
   const [selectedTreatmentTypeIds, setSelectedTreatmentTypeIds] = useState<Set<string>>(() =>
     new Set(treatments.map((t) => t.treatmentTypeId)),

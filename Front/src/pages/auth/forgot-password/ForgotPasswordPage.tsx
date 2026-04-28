@@ -16,6 +16,7 @@ import type {
   ForgotPasswordService,
   RegisterPasswordRuleKey,
 } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { IS_TEST_MODE } from '@/lib/apiClient';
 import { classNames } from '@/lib/classNames';
 import {
@@ -154,6 +155,27 @@ export function ForgotPasswordPage({ service = forgotPasswordService }: ForgotPa
   const isSendingCode = formState.emailRequestStatus === 'submitting';
   const isValidatingCode = formState.codeVerificationStatus === 'submitting';
   const isChangingPassword = formState.passwordResetStatus === 'submitting';
+
+  useAutoDismissSystemMessage(formState.messages.email, () => {
+    setFormState((currentState) => ({
+      ...currentState,
+      messages: { ...currentState.messages, email: null },
+    }));
+  });
+
+  useAutoDismissSystemMessage(formState.messages.code, () => {
+    setFormState((currentState) => ({
+      ...currentState,
+      messages: { ...currentState.messages, code: null },
+    }));
+  });
+
+  useAutoDismissSystemMessage(formState.messages.password, () => {
+    setFormState((currentState) => ({
+      ...currentState,
+      messages: { ...currentState.messages, password: null },
+    }));
+  });
 
   useEffect(() => {
     clearForgotPasswordRecoverySession();

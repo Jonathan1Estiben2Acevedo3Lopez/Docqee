@@ -153,7 +153,7 @@ export function UniversityStudentsPage() {
 
     const timeoutId = window.setTimeout(() => {
       navigate(location.pathname, { replace: true, state: null });
-    }, 3500);
+    }, 2000);
 
     return () => {
       window.clearTimeout(timeoutId);

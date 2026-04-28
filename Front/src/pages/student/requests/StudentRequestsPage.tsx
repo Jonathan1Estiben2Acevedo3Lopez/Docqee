@@ -21,6 +21,7 @@ import { studentContent } from '@/content/studentContent';
 import type { StudentRequest, StudentRequestStatus } from '@/content/types';
 import { classNames } from '@/lib/classNames';
 import { getOptimizedAvatarUrl } from '@/lib/imageOptimization';
+import { getStarFillRatio } from '@/lib/ratings';
 import { useStudentModuleStore } from '@/lib/studentModuleStore';
 
 type RequestStatusFilter = StudentRequestStatus | 'all';
@@ -75,17 +76,29 @@ function getPatientLocationLabel(request: StudentRequest) {
 
 function renderRatingStars(value: number, sizeClassName = 'h-4 w-4') {
   return Array.from({ length: 5 }, (_, index) => {
-    const isFilled = index < Math.round(value);
+    const fillRatio = getStarFillRatio(value, index);
 
     return (
-      <Star
+      <span
         key={`request-rating-star-${value}-${index}`}
         aria-hidden="true"
-        className={classNames(
-          sizeClassName,
-          isFilled ? 'fill-amber-300 text-amber-300' : 'text-slate-300',
-        )}
-      />
+        className={classNames('relative inline-flex shrink-0', sizeClassName)}
+      >
+        <Star className="h-full w-full text-slate-300" />
+        {fillRatio > 0 ? (
+          <span
+            className="absolute inset-y-0 left-0 overflow-hidden"
+            style={{ width: `${fillRatio * 100}%` }}
+          >
+            <Star
+              className={classNames(
+                'block max-w-none fill-amber-300 text-amber-300',
+                sizeClassName,
+              )}
+            />
+          </span>
+        ) : null}
+      </span>
     );
   });
 }
@@ -660,7 +673,7 @@ export function StudentRequestsPage() {
 
     const timeoutId = window.setTimeout(() => {
       setSuccessMessage(null);
-    }, 3000);
+    }, 2000);
 
     return () => {
       window.clearTimeout(timeoutId);

@@ -6,6 +6,7 @@ import type {
 } from '@/content/types';
 import { IS_TEST_MODE } from '@/lib/apiClient';
 import { readAuthSession } from '@/lib/authSession';
+import { scheduleSystemMessageDismiss } from '@/lib/systemMessages';
 import { resetUniversityAdminOverviewState } from '@/lib/universityAdminOverviewStore';
 import {
   deleteUniversityStudentCredential,
@@ -313,6 +314,7 @@ function createRuntimeInitialState(): UniversityAdminStudentRecordsStoreState {
 let state = IS_TEST_MODE ? createMockState() : createRuntimeInitialState();
 let runtimeLoadPromise: Promise<UniversityAdminStudentRecordsStoreState> | null =
   null;
+let errorMessageDismissTimerId: number | null = null;
 
 function emitChange() {
   listeners.forEach((listener) => {
@@ -332,8 +334,31 @@ function getSnapshot() {
   return state;
 }
 
+function scheduleErrorMessageDismiss(nextErrorMessage: string | null) {
+  if (IS_TEST_MODE) {
+    return;
+  }
+
+  errorMessageDismissTimerId = scheduleSystemMessageDismiss(
+    errorMessageDismissTimerId,
+    nextErrorMessage,
+    (message) => {
+      if (state.errorMessage === message) {
+        patchState({ errorMessage: null });
+      }
+    },
+  );
+}
+
 function updateState(nextState: UniversityAdminStudentRecordsStoreState) {
+  const previousErrorMessage = state.errorMessage;
+
   state = nextState;
+
+  if (previousErrorMessage !== nextState.errorMessage) {
+    scheduleErrorMessageDismiss(nextState.errorMessage);
+  }
+
   emitChange();
 }
 

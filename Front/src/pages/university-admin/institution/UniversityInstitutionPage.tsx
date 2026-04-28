@@ -42,6 +42,7 @@ import type {
   UniversityPasswordFormField,
   UniversityPasswordFormValues,
 } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { formatDisplayName } from '@/lib/formatDisplayName';
 import { getOptimizedLogoUrl } from '@/lib/imageOptimization';
 import { patientRegisterCatalogDataSource } from '@/lib/patientRegisterCatalogDataSource';
@@ -346,6 +347,25 @@ export function UniversityInstitutionPage({
     newPassword: false,
   });
 
+  useAutoDismissSystemMessage(saveMessage, () => {
+    setSaveMessage(null);
+  });
+
+  useAutoDismissSystemMessage(passwordWarningMessage, () => {
+    setPasswordWarningMessage(null);
+  });
+
+  useAutoDismissSystemMessage(passwordMessage, () => {
+    setPasswordMessage(null);
+  });
+
+  useAutoDismissSystemMessage(
+    logoUploadStatus === 'uploading' ? null : logoUploadMessage,
+    () => {
+      setLogoUploadMessage(null);
+    },
+  );
+
   const institutionFieldRefs = useMemo(
     () =>
       ({
@@ -415,20 +435,6 @@ export function UniversityInstitutionPage({
     },
     [],
   );
-
-  useEffect(() => {
-    if (!saveMessage) {
-      return undefined;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setSaveMessage(null);
-    }, 1800);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [saveMessage]);
 
   useEffect(() => {
     if (location.hash !== `#${UNIVERSITY_CAMPUSES_SECTION_ID}`) {

@@ -16,6 +16,7 @@ import { Seo } from '@/components/ui/Seo';
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { patientContent } from '@/content/patientContent';
 import type { PatientConversation, PatientConversationStatus } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { classNames } from '@/lib/classNames';
 import { usePatientModuleStore } from '@/lib/patientModuleStore';
 
@@ -83,6 +84,11 @@ export function PatientConversationsPage() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const selectedConversationId = searchParams.get('conversation');
+
+  useAutoDismissSystemMessage(successMessage, () => {
+    setSuccessMessage(null);
+  });
+
   const filteredConversations = useMemo(
     () =>
       conversations

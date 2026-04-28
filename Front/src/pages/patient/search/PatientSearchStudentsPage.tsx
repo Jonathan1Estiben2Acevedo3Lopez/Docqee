@@ -22,6 +22,7 @@ import { classNames } from '@/lib/classNames';
 import { formatDisplayName } from '@/lib/formatDisplayName';
 import { getOptimizedAvatarUrl } from '@/lib/imageOptimization';
 import { usePatientModuleStore } from '@/lib/patientModuleStore';
+import { getStarFillRatio } from '@/lib/ratings';
 
 type NamedFilter = string;
 const INITIAL_STUDENT_RESULTS_LIMIT = 5;
@@ -151,7 +152,7 @@ function getVisibleTreatments(
 }
 
 function getRatingLabel(student: PatientStudentDirectoryItem) {
-  if (!student.averageRating || student.reviewsCount === 0) {
+  if (student.averageRating === null || student.reviewsCount === 0) {
     return 'Sin calificacion';
   }
 
@@ -160,16 +161,29 @@ function getRatingLabel(student: PatientStudentDirectoryItem) {
 
 function renderStars(value: number | null, sizeClassName = 'h-3.5 w-3.5') {
   return Array.from({ length: 5 }, (_, index) => {
-    const isFilled = value !== null && index < Math.round(value);
+    const fillRatio = getStarFillRatio(value, index);
 
     return (
-      <Star
+      <span
         key={`patient-search-star-${value ?? 'empty'}-${index}`}
         aria-hidden="true"
-        className={`${sizeClassName} ${
-          isFilled ? 'fill-amber-300 text-amber-300' : 'text-slate-300'
-        }`}
-      />
+        className={classNames('relative inline-flex shrink-0', sizeClassName)}
+      >
+        <Star className="h-full w-full text-slate-300" />
+        {fillRatio > 0 ? (
+          <span
+            className="absolute inset-y-0 left-0 overflow-hidden"
+            style={{ width: `${fillRatio * 100}%` }}
+          >
+            <Star
+              className={classNames(
+                'block max-w-none fill-amber-300 text-amber-300',
+                sizeClassName,
+              )}
+            />
+          </span>
+        ) : null}
+      </span>
     );
   });
 }

@@ -10,6 +10,7 @@ import type {
 import { IS_TEST_MODE } from '@/lib/apiClient';
 import { readAuthSession } from '@/lib/authSession';
 import { patientRegisterCatalogDataSource } from '@/lib/patientRegisterCatalogDataSource';
+import { scheduleSystemMessageDismiss } from '@/lib/systemMessages';
 import {
   createPlatformAdminUniversity,
   deletePlatformAdminCredential,
@@ -336,6 +337,7 @@ let state = IS_TEST_MODE ? createMockState() : createRuntimeInitialState();
 let nextUniversitySequence = initialMockState.universities.length + 1;
 let nextCredentialSequence = initialMockState.credentials.length + 1;
 let runtimeLoadPromise: Promise<AdminModuleStoreState> | null = null;
+let errorMessageDismissTimerId: number | null = null;
 
 function emitChange() {
   listeners.forEach((listener) => {
@@ -355,8 +357,31 @@ function getSnapshot() {
   return state;
 }
 
+function scheduleErrorMessageDismiss(nextErrorMessage: string | null) {
+  if (IS_TEST_MODE) {
+    return;
+  }
+
+  errorMessageDismissTimerId = scheduleSystemMessageDismiss(
+    errorMessageDismissTimerId,
+    nextErrorMessage,
+    (message) => {
+      if (state.errorMessage === message) {
+        patchState({ errorMessage: null });
+      }
+    },
+  );
+}
+
 function updateState(nextState: AdminModuleStoreState) {
+  const previousErrorMessage = state.errorMessage;
+
   state = nextState;
+
+  if (previousErrorMessage !== nextState.errorMessage) {
+    scheduleErrorMessageDismiss(nextState.errorMessage);
+  }
+
   emitChange();
 }
 

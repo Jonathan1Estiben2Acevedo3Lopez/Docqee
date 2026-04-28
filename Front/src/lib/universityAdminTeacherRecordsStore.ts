@@ -3,6 +3,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import type { UniversityTeacher } from '@/content/types';
 import { IS_TEST_MODE } from '@/lib/apiClient';
 import { readAuthSession } from '@/lib/authSession';
+import { scheduleSystemMessageDismiss } from '@/lib/systemMessages';
 import { resetUniversityAdminOverviewState } from '@/lib/universityAdminOverviewStore';
 import {
   listUniversityTeachers,
@@ -212,6 +213,7 @@ function createRuntimeInitialState(): UniversityAdminTeacherRecordsStoreState {
 let state = IS_TEST_MODE ? createMockState() : createRuntimeInitialState();
 let runtimeLoadPromise: Promise<UniversityAdminTeacherRecordsStoreState> | null =
   null;
+let errorMessageDismissTimerId: number | null = null;
 
 function emitChange() {
   listeners.forEach((listener) => {
@@ -231,8 +233,31 @@ function getSnapshot() {
   return state;
 }
 
+function scheduleErrorMessageDismiss(nextErrorMessage: string | null) {
+  if (IS_TEST_MODE) {
+    return;
+  }
+
+  errorMessageDismissTimerId = scheduleSystemMessageDismiss(
+    errorMessageDismissTimerId,
+    nextErrorMessage,
+    (message) => {
+      if (state.errorMessage === message) {
+        patchState({ errorMessage: null });
+      }
+    },
+  );
+}
+
 function updateState(nextState: UniversityAdminTeacherRecordsStoreState) {
+  const previousErrorMessage = state.errorMessage;
+
   state = nextState;
+
+  if (previousErrorMessage !== nextState.errorMessage) {
+    scheduleErrorMessageDismiss(nextState.errorMessage);
+  }
+
   emitChange();
 }
 

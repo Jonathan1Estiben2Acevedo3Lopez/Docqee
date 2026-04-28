@@ -95,8 +95,13 @@ function calculateAverageRating(reviews: StudentRequestPatientReviewRecord[]) {
     return null;
   }
 
-  const totalRating = reviews.reduce((total, review) => total + review.calificacion, 0);
-  return Math.round((totalRating / reviews.length) * 10) / 10;
+  const totalRating = reviews.reduce(
+    (total, review) => total + review.calificacion,
+    0,
+  );
+  const averageRating = totalRating / reviews.length;
+
+  return Math.min(Math.max(averageRating, 0), 5);
 }
 
 function getPatientReviewAuthorName(review: StudentRequestPatientReviewRecord) {

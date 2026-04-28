@@ -23,6 +23,7 @@ import type {
 } from '@/content/types';
 import { ApiError, IS_TEST_MODE } from '@/lib/apiClient';
 import { AUTH_SESSION_SYNC_EVENT, readAuthSession } from '@/lib/authSession';
+import { scheduleSystemMessageDismiss } from '@/lib/systemMessages';
 import {
   createStudentPortalAppointment,
   createStudentPortalScheduleBlock,
@@ -1184,6 +1185,7 @@ let nextConversationMessageSequence =
     0,
   ) + 1;
 let runtimeLoadPromise: Promise<StudentStoreState> | null = null;
+let errorMessageDismissTimerId: number | null = null;
 const conversationRefreshPromises = new Map<string, Promise<void>>();
 let universitySitesCache: {
   data: StudentPracticeSite[];
@@ -1312,6 +1314,21 @@ function updateState(nextState: StudentStoreState) {
   }
 
   state = nextState;
+
+  if (
+    previousState.errorMessage !== nextState.errorMessage &&
+    !IS_TEST_MODE
+  ) {
+    errorMessageDismissTimerId = scheduleSystemMessageDismiss(
+      errorMessageDismissTimerId,
+      nextState.errorMessage,
+      (message) => {
+        if (state.errorMessage === message) {
+          patchState({ errorMessage: null });
+        }
+      },
+    );
+  }
 
   if (
     !IS_TEST_MODE &&
@@ -2441,7 +2458,36 @@ async function submitAppointmentReview(
   rating: number,
   comment?: string,
 ) {
-  patchState({ errorMessage: null, isLoading: true });
+  const currentAppointment = state.appointments.find(
+    (appointment) => appointment.id === appointmentId,
+  );
+
+  if (!currentAppointment) {
+    patchState({
+      errorMessage: 'No encontramos la cita para guardar la valoracion.',
+      isLoading: false,
+    });
+    return false;
+  }
+
+  const optimisticAppointment: StudentAgendaAppointment = {
+    ...currentAppointment,
+    myRating: rating,
+  };
+
+  updateState({
+    ...state,
+    appointments: state.appointments.map((appointment) =>
+      appointment.id === appointmentId ? optimisticAppointment : appointment,
+    ),
+    errorMessage: null,
+    isLoading: false,
+    isReady: true,
+  });
+
+  if (IS_TEST_MODE) {
+    return true;
+  }
 
   try {
     const appointment = await submitStudentPortalAppointmentReview(
@@ -2462,7 +2508,11 @@ async function submitAppointmentReview(
 
     return true;
   } catch (error) {
-    patchState({
+    updateState({
+      ...state,
+      appointments: state.appointments.map((appointment) =>
+        appointment.id === appointmentId ? currentAppointment : appointment,
+      ),
       errorMessage: getErrorMessage(error, 'No pudimos guardar la valoracion.'),
       isLoading: false,
     });

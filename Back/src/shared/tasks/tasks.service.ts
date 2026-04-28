@@ -52,6 +52,7 @@ export class TasksService {
             cuenta_estudiante: {
               include: {
                 persona: true,
+                universidad: true,
                 cuenta_acceso: { select: { correo: true } },
               },
             },
@@ -80,6 +81,8 @@ export class TasksService {
         const patientName = `${cita.solicitud.cuenta_paciente.persona.nombres} ${cita.solicitud.cuenta_paciente.persona.apellidos}`;
         const appointmentType = cita.tipo_cita.nombre;
         const siteName = cita.sede.nombre;
+        const siteAddress = cita.sede.direccion;
+        const universityName = cita.solicitud.cuenta_estudiante.universidad.nombre;
         const city = cita.sede.localidad.ciudad.nombre;
         const startAt = cita.fecha_hora_inicio.toISOString();
         const endAt = cita.fecha_hora_fin.toISOString();
@@ -100,6 +103,7 @@ export class TasksService {
             this.mailService.sendAppointmentReminderToStudent(
               studentEmail, studentName, patientName,
               appointmentType, siteName, city, startAt, endAt, reminderTiming,
+              siteAddress, universityName,
             ),
           );
         }
@@ -109,6 +113,7 @@ export class TasksService {
             this.mailService.sendAppointmentReminderToPatient(
               patientEmail, patientName, studentName,
               appointmentType, siteName, city, startAt, endAt, reminderTiming,
+              siteAddress, universityName,
             ),
           );
         }

@@ -26,6 +26,7 @@ import type {
   StudentScheduleBlockFormErrors,
   StudentScheduleBlockFormValues,
 } from '@/content/types';
+import { useAutoDismissSystemMessage } from '@/hooks/useAutoDismissSystemMessage';
 import { classNames } from '@/lib/classNames';
 import { useStudentModuleStore } from '@/lib/studentModuleStore';
 import { StudentAgendaCalendar } from './StudentAgendaCalendar';
@@ -217,6 +218,10 @@ export function StudentAgendaPage() {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const selectedBlock =
     scheduleBlocks.find((block) => block.id === selectedBlockId) ?? null;
+
+  useAutoDismissSystemMessage(saveMessage, () => {
+    setSaveMessage(null);
+  });
 
   useEffect(() => {
     if (selectedBlockId && !selectedBlock) {

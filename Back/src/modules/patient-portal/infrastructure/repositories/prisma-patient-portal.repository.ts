@@ -39,6 +39,7 @@ type AppointmentReminderCita = {
   id_cita: number;
   recordatorio_24h_enviado: boolean;
   sede: {
+    direccion: string;
     localidad: {
       ciudad: {
         nombre: string;
@@ -52,6 +53,9 @@ type AppointmentReminderCita = {
       persona: {
         apellidos: string;
         nombres: string;
+      };
+      universidad: {
+        nombre: string;
       };
     };
     cuenta_paciente: {
@@ -249,6 +253,8 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
       const patientName = `${cita.solicitud.cuenta_paciente.persona.nombres} ${cita.solicitud.cuenta_paciente.persona.apellidos}`;
       const appointmentType = cita.tipo_cita.nombre;
       const siteName = cita.sede.nombre;
+      const siteAddress = cita.sede.direccion;
+      const universityName = cita.solicitud.cuenta_estudiante.universidad.nombre;
       const city = cita.sede.localidad.ciudad.nombre;
       const startAt = cita.fecha_hora_inicio.toISOString();
       const endAt = cita.fecha_hora_fin.toISOString();
@@ -266,6 +272,8 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
             startAt,
             endAt,
             "today",
+            siteAddress,
+            universityName,
           ),
         );
       }
@@ -282,6 +290,8 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
             startAt,
             endAt,
             "today",
+            siteAddress,
+            universityName,
           ),
         );
       }
@@ -971,7 +981,10 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
       ) treatments ON TRUE
       LEFT JOIN LATERAL (
         SELECT
-          ROUND(AVG(v.calificacion)::numeric, 1) AS average_rating,
+          CASE
+            WHEN COUNT(v.id_valoracion) = 0 THEN NULL
+            ELSE LEAST(GREATEST(AVG(v.calificacion)::numeric, 0), 5)
+          END AS average_rating,
           COUNT(v.id_valoracion) AS reviews_count
         FROM valoracion v
         WHERE v.id_cuenta_receptor = ce.id_cuenta

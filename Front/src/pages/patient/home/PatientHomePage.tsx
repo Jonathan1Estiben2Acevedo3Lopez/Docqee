@@ -15,6 +15,7 @@ import { classNames } from '@/lib/classNames';
 import { formatDisplayName } from '@/lib/formatDisplayName';
 import { getOptimizedAvatarUrl } from '@/lib/imageOptimization';
 import { usePatientModuleStore } from '@/lib/patientModuleStore';
+import { calculateAverageRating, getStarFillRatio } from '@/lib/ratings';
 
 const reviewDateFormatter = new Intl.DateTimeFormat('es-CO', {
   day: 'numeric',
@@ -28,20 +29,31 @@ function renderStars(
   tone: 'dark' | 'light' = 'light',
 ) {
   return Array.from({ length: 5 }, (_, index) => {
-    const isFilled = index < Math.round(value);
+    const fillRatio = getStarFillRatio(value, index);
+    const emptyClassName =
+      tone === 'light' ? 'text-white/35' : 'text-slate-300/85';
 
     return (
-      <Star
+      <span
         key={`patient-star-${value}-${index}`}
         aria-hidden="true"
-        className={`${sizeClassName} ${
-          isFilled
-            ? 'fill-amber-300 text-amber-300'
-            : tone === 'light'
-              ? 'text-white/35'
-              : 'text-slate-300/85'
-        }`}
-      />
+        className={classNames('relative inline-flex shrink-0', sizeClassName)}
+      >
+        <Star className={classNames('h-full w-full', emptyClassName)} />
+        {fillRatio > 0 ? (
+          <span
+            className="absolute inset-y-0 left-0 overflow-hidden"
+            style={{ width: `${fillRatio * 100}%` }}
+          >
+            <Star
+              className={classNames(
+                'block max-w-none fill-amber-300 text-amber-300',
+                sizeClassName,
+              )}
+            />
+          </span>
+        ) : null}
+      </span>
     );
   });
 }
@@ -72,11 +84,7 @@ export function PatientHomePage() {
       return 0;
     }
 
-    const totalRating = reviews.reduce(
-      (total, review) => total + review.rating,
-      0,
-    );
-    return totalRating / reviews.length;
+    return calculateAverageRating(reviews.map((review) => review.rating));
   }, [reviews]);
   const commentsCount = useMemo(
     () => reviews.filter((review) => Boolean(review.comment?.trim())).length,
