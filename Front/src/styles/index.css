@@ -350,12 +350,13 @@
     z-index: 60;
   }
 
-  .student-page-compact
-    .student-appointment-dialog
-    .student-appointment-datetime-row
-    .student-appointment-dialog-field {
-    min-width: 0;
-  }
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .student-appointment-dialog-field {
+      min-width: 0;
+      overflow: hidden;
+    }
 
   @media (max-width: 639px) {
     .student-page-compact
@@ -369,6 +370,9 @@
       > label {
       font-size: 0.58rem;
       line-height: 0.72rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .student-page-compact
@@ -381,7 +385,11 @@
       .admin-time-picker
       > .relative
       > button {
+      display: block;
+      max-width: 100%;
       min-height: 1.85rem;
+      min-width: 0;
+      overflow: hidden;
       padding-top: 0.28rem;
       padding-bottom: 0.28rem;
       padding-left: 1.55rem;
@@ -389,6 +397,9 @@
       border-radius: 0.72rem;
       font-size: 0.62rem;
       line-height: 0.95rem;
+      text-overflow: clip;
+      white-space: nowrap;
+      width: 100%;
     }
 
     .student-page-compact
@@ -398,10 +409,29 @@
       .admin-text-field__input {
       min-width: 0;
       overflow: hidden;
-      padding-left: 0.38rem;
-      padding-right: 0.12rem;
+      padding-left: 1.12rem;
+      padding-right: 0.04rem;
       text-overflow: clip;
-      font-size: 0.56rem;
+      font-size: 0.48rem;
+    }
+
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-text-field:first-child
+      .admin-text-field__input::-webkit-calendar-picker-indicator {
+      height: 0.58rem;
+      margin-left: 0;
+      padding: 0;
+      width: 0.58rem;
+    }
+
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-text-field:first-child
+      .admin-text-field__input::-webkit-datetime-edit {
+      padding: 0;
     }
 
     .student-page-compact
@@ -410,17 +440,10 @@
       .admin-text-field:first-child
       > .relative
       > svg:first-of-type {
-      display: none;
-    }
-
-    .student-page-compact
-      .student-appointment-dialog
-      .student-appointment-datetime-row
-      .admin-text-field:first-child
-      .admin-text-field__input::-webkit-calendar-picker-indicator {
-      height: 0.72rem;
-      margin-left: 0;
-      width: 0.72rem;
+      display: block;
+      left: 0.38rem;
+      width: 0.62rem;
+      height: 0.62rem;
     }
 
     .student-page-compact

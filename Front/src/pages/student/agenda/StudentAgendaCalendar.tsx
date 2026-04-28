@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { useMemo, useState, type MouseEvent } from 'react';
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
@@ -18,6 +18,7 @@ function getTodayDateKey() {
 }
 
 const dayFormatter = new Intl.DateTimeFormat('es-CO', { weekday: 'short' });
+const detailDateFormatter = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 const monthFormatter = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' });
 const mediumDateFormatter = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short' });
 const timeFormatter = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digit' });
@@ -226,9 +227,11 @@ export function StudentAgendaCalendar({
 
   const handleViewModeChange = (mode: CalendarViewMode) => {
     localStorage.setItem('agenda-view-mode', mode);
+    setSelectedDayDetailsKey(null);
     setViewMode(mode);
   };
   const [selectedDateKey, setSelectedDateKey] = useState(() => getTodayDateKey());
+  const [selectedDayDetailsKey, setSelectedDayDetailsKey] = useState<string | null>(null);
   const selectedDate = useMemo(() => fromDateKey(selectedDateKey), [selectedDateKey]);
   const visibleDays = useMemo(() => {
     if (viewMode === 'day') {
@@ -264,6 +267,12 @@ export function StudentAgendaCalendar({
       }, {}),
     [events],
   );
+  const selectedDayDetailsEvents = selectedDayDetailsKey
+    ? eventsByDate[selectedDayDetailsKey] ?? []
+    : [];
+  const selectedDayDetailsDate = selectedDayDetailsKey
+    ? fromDateKey(selectedDayDetailsKey)
+    : null;
   const rangeLabel = useMemo(() => {
     if (viewMode === 'day') {
       return new Intl.DateTimeFormat('es-CO', {
@@ -283,9 +292,15 @@ export function StudentAgendaCalendar({
 
   const stepCalendar = (direction: 'next' | 'previous') => {
     const factor = direction === 'next' ? 1 : -1;
+    setSelectedDayDetailsKey(null);
     setSelectedDateKey(
       toDateKey(viewMode === 'month' ? addMonths(selectedDate, factor) : addDays(selectedDate, viewMode === 'week' ? factor * 7 : factor)),
     );
+  };
+
+  const handleMonthDaySelect = (dateKey: string, dayEvents: AgendaEvent[]) => {
+    setSelectedDateKey(dateKey);
+    setSelectedDayDetailsKey(dayEvents.length > 0 ? dateKey : null);
   };
 
   const handleBlockClick = (
@@ -302,7 +317,7 @@ export function StudentAgendaCalendar({
 
   return (
     <SurfaceCard
-      className="student-agenda-calendar flex h-full min-h-0 w-full flex-col overflow-hidden border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,255,0.98)_100%)] shadow-none"
+      className="student-agenda-calendar relative flex h-full min-h-0 w-full flex-col overflow-hidden border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,255,0.98)_100%)] shadow-none"
       paddingClassName="p-1.5 sm:p-2"
     >
       <div className="flex h-full min-h-0 flex-col gap-1.5 sm:gap-2">
@@ -364,7 +379,7 @@ export function StudentAgendaCalendar({
               </button>
             ) : null}
           </div>
-          <div className="flex max-h-[1.45rem] flex-wrap items-center gap-0.5 overflow-hidden text-[0.48rem] font-semibold uppercase tracking-[0.08em] text-ink-muted sm:max-h-[1.6rem] sm:gap-1 sm:text-[0.5rem]">
+          <div className="flex max-h-[1rem] flex-nowrap items-center gap-[0.12rem] overflow-hidden text-[0.4rem] font-semibold uppercase tracking-[0.02em] text-ink-muted sm:max-h-[1.6rem] sm:flex-wrap sm:gap-1 sm:text-[0.5rem] sm:tracking-[0.08em]">
             {[
               ['Pendiente', 'proposal'],
               ['Aceptada', 'accepted'],
@@ -375,9 +390,9 @@ export function StudentAgendaCalendar({
             ].map(([label, tone]) => (
               <span
                 key={label}
-                className="inline-flex items-center gap-1 rounded-full border border-slate-200/70 bg-white/78 px-1.5 py-0.5"
+                className="inline-flex shrink-0 items-center gap-[0.12rem] rounded-full border border-slate-200/70 bg-white/78 px-0.5 py-px sm:gap-1 sm:px-1.5 sm:py-0.5"
               >
-                <span className={classNames('h-2 w-2 rounded-full', getToneClasses(tone as AgendaTone).dot)} />
+                <span className={classNames('h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2', getToneClasses(tone as AgendaTone).dot)} />
                 <span>{label}</span>
               </span>
             ))}
@@ -389,7 +404,7 @@ export function StudentAgendaCalendar({
             viewMode === 'month'
               ? 'grid h-full grid-cols-7 grid-rows-6 gap-0.5 sm:gap-1'
               : viewMode === 'week'
-                ? 'grid h-full grid-cols-7 gap-0.5 sm:gap-1'
+                ? 'grid h-full grid-rows-7 gap-0.5 sm:grid-cols-7 sm:grid-rows-none sm:gap-1'
                 : 'space-y-1.5',
           )}
         >
@@ -463,34 +478,34 @@ export function StudentAgendaCalendar({
                 <div
                   key={dayKey}
                   className={classNames(
-                    'flex min-h-0 flex-col overflow-hidden rounded-[0.78rem] border px-1 py-1 shadow-[0_10px_24px_-28px_rgba(15,23,42,0.25)] sm:px-1.5 sm:py-1',
+                    'grid min-h-0 grid-cols-[2.35rem_minmax(0,1fr)] overflow-hidden rounded-[0.78rem] border px-1 py-0.5 shadow-[0_10px_24px_-28px_rgba(15,23,42,0.25)] sm:flex sm:flex-col sm:px-1.5 sm:py-1',
                     dayKey === selectedDateKey
                       ? 'border-primary/45 bg-[linear-gradient(180deg,rgba(22,78,99,0.08)_0%,rgba(255,255,255,0.96)_100%)]'
                       : 'border-slate-200/85 bg-white/72',
                   )}
                 >
                   <button
-                    className="mb-1 w-full shrink-0 text-left"
+                    className="flex h-full shrink-0 flex-col items-start justify-center pr-1 text-left sm:mb-1 sm:h-auto sm:w-full sm:justify-start sm:pr-0"
                     type="button"
                     onClick={() => setSelectedDateKey(dayKey)}
                   >
-                    <p className="truncate text-[0.5rem] font-bold uppercase tracking-[0.1em] text-ink-muted sm:text-[0.54rem]">
+                    <p className="max-w-full truncate text-[0.46rem] font-bold uppercase tracking-[0.08em] text-ink-muted sm:text-[0.54rem] sm:tracking-[0.1em]">
                       {dayFormatter.format(day).replace('.', '')}
                     </p>
-                    <p className="font-headline text-[0.78rem] font-extrabold tracking-tight text-ink sm:text-sm">
+                    <p className="font-headline text-[0.72rem] font-extrabold tracking-tight text-ink sm:text-sm">
                       {day.getDate()}
                     </p>
                   </button>
-                  <div className="min-h-0 flex-1 space-y-1 overflow-hidden">
+                  <div className="min-h-0 flex-1 space-y-0.5 overflow-hidden sm:space-y-1">
                     {dayEvents.length > 0 ? (
                       <>
                         {dayEvents.slice(0, 2).map((event) => {
                           const tone = getToneClasses(event.tone);
                           const content = (
                             <>
-                              <p className="truncate text-[0.56rem] font-semibold sm:text-[0.62rem]">{event.title}</p>
-                              <p className="truncate text-[0.5rem] opacity-80 sm:text-[0.56rem]">{event.subtitle}</p>
-                              <div className="mt-0.5 flex items-center gap-1 text-[0.52rem] font-semibold sm:text-[0.58rem]">
+                              <p className="truncate text-[0.52rem] font-semibold sm:text-[0.62rem]">{event.title}</p>
+                              <p className="hidden truncate text-[0.5rem] opacity-80 sm:block sm:text-[0.56rem]">{event.subtitle}</p>
+                              <div className="mt-px flex items-center gap-1 text-[0.5rem] font-semibold sm:mt-0.5 sm:text-[0.58rem]">
                                 <span className={classNames('h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2', tone.dot)} />
                                 {event.timeLabel}
                               </div>
@@ -502,7 +517,7 @@ export function StudentAgendaCalendar({
                               key={event.id}
                               aria-label={`Gestionar bloqueo ${event.timeLabel}`}
                               className={classNames(
-                                'w-full rounded-[0.68rem] border px-1.5 py-1 text-left transition duration-200 hover:border-primary/30 hover:shadow-[0_14px_30px_-28px_rgba(15,23,42,0.42)]',
+                                'w-full rounded-[0.58rem] border px-1.5 py-0.5 text-left transition duration-200 hover:border-primary/30 hover:shadow-[0_14px_30px_-28px_rgba(15,23,42,0.42)] sm:rounded-[0.68rem] sm:py-1',
                                 tone.card,
                                 isInactiveBlockEvent(event) && 'opacity-70',
                               )}
@@ -515,7 +530,7 @@ export function StudentAgendaCalendar({
                           ) : (
                             <div
                               key={event.id}
-                              className={classNames('rounded-[0.68rem] border px-1.5 py-1', tone.card)}
+                              className={classNames('rounded-[0.58rem] border px-1.5 py-0.5 sm:rounded-[0.68rem] sm:py-1', tone.card)}
                             >
                               {content}
                             </div>
@@ -528,7 +543,7 @@ export function StudentAgendaCalendar({
                         ) : null}
                       </>
                     ) : (
-                      <div className="rounded-[0.72rem] border border-dashed border-slate-200 bg-white/88 px-1.5 py-2 text-center text-[0.55rem] font-medium text-ink-muted sm:text-[0.62rem]">
+                      <div className="flex h-full items-center rounded-[0.62rem] border border-dashed border-slate-200 bg-white/88 px-1.5 py-0.5 text-[0.52rem] font-medium text-ink-muted sm:block sm:rounded-[0.72rem] sm:py-2 sm:text-center sm:text-[0.62rem]">
                         {emptyWeekMessage}
                       </div>
                     )}
@@ -549,11 +564,11 @@ export function StudentAgendaCalendar({
                 )}
                 role="button"
                 tabIndex={0}
-                onClick={() => setSelectedDateKey(dayKey)}
+                onClick={() => handleMonthDaySelect(dayKey, dayEvents)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    setSelectedDateKey(dayKey);
+                    handleMonthDaySelect(dayKey, dayEvents);
                   }
                 }}
               >
@@ -612,6 +627,88 @@ export function StudentAgendaCalendar({
           })}
         </div>
       </div>
+      {selectedDayDetailsDate && selectedDayDetailsEvents.length > 0 ? (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/18 px-3 py-4 backdrop-blur-[1px]">
+          <button
+            aria-label="Cerrar informacion del dia"
+            className="absolute inset-0"
+            type="button"
+            onClick={() => setSelectedDayDetailsKey(null)}
+          />
+          <div
+            aria-labelledby="student-agenda-day-details-title"
+            aria-modal="true"
+            className="relative z-10 w-full max-w-[20rem] overflow-hidden rounded-[1rem] border border-slate-200/80 bg-white shadow-[0_22px_64px_-28px_rgba(15,23,42,0.48)]"
+            role="dialog"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-3 py-2">
+              <div className="min-w-0">
+                <p
+                  className="truncate text-[0.78rem] font-extrabold text-ink sm:text-sm"
+                  id="student-agenda-day-details-title"
+                >
+                  {detailDateFormatter.format(selectedDayDetailsDate)}
+                </p>
+                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-ink-muted sm:text-[0.64rem]">
+                  {selectedDayDetailsEvents.length} movimiento{selectedDayDetailsEvents.length === 1 ? '' : 's'}
+                </p>
+              </div>
+              <button
+                aria-label="Cerrar informacion del dia"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ghost transition duration-150 hover:bg-slate-100 hover:text-ink"
+                type="button"
+                onClick={() => setSelectedDayDetailsKey(null)}
+              >
+                <X aria-hidden="true" className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="admin-scrollbar max-h-[18rem] space-y-2 overflow-y-auto px-3 py-2.5">
+              {selectedDayDetailsEvents.map((event) => {
+                const tone = getToneClasses(event.tone);
+
+                return (
+                  <div
+                    key={event.id}
+                    className={classNames('rounded-[0.82rem] border px-2.5 py-2', tone.card)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-[0.72rem] font-bold sm:text-[0.82rem]">
+                          {event.title}
+                        </p>
+                        <p className="mt-0.5 line-clamp-2 text-[0.62rem] leading-4 opacity-80 sm:text-[0.72rem]">
+                          {event.subtitle}
+                        </p>
+                      </div>
+                      <span className={classNames('shrink-0 rounded-full px-1.5 py-0.5 text-[0.54rem] font-semibold sm:text-[0.6rem]', tone.pill)}>
+                        {event.statusLabel}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between gap-2">
+                      <p className="flex min-w-0 items-center gap-1.5 text-[0.62rem] font-semibold sm:text-[0.7rem]">
+                        <span className={classNames('h-1.5 w-1.5 rounded-full', tone.dot)} />
+                        <span className="truncate">{event.timeLabel}</span>
+                      </p>
+                      {event.source === 'schedule-block' && onSelectScheduleBlock ? (
+                        <button
+                          className="shrink-0 rounded-full bg-white/80 px-2 py-1 text-[0.58rem] font-bold text-primary ring-1 ring-slate-200 transition duration-150 hover:bg-white sm:text-[0.64rem]"
+                          type="button"
+                          onClick={() => {
+                            setSelectedDayDetailsKey(null);
+                            onSelectScheduleBlock(event.blockId);
+                          }}
+                        >
+                          Gestionar
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </SurfaceCard>
   );
 }
