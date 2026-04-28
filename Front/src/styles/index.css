@@ -394,6 +394,38 @@
     .student-page-compact
       .student-appointment-dialog
       .student-appointment-datetime-row
+      .admin-text-field:first-child
+      .admin-text-field__input {
+      min-width: 0;
+      overflow: hidden;
+      padding-left: 0.38rem;
+      padding-right: 0.12rem;
+      text-overflow: clip;
+      font-size: 0.56rem;
+    }
+
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-text-field:first-child
+      > .relative
+      > svg:first-of-type {
+      display: none;
+    }
+
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-text-field:first-child
+      .admin-text-field__input::-webkit-calendar-picker-indicator {
+      height: 0.72rem;
+      margin-left: 0;
+      width: 0.72rem;
+    }
+
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
       .admin-text-field
       > .relative
       > svg:first-of-type,
