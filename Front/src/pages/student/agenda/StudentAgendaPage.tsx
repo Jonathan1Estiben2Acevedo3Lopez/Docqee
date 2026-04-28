@@ -361,7 +361,7 @@ export function StudentAgendaPage() {
   };
 
   return (
-    <div className="student-page-compact flex h-full w-full min-h-0 flex-col gap-2 overflow-hidden">
+    <div className="student-page-compact flex h-full w-full min-h-0 flex-col gap-1.5 overflow-hidden sm:gap-2">
       <Seo
         description={studentContent.agendaPage.meta.description}
         noIndex
@@ -369,15 +369,15 @@ export function StudentAgendaPage() {
       />
       <div className="relative">
         <AdminPageHeader
-          className="gap-2"
+          className="gap-1.5 sm:gap-2"
           description={studentContent.agendaPage.description}
-          descriptionClassName="text-sm leading-5 sm:text-[0.95rem]"
+          descriptionClassName="text-[0.78rem] leading-4 sm:text-[0.9rem] sm:leading-5"
           headingAlign="center"
           title={studentContent.agendaPage.title}
-          titleClassName="text-[1.8rem] sm:text-[2.1rem]"
+          titleClassName="text-[1.45rem] sm:text-[1.75rem]"
         />
         <button
-          className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full bg-brand-gradient px-3.5 text-[0.76rem] font-semibold text-white shadow-ambient transition duration-300 hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:absolute sm:right-0 sm:top-1/2 sm:mt-0 sm:w-auto sm:-translate-y-1/2"
+          className="mt-1.5 inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-full bg-brand-gradient px-3 text-[0.72rem] font-semibold text-white shadow-ambient transition duration-300 hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:absolute sm:right-0 sm:top-1/2 sm:mt-0 sm:w-auto sm:-translate-y-1/2"
           type="button"
           onClick={handleOpenCreateDialog}
         >
@@ -387,8 +387,8 @@ export function StudentAgendaPage() {
       </div>
       {saveMessage ? (
         <SurfaceCard
-          className="border border-emerald-200 bg-emerald-50/90 text-sm font-medium text-emerald-800"
-          paddingClassName="p-3.5"
+          className="shrink-0 border border-emerald-200 bg-emerald-50/90 text-[0.78rem] font-medium text-emerald-800"
+          paddingClassName="p-2.5"
         >
           <p role="status">
             <span className="font-semibold">
@@ -399,11 +399,11 @@ export function StudentAgendaPage() {
         </SurfaceCard>
       ) : null}
       <AdminPanelCard
-        className="flex-1"
+        className="flex flex-1 flex-col"
         panelClassName="bg-[#f4f8ff]"
         shellPaddingClassName="p-0.5 sm:p-1"
       >
-        <div className="admin-scrollbar min-h-0 flex-1 overflow-y-auto px-2.5 py-2 sm:px-2.5 sm:py-2">
+        <div className="min-h-0 flex flex-1 overflow-hidden px-1.5 py-1.5 sm:px-2 sm:py-2">
           <StudentAgendaCalendar
             appointments={appointments}
             scheduleBlocks={scheduleBlocks}

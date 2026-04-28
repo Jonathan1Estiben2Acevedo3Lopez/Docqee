@@ -302,18 +302,18 @@ export function StudentAgendaCalendar({
 
   return (
     <SurfaceCard
-      className="border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,255,0.98)_100%)] shadow-none"
-      paddingClassName="p-2.5 sm:p-2.5"
+      className="student-agenda-calendar flex h-full min-h-0 w-full flex-col overflow-hidden border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,255,0.98)_100%)] shadow-none"
+      paddingClassName="p-1.5 sm:p-2"
     >
-      <div className="space-y-2.5">
-        <div className="flex flex-col gap-2 border-b border-slate-200/70 pb-2.5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="inline-flex rounded-full border border-slate-200/80 bg-white/90 p-0.5 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.28)]">
+      <div className="flex h-full min-h-0 flex-col gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 flex-col gap-1.5 border-b border-slate-200/70 pb-1.5 sm:gap-2 sm:pb-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-1.5 xl:flex-nowrap">
+            <div className="inline-flex shrink-0 rounded-full border border-slate-200/80 bg-white/90 p-0.5 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.28)]">
               {(['day', 'week', 'month'] as const).map((option) => (
                 <button
                   key={option}
                   className={classNames(
-                    'rounded-full px-2.5 py-0.5 text-[0.66rem] font-semibold transition duration-200',
+                    'rounded-full px-2 py-0.5 text-[0.62rem] font-semibold transition duration-200 sm:px-2.5 sm:text-[0.66rem]',
                     viewMode === option
                       ? 'bg-brand-gradient text-white shadow-[0_12px_24px_-18px_rgba(0,100,124,0.55)]'
                       : 'text-ink-muted hover:text-ink',
@@ -325,17 +325,17 @@ export function StudentAgendaCalendar({
                 </button>
               ))}
             </div>
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1 sm:flex-none">
               <button
                 aria-label="Periodo anterior"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:h-8 sm:w-8"
                 type="button"
                 onClick={() => stepCalendar('previous')}
               >
                 <ChevronLeft aria-hidden="true" className="h-3.5 w-3.5" />
               </button>
               <button
-                className="inline-flex rounded-full border border-slate-200/90 bg-white/95 px-2.5 py-1 text-[0.72rem] font-semibold text-ink transition duration-200 hover:border-primary/20 hover:bg-white"
+                className="inline-flex shrink-0 rounded-full border border-slate-200/90 bg-white/95 px-2 py-0.5 text-[0.66rem] font-semibold text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:px-2.5 sm:py-1 sm:text-[0.72rem]"
                 type="button"
                 onClick={() => setSelectedDateKey(getTodayDateKey())}
               >
@@ -343,13 +343,13 @@ export function StudentAgendaCalendar({
               </button>
               <button
                 aria-label="Periodo siguiente"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:h-8 sm:w-8"
                 type="button"
                 onClick={() => stepCalendar('next')}
               >
                 <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
               </button>
-              <span className="rounded-full border border-slate-200/80 bg-white/90 px-2.5 py-1 text-[0.72rem] font-semibold text-ink shadow-[0_10px_22px_-24px_rgba(15,23,42,0.3)]">
+              <span className="max-w-full truncate rounded-full border border-slate-200/80 bg-white/90 px-2 py-0.5 text-[0.66rem] font-semibold text-ink shadow-[0_10px_22px_-24px_rgba(15,23,42,0.3)] sm:px-2.5 sm:py-1 sm:text-[0.72rem]">
                 {rangeLabel}
               </span>
             </div>
@@ -364,7 +364,7 @@ export function StudentAgendaCalendar({
               </button>
             ) : null}
           </div>
-          <div className="flex flex-wrap items-center gap-1 text-[0.52rem] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+          <div className="flex max-h-[1.45rem] flex-wrap items-center gap-0.5 overflow-hidden text-[0.48rem] font-semibold uppercase tracking-[0.08em] text-ink-muted sm:max-h-[1.6rem] sm:gap-1 sm:text-[0.5rem]">
             {[
               ['Pendiente', 'proposal'],
               ['Aceptada', 'accepted'],
@@ -385,11 +385,12 @@ export function StudentAgendaCalendar({
         </div>
         <div
           className={classNames(
+            'min-h-0 flex-1 overflow-hidden',
             viewMode === 'month'
-              ? 'grid grid-cols-7 gap-0.5 sm:gap-1'
+              ? 'grid h-full grid-cols-7 grid-rows-6 gap-0.5 sm:gap-1'
               : viewMode === 'week'
-                ? 'grid gap-1.5 xl:grid-cols-7'
-                : 'space-y-2',
+                ? 'grid h-full grid-cols-7 gap-0.5 sm:gap-1'
+                : 'space-y-1.5',
           )}
         >
           {visibleDays.map((day) => {
@@ -462,65 +463,72 @@ export function StudentAgendaCalendar({
                 <div
                   key={dayKey}
                   className={classNames(
-                    'rounded-[0.9rem] border px-2 py-1.5 shadow-[0_10px_24px_-28px_rgba(15,23,42,0.25)]',
+                    'flex min-h-0 flex-col overflow-hidden rounded-[0.78rem] border px-1 py-1 shadow-[0_10px_24px_-28px_rgba(15,23,42,0.25)] sm:px-1.5 sm:py-1',
                     dayKey === selectedDateKey
                       ? 'border-primary/45 bg-[linear-gradient(180deg,rgba(22,78,99,0.08)_0%,rgba(255,255,255,0.96)_100%)]'
                       : 'border-slate-200/85 bg-white/72',
                   )}
                 >
                   <button
-                    className="mb-2.5 w-full text-left"
+                    className="mb-1 w-full shrink-0 text-left"
                     type="button"
                     onClick={() => setSelectedDateKey(dayKey)}
                   >
-                    <p className="text-[0.56rem] font-bold uppercase tracking-[0.14em] text-ink-muted">
+                    <p className="truncate text-[0.5rem] font-bold uppercase tracking-[0.1em] text-ink-muted sm:text-[0.54rem]">
                       {dayFormatter.format(day).replace('.', '')}
                     </p>
-                    <p className="font-headline text-sm font-extrabold tracking-tight text-ink">
+                    <p className="font-headline text-[0.78rem] font-extrabold tracking-tight text-ink sm:text-sm">
                       {day.getDate()}
                     </p>
                   </button>
-                  <div className="space-y-1.5">
+                  <div className="min-h-0 flex-1 space-y-1 overflow-hidden">
                     {dayEvents.length > 0 ? (
-                      dayEvents.map((event) => {
-                        const tone = getToneClasses(event.tone);
-                        const content = (
-                          <>
-                            <p className="truncate text-[0.68rem] font-semibold">{event.title}</p>
-                            <p className="truncate text-[0.6rem] opacity-80">{event.subtitle}</p>
-                            <div className="mt-1 flex items-center gap-1.5 text-[0.62rem] font-semibold">
-                              <span className={classNames('h-2 w-2 rounded-full', tone.dot)} />
-                              {event.timeLabel}
-                            </div>
-                          </>
-                        );
+                      <>
+                        {dayEvents.slice(0, 2).map((event) => {
+                          const tone = getToneClasses(event.tone);
+                          const content = (
+                            <>
+                              <p className="truncate text-[0.56rem] font-semibold sm:text-[0.62rem]">{event.title}</p>
+                              <p className="truncate text-[0.5rem] opacity-80 sm:text-[0.56rem]">{event.subtitle}</p>
+                              <div className="mt-0.5 flex items-center gap-1 text-[0.52rem] font-semibold sm:text-[0.58rem]">
+                                <span className={classNames('h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2', tone.dot)} />
+                                {event.timeLabel}
+                              </div>
+                            </>
+                          );
 
-                        return event.source === 'schedule-block' ? (
-                          <button
-                            key={event.id}
-                            aria-label={`Gestionar bloqueo ${event.timeLabel}`}
-                            className={classNames(
-                              'w-full rounded-[0.82rem] border px-2 py-1.5 text-left transition duration-200 hover:border-primary/30 hover:shadow-[0_14px_30px_-28px_rgba(15,23,42,0.42)]',
-                              tone.card,
-                              isInactiveBlockEvent(event) && 'opacity-70',
-                            )}
-                            data-testid={`student-agenda-block-event-${event.blockId}`}
-                            type="button"
-                            onClick={(nativeEvent) => handleBlockClick(nativeEvent, event)}
-                          >
-                            {content}
-                          </button>
-                        ) : (
-                          <div
-                            key={event.id}
-                            className={classNames('rounded-[0.82rem] border px-2 py-1.5', tone.card)}
-                          >
-                            {content}
-                          </div>
-                        );
-                      })
+                          return event.source === 'schedule-block' ? (
+                            <button
+                              key={event.id}
+                              aria-label={`Gestionar bloqueo ${event.timeLabel}`}
+                              className={classNames(
+                                'w-full rounded-[0.68rem] border px-1.5 py-1 text-left transition duration-200 hover:border-primary/30 hover:shadow-[0_14px_30px_-28px_rgba(15,23,42,0.42)]',
+                                tone.card,
+                                isInactiveBlockEvent(event) && 'opacity-70',
+                              )}
+                              data-testid={`student-agenda-block-event-${event.blockId}`}
+                              type="button"
+                              onClick={(nativeEvent) => handleBlockClick(nativeEvent, event)}
+                            >
+                              {content}
+                            </button>
+                          ) : (
+                            <div
+                              key={event.id}
+                              className={classNames('rounded-[0.68rem] border px-1.5 py-1', tone.card)}
+                            >
+                              {content}
+                            </div>
+                          );
+                        })}
+                        {dayEvents.length > 2 ? (
+                          <p className="truncate text-[0.5rem] font-semibold text-ink-muted sm:text-[0.54rem]">
+                            +{dayEvents.length - 2} mas
+                          </p>
+                        ) : null}
+                      </>
                     ) : (
-                      <div className="rounded-[0.95rem] border border-dashed border-slate-200 bg-white/88 px-2.5 py-3.5 text-center text-[0.68rem] font-medium text-ink-muted">
+                      <div className="rounded-[0.72rem] border border-dashed border-slate-200 bg-white/88 px-1.5 py-2 text-center text-[0.55rem] font-medium text-ink-muted sm:text-[0.62rem]">
                         {emptyWeekMessage}
                       </div>
                     )}
@@ -533,7 +541,7 @@ export function StudentAgendaCalendar({
               <div
                 key={dayKey}
                 className={classNames(
-                  'flex min-h-[4.1rem] flex-col rounded-[0.72rem] border px-1 py-0.5 text-left transition duration-200 sm:min-h-[4rem] sm:px-1 sm:py-0.5 xl:min-h-[4.15rem] xl:px-1 xl:py-0.5 2xl:min-h-[4.35rem]',
+                  'flex min-h-0 flex-col overflow-hidden rounded-[0.68rem] border px-0.5 py-0.5 text-left transition duration-200 sm:px-1',
                   dayKey === selectedDateKey
                     ? 'border-primary/45 bg-[linear-gradient(180deg,rgba(22,78,99,0.08)_0%,rgba(255,255,255,0.96)_100%)]'
                     : 'border-slate-200/85 bg-white/72 hover:border-primary/25 hover:bg-white',
@@ -549,7 +557,7 @@ export function StudentAgendaCalendar({
                   }
                 }}
               >
-                <div className="mb-0.5 flex items-center justify-between">
+                <div className="mb-0.5 flex shrink-0 items-center justify-between">
                   <span
                     className={classNames(
                       'inline-flex h-4.5 w-4.5 items-center justify-center rounded-full text-[0.66rem] font-bold sm:h-4.5 sm:w-4.5 sm:text-[0.64rem] xl:h-5 xl:w-5 xl:text-[0.68rem]',
@@ -564,7 +572,7 @@ export function StudentAgendaCalendar({
                     </span>
                   ) : null}
                 </div>
-                <div className="space-y-0.5">
+                <div className="min-h-0 space-y-0.5 overflow-hidden">
                   {dayEvents.slice(0, 1).map((event) =>
                     event.source === 'schedule-block' ? (
                       <button
