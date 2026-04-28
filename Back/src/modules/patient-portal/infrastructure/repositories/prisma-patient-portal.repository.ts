@@ -27,11 +27,8 @@ import { UpdatePatientProfileDto } from "../../application/dto/update-patient-pr
 import { UpdatePatientRequestStatusDto } from "../../application/dto/update-patient-request-status.dto";
 import { PatientPortalRepository } from "../../domain/repositories/patient-portal.repository";
 
-const APPOINTMENT_CHANGE_NOTICE_HOURS = 48;
-const APPOINTMENT_CHANGE_NOTICE_MS =
-  APPOINTMENT_CHANGE_NOTICE_HOURS * 60 * 60 * 1000;
 const PATIENT_RESCHEDULE_RESPONSE_ERROR_MESSAGE =
-  "No pudimos responder la reprogramacion porque la fecha propuesta esta demasiado proxima o ya no cumple las reglas de agenda. Coordina con el estudiante una nueva fecha con mas de 48 horas de anticipacion.";
+  "No pudimos responder la propuesta porque ya no cumple las reglas de agenda. Coordina con el estudiante una nueva fecha.";
 const PATIENT_CANCEL_NOTICE_ERROR_MESSAGE =
   "No puedes cancelar esta cita porque faltan menos de 48 horas para la hora programada.";
 
@@ -178,27 +175,17 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
     );
   }
 
-  private assertAppointmentStartsInFuture(startAt: Date) {
-    if (this.floorDateToMinute(startAt) < this.floorDateToMinute(new Date())) {
-      throw new BadRequestException(
-        "La cita debe iniciar en una fecha y hora actuales o futuras.",
-      );
-    }
-  }
-
-  private assertAppointmentHasMinimumNotice(
-    startAt: Date,
+  private assertAppointmentHasNotEnded(
+    endAt: Date,
     referenceDate: Date = new Date(),
   ) {
-    const earliestStartAt = new Date(
-      referenceDate.getTime() + APPOINTMENT_CHANGE_NOTICE_MS,
-    );
-
     if (
-      this.floorDateToMinute(startAt) <=
-      this.floorDateToMinute(earliestStartAt)
+      this.floorDateToMinute(endAt) <=
+      this.floorDateToMinute(referenceDate)
     ) {
-      throw new BadRequestException(PATIENT_RESCHEDULE_RESPONSE_ERROR_MESSAGE);
+      throw new BadRequestException(
+        "Esta propuesta ya vencio y no puede ser aceptada.",
+      );
     }
   }
 
@@ -1375,8 +1362,7 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
       const acceptedEndAt =
         pendingReschedule?.nueva_fecha_hora_fin ?? cita.fecha_hora_fin;
 
-      this.assertAppointmentStartsInFuture(acceptedStartAt);
-      this.assertAppointmentHasMinimumNotice(acceptedStartAt, responseDate);
+      this.assertAppointmentHasNotEnded(acceptedEndAt, responseDate);
 
       const studentConflict = await this.checkStudentAppointmentConflicts(
         cita.solicitud.id_cuenta_estudiante,
