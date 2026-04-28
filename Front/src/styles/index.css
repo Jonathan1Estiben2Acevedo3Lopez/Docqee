@@ -350,6 +350,65 @@
     z-index: 60;
   }
 
+  .student-page-compact
+    .student-appointment-dialog
+    .student-appointment-datetime-row
+    .student-appointment-dialog-field {
+    min-width: 0;
+  }
+
+  @media (max-width: 639px) {
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-text-field__label,
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-time-picker
+      > label {
+      font-size: 0.58rem;
+      line-height: 0.72rem;
+    }
+
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-text-field__input,
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-time-picker
+      > .relative
+      > button {
+      min-height: 1.85rem;
+      padding-top: 0.28rem;
+      padding-bottom: 0.28rem;
+      padding-left: 1.55rem;
+      padding-right: 0.38rem;
+      border-radius: 0.72rem;
+      font-size: 0.62rem;
+      line-height: 0.95rem;
+    }
+
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-text-field
+      > .relative
+      > svg:first-of-type,
+    .student-page-compact
+      .student-appointment-dialog
+      .student-appointment-datetime-row
+      .admin-time-picker
+      > .relative
+      > svg:first-of-type {
+      left: 0.5rem;
+      width: 0.72rem;
+      height: 0.72rem;
+    }
+  }
+
   .student-page-compact .student-appointment-dialog-notes {
     height: 3rem;
     min-height: 3rem;

@@ -1650,12 +1650,7 @@ export function StudentAppointmentsPage() {
               }
             />
             <div
-              className={classNames(
-                'grid gap-2',
-                isAppointmentDialogReadOnly
-                  ? 'grid-cols-3'
-                  : 'sm:grid-cols-3',
-              )}
+              className="student-appointment-datetime-row grid grid-cols-[minmax(0,1.18fr)_minmax(0,0.91fr)_minmax(0,0.91fr)] gap-1.5 sm:grid-cols-3 sm:gap-2"
             >
               <AdminTextField
                 containerClassName="student-appointment-dialog-field"
