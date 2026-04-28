@@ -2,8 +2,7 @@ import { ROUTES } from '@/constants/routes';
 
 export const patientContent = {
   agendaPage: {
-    description:
-      'Organiza tus citas por dia, semana o mes y mantente al tanto de cada espacio confirmado, pendiente o finalizado.',
+    description: '',
     meta: {
       description: 'Consulta la agenda del paciente dentro de Docqee.',
       title: 'Docqee | Agenda del Paciente',
@@ -16,8 +15,7 @@ export const patientContent = {
       cancel: 'Cancelar',
       reject: 'Rechazar',
     },
-    description:
-      'Gestiona las propuestas de cita, confirma espacios aceptados y consulta el historial de atencion.',
+    description: '',
     emptyState: 'No encontramos citas con los criterios seleccionados.',
     meta: {
       description: 'Gestiona las citas del paciente dentro de Docqee.',
@@ -59,8 +57,7 @@ export const patientContent = {
       save: 'Guardar cambios',
       uploadPhoto: 'Subir foto',
     },
-    description:
-      'Mantiene al dia tus datos de contacto y la informacion base que acompana tus solicitudes dentro de la plataforma.',
+    description: '',
     meta: {
       description: 'Gestiona el perfil y la informacion de contacto del paciente dentro de Docqee.',
       title: 'Docqee | Perfil del Paciente',
@@ -73,8 +70,7 @@ export const patientContent = {
       cancel: 'Cancelar solicitud',
       viewConversation: 'Ver chat',
     },
-    description:
-      'Consulta el estado de cada solicitud enviada, revisa respuestas y mantén visibilidad del seguimiento.',
+    description: '',
     emptyState: 'No encontramos solicitudes con los criterios seleccionados.',
     meta: {
       description: 'Gestiona las solicitudes del paciente dentro de Docqee.',

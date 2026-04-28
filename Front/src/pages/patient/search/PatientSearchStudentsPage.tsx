@@ -668,11 +668,11 @@ export function PatientSearchStudentsPage() {
                       ? 'Resultados de búsqueda'
                       : 'Estudiantes recomendados para ti'}
                   </h2>
-                  <p className="text-[0.7rem] leading-4 text-ink-muted">
-                    {hasSearchCriteria
-                      ? 'Busca por nombre o usa los filtros para encontrar el estudiante adecuado.'
-                      : 'Estos perfiles tienen tratamientos publicados y cercania con tu ubicacion.'}
-                  </p>
+                  {hasSearchCriteria ? (
+                    <p className="text-[0.7rem] leading-4 text-ink-muted">
+                      Busca por nombre o usa los filtros para encontrar el estudiante adecuado.
+                    </p>
+                  ) : null}
                 </div>
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-ink-muted">
                   {students.length} perfiles

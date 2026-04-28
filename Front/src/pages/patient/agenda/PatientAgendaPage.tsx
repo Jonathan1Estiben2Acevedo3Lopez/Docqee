@@ -1,12 +1,9 @@
-import { CalendarCheck2 } from 'lucide-react';
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminPanelCard } from '@/components/admin/AdminPanelCard';
 import { Seo } from '@/components/ui/Seo';
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
-import { ROUTES } from '@/constants/routes';
 import { patientContent } from '@/content/patientContent';
 import type {
   PatientAppointment,
@@ -58,23 +55,14 @@ export function PatientAgendaPage() {
         noIndex
         title={patientContent.agendaPage.meta.title}
       />
-      <div className="relative">
-        <AdminPageHeader
-          className="gap-1.5 sm:gap-2"
-          description={patientContent.agendaPage.description}
-          descriptionClassName="text-[0.78rem] leading-4 sm:text-[0.9rem] sm:leading-5"
-          headingAlign="center"
-          title={patientContent.agendaPage.title}
-          titleClassName="text-[1.45rem] sm:text-[1.75rem]"
-        />
-        <Link
-          className="mt-1.5 inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-full bg-brand-gradient px-3 text-[0.72rem] font-semibold text-white shadow-ambient transition duration-300 hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:absolute sm:right-0 sm:top-1/2 sm:mt-0 sm:w-auto sm:-translate-y-1/2"
-          to={ROUTES.patientAppointments}
-        >
-          <CalendarCheck2 aria-hidden="true" className="h-3.5 w-3.5" />
-          <span>Ver citas</span>
-        </Link>
-      </div>
+      <AdminPageHeader
+        className="gap-1.5 sm:gap-2"
+        description={patientContent.agendaPage.description}
+        descriptionClassName="text-[0.78rem] leading-4 sm:text-[0.9rem] sm:leading-5"
+        headingAlign="center"
+        title={patientContent.agendaPage.title}
+        titleClassName="text-[1.45rem] sm:text-[1.75rem]"
+      />
       {errorMessage ? (
         <SurfaceCard
           className="shrink-0 border border-rose-200 bg-rose-50/90 text-[0.78rem] font-semibold text-rose-800 sm:text-sm"

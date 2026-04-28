@@ -34,28 +34,6 @@ const conversationStatusOptions: Array<{
 
 const CONVERSATION_POLL_INTERVAL_MS = 5_000;
 
-function getStatusBadgeClasses(status: PatientConversationStatus) {
-  switch (status) {
-    case 'ACTIVA':
-      return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
-    case 'SOLO_LECTURA':
-      return 'bg-amber-50 text-amber-700 ring-amber-200';
-    default:
-      return 'bg-slate-100 text-slate-700 ring-slate-200';
-  }
-}
-
-function getStatusLabel(status: PatientConversationStatus) {
-  switch (status) {
-    case 'ACTIVA':
-      return 'Activa';
-    case 'SOLO_LECTURA':
-      return 'Solo lectura';
-    default:
-      return 'Cerrada';
-  }
-}
-
 function getLastMessage(conversation: PatientConversation) {
   return conversation.messages[conversation.messages.length - 1] ?? null;
 }
@@ -506,14 +484,6 @@ export function PatientConversationsPage() {
                           <h2 className="truncate font-headline text-[0.84rem] font-extrabold tracking-tight text-ink sm:text-[0.9rem]">
                             {selectedConversation.studentName}
                           </h2>
-                          <span
-                            className={classNames(
-                              'inline-flex rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ring-1 ring-inset',
-                              getStatusBadgeClasses(selectedConversation.status),
-                            )}
-                          >
-                            {getStatusLabel(selectedConversation.status)}
-                          </span>
                         </div>
                       </div>
                     </div>
