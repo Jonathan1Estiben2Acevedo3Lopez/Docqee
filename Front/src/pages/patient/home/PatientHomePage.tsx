@@ -8,6 +8,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AdminPanelCard } from '@/components/admin/AdminPanelCard';
+import { AdminTablePagination } from '@/components/admin/AdminTablePagination';
 import { Seo } from '@/components/ui/Seo';
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { patientContent } from '@/content/patientContent';
@@ -22,6 +23,12 @@ const reviewDateFormatter = new Intl.DateTimeFormat('es-CO', {
   month: 'long',
   year: 'numeric',
 });
+
+const DEFAULT_REVIEW_ROWS_PER_PAGE = 5;
+const MIN_REVIEW_ROWS_PER_PAGE = 1;
+const REVIEW_TABLE_HEADER_HEIGHT_PX = 30;
+const REVIEW_TABLE_ROW_HEIGHT_FALLBACK_PX = 48;
+const REVIEW_TABLE_HEIGHT_PADDING_PX = 4;
 
 function renderStars(
   value: number,
@@ -65,7 +72,13 @@ export function PatientHomePage() {
   const [reviewRatingFilter, setReviewRatingFilter] =
     useState<PatientReviewRatingFilter>('all');
   const [isReviewRatingMenuOpen, setIsReviewRatingMenuOpen] = useState(false);
+  const [reviewCurrentPage, setReviewCurrentPage] = useState(1);
+  const [reviewRowsPerPage, setReviewRowsPerPage] = useState(
+    DEFAULT_REVIEW_ROWS_PER_PAGE,
+  );
   const reviewRatingMenuRef = useRef<HTMLDivElement | null>(null);
+  const reviewTableViewportRef = useRef<HTMLDivElement | null>(null);
+  const reviewTableBodyRef = useRef<HTMLTableSectionElement | null>(null);
   const patientName = formatDisplayName(
     `${profile.firstName || patientContent.shell.adminUser.firstName} ${
       profile.lastName || patientContent.shell.adminUser.lastName
@@ -99,6 +112,30 @@ export function PatientHomePage() {
       (review) => Math.round(review.rating) === reviewRatingFilter,
     );
   }, [reviewRatingFilter, reviews]);
+  const reviewTotalPages = Math.max(
+    1,
+    Math.ceil(filteredReviews.length / reviewRowsPerPage),
+  );
+  const clampedReviewCurrentPage = Math.min(
+    reviewCurrentPage,
+    reviewTotalPages,
+  );
+  const reviewPageStartIndex =
+    (clampedReviewCurrentPage - 1) * reviewRowsPerPage;
+  const paginatedReviews = useMemo(
+    () =>
+      filteredReviews.slice(
+        reviewPageStartIndex,
+        reviewPageStartIndex + reviewRowsPerPage,
+      ),
+    [filteredReviews, reviewPageStartIndex, reviewRowsPerPage],
+  );
+  const reviewPageStartLabel =
+    filteredReviews.length > 0 ? reviewPageStartIndex + 1 : 0;
+  const reviewPageEndLabel = Math.min(
+    reviewPageStartIndex + paginatedReviews.length,
+    filteredReviews.length,
+  );
   const reviewRatingOptions: Array<{
     label: string;
     value: PatientReviewRatingFilter;
@@ -110,6 +147,82 @@ export function PatientHomePage() {
     { label: '2 estrellas', value: 2 },
     { label: '1 estrella', value: 1 },
   ];
+
+  useEffect(() => {
+    setReviewCurrentPage(1);
+  }, [reviewRatingFilter]);
+
+  useEffect(() => {
+    setReviewCurrentPage((currentValue) =>
+      Math.min(currentValue, reviewTotalPages),
+    );
+  }, [reviewTotalPages]);
+
+  useEffect(() => {
+    const tableViewportElement = reviewTableViewportRef.current;
+
+    if (!tableViewportElement) {
+      return undefined;
+    }
+
+    const tableViewport = tableViewportElement;
+
+    function updateReviewRowsPerPage() {
+      const nextAvailableHeight = tableViewport.getBoundingClientRect().height;
+
+      if (nextAvailableHeight <= 0) {
+        return;
+      }
+
+      const firstHeaderCell = tableViewport.querySelector('thead th');
+      const tableHeaderHeight =
+        firstHeaderCell?.getBoundingClientRect().height ??
+        REVIEW_TABLE_HEADER_HEIGHT_PX;
+      const rowElements = Array.from(
+        reviewTableBodyRef.current?.children ?? [],
+      );
+      const rowHeights = rowElements
+        .map((rowElement) => rowElement.getBoundingClientRect().height)
+        .filter((rowHeight) => rowHeight > 0);
+      const estimatedRowHeight =
+        rowHeights.length > 0
+          ? rowHeights.reduce((sum, rowHeight) => sum + rowHeight, 0) /
+            rowHeights.length
+          : REVIEW_TABLE_ROW_HEIGHT_FALLBACK_PX;
+      const nextRowsPerPage = Math.max(
+        MIN_REVIEW_ROWS_PER_PAGE,
+        Math.floor(
+          (nextAvailableHeight -
+            tableHeaderHeight -
+            REVIEW_TABLE_HEIGHT_PADDING_PX) /
+            estimatedRowHeight,
+        ),
+      );
+
+      setReviewRowsPerPage((currentRowsPerPage) =>
+        currentRowsPerPage === nextRowsPerPage
+          ? currentRowsPerPage
+          : nextRowsPerPage,
+      );
+    }
+
+    updateReviewRowsPerPage();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(updateReviewRowsPerPage);
+      resizeObserver.observe(tableViewport);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+
+    window.addEventListener('resize', updateReviewRowsPerPage);
+
+    return () => {
+      window.removeEventListener('resize', updateReviewRowsPerPage);
+    };
+  }, [filteredReviews.length, reviewPageStartIndex, paginatedReviews.length]);
 
   useEffect(() => {
     if (!isReviewRatingMenuOpen) {
@@ -138,7 +251,7 @@ export function PatientHomePage() {
   }, [isReviewRatingMenuOpen]);
 
   return (
-    <div className="flex h-full w-full min-h-0 flex-col gap-3 overflow-hidden">
+    <div className="student-page-compact flex h-full w-full min-h-0 flex-col gap-3 overflow-hidden">
       <Seo
         description={patientContent.homePage.meta.description}
         noIndex
@@ -157,26 +270,35 @@ export function PatientHomePage() {
         paddingClassName="p-0"
       >
         <div className="flex flex-col gap-3 px-4 py-3.5 sm:px-5 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-3 2xl:px-6">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            {optimizedAvatarSrc ? (
-              <img
-                alt={patientName}
-                className="h-12 w-12 rounded-[1.2rem] object-cover ring-4 ring-white/20 sm:h-14 sm:w-14"
-                decoding="async"
-                src={optimizedAvatarSrc}
-              />
-            ) : (
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-[1.2rem] bg-white/14 text-base font-extrabold uppercase text-white ring-4 ring-white/15 sm:h-14 sm:w-14 sm:text-lg">
-                {patientInitials}
-              </span>
-            )}
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
-                <h1 className="max-w-[14rem] truncate font-headline text-[1.05rem] font-extrabold tracking-tight text-white sm:max-w-[16rem] sm:text-[1.18rem] xl:max-w-[20rem]">
+          <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
+            <div className="shrink-0">
+              {optimizedAvatarSrc ? (
+                <img
+                  alt={patientName}
+                  className="h-12 w-12 rounded-[1.2rem] object-cover ring-4 ring-white/20 sm:h-14 sm:w-14"
+                  decoding="async"
+                  src={optimizedAvatarSrc}
+                />
+              ) : (
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-[1.2rem] bg-white/14 text-base font-extrabold uppercase text-white ring-4 ring-white/15 sm:h-14 sm:w-14 sm:text-lg">
+                  {patientInitials}
+                </span>
+              )}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
+                <h1 className="min-w-0 max-w-[calc(100%-4.25rem)] truncate font-headline text-[1.02rem] font-extrabold tracking-tight text-white sm:max-w-[calc(100%-4.75rem)] sm:text-[1.18rem] lg:max-w-none lg:flex-none lg:whitespace-normal lg:overflow-visible">
                   Bienvenido, {patientName}
                 </h1>
+                {reviews.length > 0 ? (
+                  <span className="inline-flex shrink-0 items-center rounded-full bg-white/12 px-2 py-1 text-white/92 lg:hidden">
+                    <span className="flex shrink-0 items-center gap-0.5">
+                      {renderStars(averageRating, 'h-2.5 w-2.5 sm:h-3 w-3')}
+                    </span>
+                  </span>
+                ) : null}
               </div>
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 lg:flex-nowrap">
                 {profile.city || profile.locality ? (
                   <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[0.75rem] font-semibold text-white/88">
                     <MapPin
@@ -190,51 +312,44 @@ export function PatientHomePage() {
                     </span>
                   </span>
                 ) : null}
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-2.5 py-1 text-white/92">
-                  <div className="flex shrink-0 items-center gap-0.5">
-                    {renderStars(averageRating, 'h-3.5 w-3.5')}
-                  </div>
-                  {reviews.length > 0 ? (
-                    <span className="max-w-[12rem] truncate text-[0.75rem] font-semibold sm:max-w-[14rem] xl:max-w-[18rem]">
+                {reviews.length > 0 ? (
+                  <span className="hidden min-w-0 items-center gap-2 rounded-full bg-white/12 px-2.5 py-1 text-white/92 lg:inline-flex">
+                    <span className="flex shrink-0 items-center gap-0.5">
+                      {renderStars(averageRating, 'h-3.5 w-3.5')}
+                    </span>
+                    <span className="max-w-[12rem] truncate text-[0.75rem] font-semibold xl:max-w-[14rem]">
                       {`${averageRating.toFixed(1)} de 5 en ${reviews.length} valoraciones`}
                     </span>
-                  ) : null}
-                </span>
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
         </div>
       </SurfaceCard>
-      <AdminPanelCard
-        className="flex-1"
-        panelClassName="rounded-[1.1rem] bg-[#f4f8ff]"
-        shellPaddingClassName="p-0"
-      >
-        <div className="border-b border-slate-200/80 px-2.5 py-2 sm:px-3">
-          <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-            <div className="space-y-0.5">
-              <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-primary/75">
-                Experiencia en citas
-              </p>
-              <h2 className="font-headline text-[1.08rem] font-extrabold tracking-tight text-ink">
-                Comentarios recibidos
+      <AdminPanelCard className="flex-1" panelClassName="bg-[#f4f8ff]">
+        <div className="border-b border-slate-200/80 px-2.5 py-2 sm:px-4">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate font-headline text-[0.98rem] font-extrabold tracking-tight text-ink sm:text-[1.14rem]">
+                Comentarios de tus citas
               </h2>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 self-start">
+            <div className="flex shrink-0 items-center gap-1.5">
               <div
-                className="inline-flex items-center gap-1.5 rounded-[0.9rem] border border-sky-200/80 bg-sky-50 px-2.5 py-1.5 text-sky-950"
+                className="inline-flex items-center gap-1.5 rounded-[0.8rem] border border-sky-200/80 bg-sky-50 px-1.5 py-1 text-sky-950 shadow-[0_14px_28px_-24px_rgba(14,116,144,0.38)] sm:gap-2 sm:rounded-[0.95rem] sm:px-2.5 sm:py-1.5"
                 data-testid="patient-review-comments-dashboard"
               >
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-[0.72rem] bg-white text-primary">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[0.62rem] bg-white text-primary shadow-[0_12px_22px_-20px_rgba(14,116,144,0.55)] sm:h-7 sm:w-7 sm:rounded-[0.7rem]">
                   <MessageSquareMore
                     aria-hidden="true"
-                    className="h-3.5 w-3.5"
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                   />
                 </span>
-                <p className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-sky-700/80">
+                <p className="hidden text-[0.58rem] font-bold uppercase tracking-[0.16em] text-sky-700/80 sm:block">
                   Comentarios
                 </p>
-                <p className="font-headline text-[1.02rem] font-extrabold tracking-tight text-sky-950">
+                <p className="font-headline text-[0.9rem] font-extrabold tracking-tight text-sky-950 sm:text-[1rem]">
                   {commentsCount}
                 </p>
               </div>
@@ -245,7 +360,7 @@ export function PatientHomePage() {
                   aria-haspopup="menu"
                   aria-label="Filtrar comentarios por estrellas"
                   className={classNames(
-                    'relative inline-flex h-8 w-8 items-center justify-center rounded-full border bg-white/98 text-ink transition duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10',
+                    'relative inline-flex h-8 w-8 items-center justify-center rounded-full border bg-white/98 text-ink shadow-[0_10px_28px_-18px_rgba(15,23,42,0.38)] transition duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 sm:h-9 sm:w-9',
                     reviewRatingFilter === 'all'
                       ? 'border-slate-200/90 hover:border-primary/30 hover:bg-white'
                       : 'border-primary/30 bg-primary/10 text-primary',
@@ -258,10 +373,10 @@ export function PatientHomePage() {
                 >
                   <SlidersHorizontal
                     aria-hidden="true"
-                    className="h-3.5 w-3.5"
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                   />
                   {reviewRatingFilter !== 'all' ? (
-                    <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+                    <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
                   ) : null}
                 </button>
                 {isReviewRatingMenuOpen ? (
@@ -332,66 +447,97 @@ export function PatientHomePage() {
             </div>
           </div>
         </div>
-        <div className="admin-scrollbar min-h-0 flex-1 overflow-y-auto px-2.5 py-2 sm:px-3">
+        <div
+          ref={reviewTableViewportRef}
+          className="min-h-0 flex-1 overflow-hidden px-2 py-1.5 sm:px-3 sm:py-2.5"
+        >
           {filteredReviews.length > 0 ? (
-            <div className="grid gap-2 lg:grid-cols-2 2xl:grid-cols-3">
-              {filteredReviews.map((review) => (
-                <SurfaceCard
-                  key={review.id}
-                  className="border border-slate-200/80 bg-white shadow-none"
-                  paddingClassName="p-3"
+            <div className="h-full overflow-hidden">
+              <table className="w-full table-fixed text-left">
+                <thead className="border-b border-slate-200/80">
+                  <tr className="text-[0.54rem] font-bold uppercase tracking-[0.12em] text-ink-muted sm:text-[0.6rem] sm:tracking-[0.16em]">
+                    <th className="w-[31%] px-2 py-1.5 font-bold sm:w-[24%] sm:px-3 sm:py-2">
+                      Estudiante
+                    </th>
+                    <th className="hidden w-[18%] px-3 py-2 font-bold md:table-cell">
+                      Cita
+                    </th>
+                    <th className="w-[25%] px-1.5 py-1.5 font-bold sm:w-[18%] sm:px-3 sm:py-2">
+                      Valoracion
+                    </th>
+                    <th className="hidden w-[14%] px-3 py-2 font-bold lg:table-cell">
+                      Sede
+                    </th>
+                    <th className="w-[44%] px-2 py-1.5 font-bold sm:w-[40%] sm:px-3 sm:py-2">
+                      Comentario
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  ref={reviewTableBodyRef}
+                  className="divide-y divide-slate-200/70"
                 >
-                  <div
-                    className="space-y-2"
-                    data-testid={`patient-review-card-${review.id}`}
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <p className="text-[0.88rem] font-semibold text-ink">
+                  {paginatedReviews.map((review) => (
+                    <tr
+                      key={review.id}
+                      className="align-top transition duration-200 hover:bg-white/55"
+                      data-testid={`patient-review-card-${review.id}`}
+                    >
+                      <td className="px-2 py-1.5 align-top sm:px-3 sm:py-2">
+                        <p className="break-words text-[0.74rem] font-semibold leading-4 text-ink sm:text-[0.8rem] sm:leading-5">
                           {formatDisplayName(review.studentName)}
                         </p>
-                        <p className="text-[0.76rem] text-ink-muted">
-                          {review.appointmentLabel}
+                        <p className="mt-0.5 text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-ink-muted sm:text-[0.64rem]">
+                          {reviewDateFormatter.format(
+                            new Date(review.createdAt),
+                          )}
                         </p>
-                      </div>
-                      <div className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                        {reviewDateFormatter.format(new Date(review.createdAt))}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-0.5">
-                        {renderStars(review.rating, 'h-3.5 w-3.5', 'dark')}
-                      </div>
-                      <span className="text-[0.78rem] font-semibold text-ink">
-                        {review.rating.toFixed(1)}
-                      </span>
-                    </div>
-                    <p className="rounded-[0.95rem] bg-slate-50 px-3 py-2 text-[0.8rem] leading-5 text-ink">
-                      {review.comment ??
-                        'No hay un comentario escrito para esta cita.'}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-ink-muted">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
-                        <MapPin aria-hidden="true" className="h-3 w-3" />
-                        {formatDisplayName(review.siteName)}
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
-                        <MessageSquareMore
-                          aria-hidden="true"
-                          className="h-3 w-3"
-                        />
-                        Comentario recibido
-                      </span>
-                    </div>
-                  </div>
-                </SurfaceCard>
-              ))}
+                      </td>
+                      <td className="hidden px-3 py-2 align-top text-[0.74rem] leading-5 text-ink-muted md:table-cell">
+                        {review.appointmentLabel}
+                      </td>
+                      <td className="px-1.5 py-1.5 align-top sm:px-3 sm:py-2">
+                        <div className="flex flex-wrap items-center gap-0.5 pt-0.5">
+                          {renderStars(
+                            review.rating,
+                            'h-3 w-3 sm:h-3.5 sm:w-3.5',
+                            'dark',
+                          )}
+                        </div>
+                      </td>
+                      <td className="hidden px-3 py-2 align-top lg:table-cell">
+                        <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/70 px-2 py-0.5 text-[0.68rem] font-semibold text-ink-muted">
+                          <MapPin
+                            aria-hidden="true"
+                            className="h-3 w-3 shrink-0"
+                          />
+                          <span className="truncate">
+                            {formatDisplayName(review.siteName)}
+                          </span>
+                        </span>
+                      </td>
+                      <td className="px-2 py-1.5 align-top sm:px-3 sm:py-2">
+                        <p className="max-h-8 overflow-hidden text-[0.72rem] leading-4 text-ink sm:max-h-10 sm:text-[0.78rem] sm:leading-5">
+                          {review.comment ??
+                            'El estudiante no dejo un comentario escrito para esta cita.'}
+                        </p>
+                        <span className="mt-0.5 hidden max-w-full items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[0.6rem] font-semibold text-ink-muted md:inline-flex lg:hidden">
+                          <MapPin
+                            aria-hidden="true"
+                            className="h-3 w-3 shrink-0"
+                          />
+                          <span className="truncate">
+                            {formatDisplayName(review.siteName)}
+                          </span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
-            <SurfaceCard
-              className="border border-dashed border-slate-200 bg-white shadow-none"
-              paddingClassName="px-3 py-5"
-            >
+            <div className="flex h-full items-center justify-center rounded-[1rem] border border-dashed border-slate-200 bg-white px-4 py-6">
               <div className="space-y-1.5 text-center">
                 <p className="font-headline text-[1rem] font-extrabold tracking-tight text-ink">
                   {reviews.length === 0
@@ -404,9 +550,26 @@ export function PatientHomePage() {
                     : 'Prueba con otra cantidad de estrellas para ver mas comentarios en esta seccion.'}
                 </p>
               </div>
-            </SurfaceCard>
+            </div>
           )}
         </div>
+        <AdminTablePagination
+          currentPage={clampedReviewCurrentPage}
+          pageEndLabel={reviewPageEndLabel}
+          pageStartLabel={reviewPageStartLabel}
+          totalItems={filteredReviews.length}
+          totalPages={reviewTotalPages}
+          onNext={() =>
+            setReviewCurrentPage((currentValue) =>
+              Math.min(reviewTotalPages, currentValue + 1),
+            )
+          }
+          onPrevious={() =>
+            setReviewCurrentPage((currentValue) =>
+              Math.max(1, currentValue - 1),
+            )
+          }
+        />
       </AdminPanelCard>
       {isLoading ? (
         <p className="pb-2 text-sm font-medium text-ink-muted">
