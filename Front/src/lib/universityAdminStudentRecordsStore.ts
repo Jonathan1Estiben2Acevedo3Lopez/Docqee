@@ -696,7 +696,7 @@ async function toggleStudentStatus(studentId: string) {
 }
 
 async function editStudentCredentialEmail(credentialId: string, email: string) {
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = email.trim();
 
   if (IS_TEST_MODE) {
     const credential = state.credentials.find((item) => item.id === credentialId);

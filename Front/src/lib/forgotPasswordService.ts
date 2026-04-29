@@ -45,7 +45,7 @@ function readSessionStorage() {
 }
 
 function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
+  return email.trim();
 }
 
 function getRemainingSeconds(target: number | null) {

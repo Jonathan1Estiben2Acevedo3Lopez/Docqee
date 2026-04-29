@@ -574,7 +574,7 @@ function registerUniversityMock(values: RegisterUniversityFormValues) {
   nextCredentialSequence += 1;
 
   const nextUniversity: AdminUniversity = {
-    adminEmail: normalizeText(values.adminEmail).toLowerCase(),
+    adminEmail: normalizeText(values.adminEmail),
     adminFirstName: normalizeText(values.adminFirstName),
     adminLastName: normalizeText(values.adminLastName),
     adminPhone: normalizeOptionalText(values.adminPhone),

@@ -221,7 +221,7 @@ export function AdminCredentialsPage() {
   };
 
   const handleSaveEmail = (credentialId: string, administratorName: string) => {
-    const normalizedEmail = emailDraft.trim().toLowerCase();
+    const normalizedEmail = emailDraft.trim();
     const formattedAdministratorName = formatDisplayName(administratorName);
 
     if (!isValidEmail(normalizedEmail)) {

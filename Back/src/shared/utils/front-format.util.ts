@@ -5,7 +5,7 @@ export function normalizeText(value: string) {
 }
 
 export function normalizeEmail(value: string) {
-  return normalizeText(value).toLowerCase();
+  return normalizeText(value);
 }
 
 export function buildCityFrontId(cityName: string) {

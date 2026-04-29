@@ -1091,7 +1091,7 @@ async function editStudentCredentialEmail(credentialId: string, email: string) {
       isLoading: false,
       isReady: true,
       students: state.students.map((student) =>
-        student.id === credential?.studentId ? { ...student, email: email.trim().toLowerCase() } : student,
+        student.id === credential?.studentId ? { ...student, email: email.trim() } : student,
       ),
     });
 

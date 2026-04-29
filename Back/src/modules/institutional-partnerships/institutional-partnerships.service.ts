@@ -31,7 +31,7 @@ export class InstitutionalPartnershipsService {
         city: this.normalizeField(body.city),
         contactName: this.normalizeField(body.contactName),
         contactRole: this.normalizeField(body.contactRole),
-        institutionalEmail: body.institutionalEmail.trim().toLowerCase(),
+        institutionalEmail: body.institutionalEmail.trim(),
         interestTypeLabel: interestTypeLabels[body.interestType],
         phone: this.normalizeField(body.phone),
         universityName: this.normalizeField(body.universityName),

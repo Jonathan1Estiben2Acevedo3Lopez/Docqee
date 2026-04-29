@@ -203,7 +203,7 @@ export function UniversityCredentialsPage() {
   };
 
   const handleSaveEmail = (credentialId: string, studentName: string) => {
-    const normalizedEmail = emailDraft.trim().toLowerCase();
+    const normalizedEmail = emailDraft.trim();
 
     if (!isValidEmail(normalizedEmail)) {
       setEmailError(universityAdminContent.credentialsPage.emailInvalidMessage);
