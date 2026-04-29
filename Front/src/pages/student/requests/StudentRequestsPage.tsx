@@ -288,6 +288,11 @@ function StudentRequestProfileDialog({
                   >
                     {renderRatingStars(averageRating ?? 0, 'h-4 w-4')}
                   </div>
+                  <p className="mt-1 text-sm font-semibold text-white">
+                    {averageRating !== null
+                      ? `${averageRating.toFixed(1)} / 5 (${patientReviews.length})`
+                      : 'Sin valoraciones'}
+                  </p>
                 </div>
                 <div className="col-span-2 flex min-w-0 flex-col justify-center rounded-[1.15rem] bg-white/10 px-3.5 py-2.5 lg:col-span-1">
                   <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-white/65">
@@ -329,6 +334,9 @@ function StudentRequestProfileDialog({
                       <h3 className="font-headline text-lg font-extrabold tracking-tight text-ink">
                         Comentarios de otros estudiantes
                       </h3>
+                      <p className="mt-0.5 text-xs font-semibold text-ink-muted">
+                        {patientComments.length} registrados
+                      </p>
                     </div>
                   </div>
 

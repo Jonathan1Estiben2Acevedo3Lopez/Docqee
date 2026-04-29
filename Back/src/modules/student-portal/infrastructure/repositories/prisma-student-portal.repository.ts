@@ -184,10 +184,7 @@ export class PrismaStudentPortalRepository extends StudentPortalRepository {
     };
   }
 
-  private async getPatientReviewsByAccountId(
-    patientAccountIds: number[],
-    currentStudentAccountId: number,
-  ) {
+  private async getPatientReviewsByAccountId(patientAccountIds: number[]) {
     const uniquePatientAccountIds = [...new Set(patientAccountIds)];
 
     if (uniquePatientAccountIds.length === 0) {
@@ -196,7 +193,6 @@ export class PrismaStudentPortalRepository extends StudentPortalRepository {
 
     const patientReviews = await this.prisma.valoracion.findMany({
       where: {
-        id_cuenta_emisor: { not: currentStudentAccountId },
         id_cuenta_receptor: { in: uniquePatientAccountIds },
       },
       include: {
@@ -377,7 +373,6 @@ export class PrismaStudentPortalRepository extends StudentPortalRepository {
     );
     const patientReviewsByAccountId = await this.getPatientReviewsByAccountId(
       solicitudes.map((solicitud) => solicitud.cuenta_paciente.id_cuenta),
-      studentAccountId,
     );
 
     const requests: StudentRequestDto[] = solicitudes.map((s) =>
@@ -1028,7 +1023,6 @@ export class PrismaStudentPortalRepository extends StudentPortalRepository {
       });
       const patientReviewsByAccountId = await this.getPatientReviewsByAccountId(
         [updated.cuenta_paciente.id_cuenta],
-        studentAccountId,
       );
 
       return this.toStudentRequestDto(
@@ -1086,7 +1080,6 @@ export class PrismaStudentPortalRepository extends StudentPortalRepository {
     });
     const patientReviewsByAccountId = await this.getPatientReviewsByAccountId(
       [updated.cuenta_paciente.id_cuenta],
-      studentAccountId,
     );
 
     return this.toStudentRequestDto(
