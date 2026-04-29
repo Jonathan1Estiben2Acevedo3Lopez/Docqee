@@ -117,7 +117,7 @@ type UseStudentModuleStoreOptions = {
   autoLoad?: boolean;
 };
 
-const STUDENT_MODULE_CACHE_STORAGE_KEY = 'docqee.student.module-cache';
+const STUDENT_MODULE_CACHE_STORAGE_KEY = 'docqee.student.module-cache.v2';
 const STUDENT_MODULE_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const STUDENT_REFERENCE_DATA_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 const listeners = new Set<() => void>();

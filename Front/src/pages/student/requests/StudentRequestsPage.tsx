@@ -425,7 +425,7 @@ function StudentRequestProfileDialog({
 }
 
 export function StudentRequestsPage() {
-  const { errorMessage, isLoading, requests, respondToRequest } =
+  const { errorMessage, isLoading, refresh, requests, respondToRequest } =
     useStudentModuleStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<RequestStatusFilter>('all');
@@ -451,6 +451,7 @@ export function StudentRequestsPage() {
   const statusMenuRef = useRef<HTMLDivElement | null>(null);
   const tableViewportRef = useRef<HTMLDivElement | null>(null);
   const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
+  const hasRequestedFreshDashboardRef = useRef(false);
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const visibleRequests = useMemo(
     () => requests.filter((request) => request.status !== 'CERRADA'),
@@ -521,6 +522,15 @@ export function StudentRequestsPage() {
       null,
     [visibleRequests, selectedRequestId],
   );
+
+  useEffect(() => {
+    if (hasRequestedFreshDashboardRef.current) {
+      return;
+    }
+
+    hasRequestedFreshDashboardRef.current = true;
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) {
