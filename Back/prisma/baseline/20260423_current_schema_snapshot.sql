@@ -552,6 +552,19 @@ CREATE TABLE verificacion_correo (
         FOREIGN KEY (id_cuenta_acceso) REFERENCES cuenta_acceso(id_cuenta)
 );
 
+CREATE TABLE registro_paciente_pendiente (
+    id_registro_paciente_pendiente INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    correo CITEXT NOT NULL,
+    payload JSONB NOT NULL,
+    codigo_hash TEXT NOT NULL,
+    expira_at TIMESTAMPTZ NOT NULL,
+    usado_at TIMESTAMPTZ,
+    fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_registro_paciente_pendiente_correo
+        UNIQUE (correo)
+);
+
 CREATE TABLE recuperacion_cuenta (
     id_recuperacion_cuenta INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_cuenta_acceso INT NOT NULL,
@@ -584,6 +597,3 @@ CREATE TABLE envio_credencial (
 );
 
 COMMIT;
-
-
-

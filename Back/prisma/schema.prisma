@@ -326,6 +326,17 @@ model recuperacion_cuenta {
   cuenta_acceso          cuenta_acceso @relation(fields: [id_cuenta_acceso], references: [id_cuenta], onDelete: NoAction, onUpdate: NoAction, map: "fk_recuperacion_cuenta")
 }
 
+model registro_paciente_pendiente {
+  id_registro_paciente_pendiente Int       @id @default(autoincrement())
+  correo                         String    @unique(map: "uq_registro_paciente_pendiente_correo") @db.Citext
+  payload                        Json
+  codigo_hash                    String
+  expira_at                      DateTime  @db.Timestamptz(6)
+  usado_at                       DateTime? @db.Timestamptz(6)
+  fecha_creacion                 DateTime  @default(now()) @db.Timestamptz(6)
+  fecha_actualizacion            DateTime  @default(now()) @db.Timestamptz(6)
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model reprogramacion_cita {
   id_reprogramacion_cita                                                Int                        @id @default(autoincrement())

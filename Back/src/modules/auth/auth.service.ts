@@ -8,7 +8,7 @@
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { estado_simple_enum, tipo_cuenta_enum } from '@prisma/client';
+import { estado_simple_enum, Prisma, sexo_enum, tipo_cuenta_enum } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 import { PENDING_CREDENTIAL_PASSWORD_HASH_PREFIX } from '@/shared/constants/auth.constants';
@@ -33,6 +33,29 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 
 const EMAIL_CODE_EXPIRY_MINUTES = 5;
 const PASSWORD_RESET_EXPIRY_MINUTES = 5;
+
+type PendingPatientRegistrationPayload = {
+  patient: {
+    birthDate: string;
+    documentNumber: string;
+    documentTypeId: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    localityId: number;
+    passwordHash: string;
+    phone: string;
+    sex: sexo_enum;
+  };
+  tutor: {
+    documentNumber: string;
+    documentTypeId: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+  } | null;
+};
 
 type SessionAccount = {
   id_cuenta: number;
@@ -162,8 +185,13 @@ export class AuthService {
       select: { id_cuenta: true },
     });
 
-    if (existingAccount) {
-      throw new ConflictException('Ya existe una cuenta registrada con este correo.');
+    const canReuseEmail =
+      existingAccount && (await this.deleteUnverifiedPatientAccountIfUnused(patientEmail));
+
+    if (existingAccount && !canReuseEmail) {
+      throw new ConflictException(
+        'No pudimos iniciar el registro con estos datos. Revisa la informacion o intenta recuperar tu cuenta.',
+      );
     }
 
     const documentType = await this.resolveDocumentType(input.patient.documentTypeCode);
@@ -175,87 +203,158 @@ export class AuthService {
     const tutorDocumentType = tutorPayload
       ? await this.resolveDocumentType(tutorPayload.documentTypeCode)
       : null;
-
-    const createdAccount = await this.prisma.$transaction(async (transaction) => {
-      const person = await transaction.persona.create({
-        data: {
-          id_tipo_documento: documentType.id_tipo_documento,
-          numero_documento: normalizeText(input.patient.documentNumber),
-          nombres: normalizeText(input.patient.firstName),
-          apellidos: normalizeText(input.patient.lastName),
-        },
-      });
-
-      const tutor =
+    const payload: PendingPatientRegistrationPayload = {
+      patient: {
+        birthDate: input.patient.birthDate,
+        documentNumber: normalizeText(input.patient.documentNumber),
+        documentTypeId: documentType.id_tipo_documento,
+        email: patientEmail,
+        firstName: normalizeText(input.patient.firstName),
+        lastName: normalizeText(input.patient.lastName),
+        localityId: locality.id_localidad,
+        passwordHash,
+        phone: normalizeText(input.patient.phone),
+        sex: input.patient.sex as sexo_enum,
+      },
+      tutor:
         tutorPayload && tutorDocumentType
-          ? await transaction.tutor_responsable.upsert({
-              where: {
-                id_tipo_documento_numero_documento: {
-                  id_tipo_documento: tutorDocumentType.id_tipo_documento,
-                  numero_documento: normalizeText(tutorPayload.documentNumber),
-                },
-              },
-              create: {
-                id_tipo_documento: tutorDocumentType.id_tipo_documento,
-                numero_documento: normalizeText(tutorPayload.documentNumber),
-                nombres: normalizeText(tutorPayload.firstName),
-                apellidos: normalizeText(tutorPayload.lastName),
-                correo: normalizeEmail(tutorPayload.email),
-                celular: normalizeText(tutorPayload.phone),
-              },
-              update: {
-                nombres: normalizeText(tutorPayload.firstName),
-                apellidos: normalizeText(tutorPayload.lastName),
-                correo: normalizeEmail(tutorPayload.email),
-                celular: normalizeText(tutorPayload.phone),
-              },
-            })
-          : null;
+          ? {
+              documentNumber: normalizeText(tutorPayload.documentNumber),
+              documentTypeId: tutorDocumentType.id_tipo_documento,
+              email: normalizeEmail(tutorPayload.email),
+              firstName: normalizeText(tutorPayload.firstName),
+              lastName: normalizeText(tutorPayload.lastName),
+              phone: normalizeText(tutorPayload.phone),
+            }
+          : null,
+    };
 
-      const account = await transaction.cuenta_acceso.create({
-        data: {
-          tipo_cuenta: tipo_cuenta_enum.PACIENTE,
-          correo: patientEmail,
-          password_hash: passwordHash,
-          correo_verificado: false,
-          primer_ingreso_pendiente: false,
-        },
-      });
-
-      await transaction.cuenta_paciente.create({
-        data: {
-          id_cuenta: account.id_cuenta,
-          id_persona: person.id_persona,
-          id_localidad: locality.id_localidad,
-          id_tutor_responsable: tutor?.id_tutor_responsable ?? null,
-          sexo: input.patient.sex,
-          fecha_nacimiento: new Date(input.patient.birthDate),
-          celular: normalizeText(input.patient.phone),
-        },
-      });
-
-      await transaction.verificacion_correo.create({
-        data: {
-          id_cuenta_acceso: account.id_cuenta,
-          codigo_hash: verificationCodeHash,
-          expira_at: this.buildExpiryDate(EMAIL_CODE_EXPIRY_MINUTES),
-        },
-      });
-
-      return account;
+    await this.prisma.registro_paciente_pendiente.upsert({
+      where: { correo: patientEmail },
+      create: {
+        correo: patientEmail,
+        payload: payload as unknown as Prisma.InputJsonValue,
+        codigo_hash: verificationCodeHash,
+        expira_at: this.buildExpiryDate(EMAIL_CODE_EXPIRY_MINUTES),
+      },
+      update: {
+        payload: payload as unknown as Prisma.InputJsonValue,
+        codigo_hash: verificationCodeHash,
+        expira_at: this.buildExpiryDate(EMAIL_CODE_EXPIRY_MINUTES),
+        usado_at: null,
+        fecha_actualizacion: new Date(),
+      },
     });
 
-    await this.mailService.sendVerificationCode(createdAccount.correo, verificationCode);
+    await this.mailService.sendVerificationCode(patientEmail, verificationCode);
 
     return {
-      email: createdAccount.correo,
+      email: patientEmail,
       ok: true,
     };
   }
 
   async verifyEmail(input: VerifyEmailDto) {
+    const email = normalizeEmail(input.email);
+    const pendingRegistration = await this.prisma.registro_paciente_pendiente.findUnique({
+      where: { correo: email },
+    });
+
+    if (pendingRegistration && pendingRegistration.usado_at === null) {
+      if (pendingRegistration.expira_at.getTime() < Date.now()) {
+        throw new BadRequestException('El codigo de verificacion expiro. Solicita uno nuevo.');
+      }
+
+      const isValidPendingCode = await bcrypt.compare(input.code, pendingRegistration.codigo_hash);
+
+      if (!isValidPendingCode) {
+        throw new BadRequestException('El codigo ingresado no es valido.');
+      }
+
+      const payload = this.parsePendingPatientRegistrationPayload(pendingRegistration.payload);
+
+      await this.prisma.$transaction(async (transaction) => {
+        const existingAccount = await transaction.cuenta_acceso.findUnique({
+          where: { correo: email },
+          select: { id_cuenta: true },
+        });
+
+        if (existingAccount) {
+          throw new ConflictException(
+            'No pudimos finalizar el registro con estos datos. Revisa la informacion o intenta recuperar tu cuenta.',
+          );
+        }
+
+        const person = await transaction.persona.create({
+          data: {
+            id_tipo_documento: payload.patient.documentTypeId,
+            numero_documento: payload.patient.documentNumber,
+            nombres: payload.patient.firstName,
+            apellidos: payload.patient.lastName,
+          },
+        });
+
+        const tutor = payload.tutor
+          ? await transaction.tutor_responsable.upsert({
+              where: {
+                id_tipo_documento_numero_documento: {
+                  id_tipo_documento: payload.tutor.documentTypeId,
+                  numero_documento: payload.tutor.documentNumber,
+                },
+              },
+              create: {
+                id_tipo_documento: payload.tutor.documentTypeId,
+                numero_documento: payload.tutor.documentNumber,
+                nombres: payload.tutor.firstName,
+                apellidos: payload.tutor.lastName,
+                correo: payload.tutor.email,
+                celular: payload.tutor.phone,
+              },
+              update: {
+                nombres: payload.tutor.firstName,
+                apellidos: payload.tutor.lastName,
+                correo: payload.tutor.email,
+                celular: payload.tutor.phone,
+              },
+            })
+          : null;
+
+        const account = await transaction.cuenta_acceso.create({
+          data: {
+            tipo_cuenta: tipo_cuenta_enum.PACIENTE,
+            correo: payload.patient.email,
+            password_hash: payload.patient.passwordHash,
+            correo_verificado: true,
+            correo_verificado_at: new Date(),
+            primer_ingreso_pendiente: false,
+          },
+        });
+
+        await transaction.cuenta_paciente.create({
+          data: {
+            id_cuenta: account.id_cuenta,
+            id_persona: person.id_persona,
+            id_localidad: payload.patient.localityId,
+            id_tutor_responsable: tutor?.id_tutor_responsable ?? null,
+            sexo: payload.patient.sex,
+            fecha_nacimiento: new Date(payload.patient.birthDate),
+            celular: payload.patient.phone,
+          },
+        });
+
+        await transaction.registro_paciente_pendiente.delete({
+          where: {
+            id_registro_paciente_pendiente:
+              pendingRegistration.id_registro_paciente_pendiente,
+          },
+        });
+      });
+
+      return { ok: true };
+    }
+
     const account = await this.prisma.cuenta_acceso.findUnique({
-      where: { correo: normalizeEmail(input.email) },
+      where: { correo: email },
       select: {
         id_cuenta: true,
         correo_verificado: true,
@@ -306,8 +405,42 @@ export class AuthService {
   }
 
   async resendVerificationCode(input: RequestPasswordResetDto) {
+    const email = normalizeEmail(input.email);
+    const pendingRegistration = await this.prisma.registro_paciente_pendiente.findUnique({
+      where: { correo: email },
+      select: {
+        id_registro_paciente_pendiente: true,
+        usado_at: true,
+      },
+    });
+
+    if (pendingRegistration && pendingRegistration.usado_at === null) {
+      const verificationCode = generateSixDigitCode();
+      const verificationCodeHash = await bcrypt.hash(verificationCode, 10);
+
+      await this.prisma.registro_paciente_pendiente.update({
+        where: {
+          id_registro_paciente_pendiente:
+            pendingRegistration.id_registro_paciente_pendiente,
+        },
+        data: {
+          codigo_hash: verificationCodeHash,
+          expira_at: this.buildExpiryDate(EMAIL_CODE_EXPIRY_MINUTES),
+          fecha_actualizacion: new Date(),
+        },
+      });
+
+      await this.mailService.sendVerificationCode(email, verificationCode);
+
+      return {
+        cooldownSeconds: 60,
+        message: 'Generamos un nuevo codigo de verificacion.',
+        ok: true,
+      };
+    }
+
     const account = await this.prisma.cuenta_acceso.findUnique({
-      where: { correo: normalizeEmail(input.email) },
+      where: { correo: email },
       select: {
         id_cuenta: true,
         correo: true,
@@ -710,6 +843,125 @@ export class AuthService {
     }
 
     return locality;
+  }
+
+  private parsePendingPatientRegistrationPayload(
+    payload: Prisma.JsonValue,
+  ): PendingPatientRegistrationPayload {
+    if (!this.isPlainObject(payload) || !this.isPlainObject(payload.patient)) {
+      throw new BadRequestException('El registro pendiente no es valido. Inicia el registro nuevamente.');
+    }
+
+    const patient = payload.patient;
+    const tutor = this.isPlainObject(payload.tutor) ? payload.tutor : null;
+
+    return {
+      patient: {
+        birthDate: this.readString(patient.birthDate),
+        documentNumber: this.readString(patient.documentNumber),
+        documentTypeId: this.readNumber(patient.documentTypeId),
+        email: this.readString(patient.email),
+        firstName: this.readString(patient.firstName),
+        lastName: this.readString(patient.lastName),
+        localityId: this.readNumber(patient.localityId),
+        passwordHash: this.readString(patient.passwordHash),
+        phone: this.readString(patient.phone),
+        sex: this.readSex(patient.sex),
+      },
+      tutor: tutor
+        ? {
+            documentNumber: this.readString(tutor.documentNumber),
+            documentTypeId: this.readNumber(tutor.documentTypeId),
+            email: this.readString(tutor.email),
+            firstName: this.readString(tutor.firstName),
+            lastName: this.readString(tutor.lastName),
+            phone: this.readString(tutor.phone),
+          }
+        : null,
+    };
+  }
+
+  private isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  private readString(value: unknown) {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      throw new BadRequestException('El registro pendiente no es valido. Inicia el registro nuevamente.');
+    }
+
+    return value;
+  }
+
+  private readNumber(value: unknown) {
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+      throw new BadRequestException('El registro pendiente no es valido. Inicia el registro nuevamente.');
+    }
+
+    return value;
+  }
+
+  private readSex(value: unknown) {
+    if (
+      value !== sexo_enum.FEMENINO &&
+      value !== sexo_enum.MASCULINO &&
+      value !== sexo_enum.OTRO
+    ) {
+      throw new BadRequestException('El registro pendiente no es valido. Inicia el registro nuevamente.');
+    }
+
+    return value;
+  }
+
+  private async deleteUnverifiedPatientAccountIfUnused(email: string) {
+    const account = await this.prisma.cuenta_acceso.findUnique({
+      where: { correo: email },
+      select: {
+        correo_verificado: true,
+        id_cuenta: true,
+        tipo_cuenta: true,
+        cuenta_paciente: {
+          select: {
+            id_persona: true,
+          },
+        },
+      },
+    });
+
+    if (
+      !account ||
+      account.tipo_cuenta !== tipo_cuenta_enum.PACIENTE ||
+      account.correo_verificado ||
+      !account.cuenta_paciente
+    ) {
+      return false;
+    }
+
+    try {
+      await this.prisma.$transaction([
+        this.prisma.verificacion_correo.deleteMany({
+          where: { id_cuenta_acceso: account.id_cuenta },
+        }),
+        this.prisma.recuperacion_cuenta.deleteMany({
+          where: { id_cuenta_acceso: account.id_cuenta },
+        }),
+        this.prisma.cuenta_paciente.delete({
+          where: { id_cuenta: account.id_cuenta },
+        }),
+        this.prisma.cuenta_acceso.delete({
+          where: { id_cuenta: account.id_cuenta },
+        }),
+        this.prisma.persona.delete({
+          where: { id_persona: account.cuenta_paciente.id_persona },
+        }),
+      ]);
+
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      this.logger.warn(`No pudimos limpiar registro pendiente anterior para ${email}: ${message}`);
+      return false;
+    }
   }
 
   private buildExpiryDate(minutes: number) {
