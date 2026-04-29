@@ -44,7 +44,7 @@ export function useStableRowsPerPage<TElement extends HTMLElement>({
 
       return rowHeight > largestHeight ? rowHeight : largestHeight;
     }, 0);
-    const effectiveRowHeight = Math.max(rowHeightPx, measuredRowHeight);
+    const effectiveRowHeight = measuredRowHeight > 0 ? measuredRowHeight : rowHeightPx;
 
     const nextRowsPerPage =
       availableHeight > 0
