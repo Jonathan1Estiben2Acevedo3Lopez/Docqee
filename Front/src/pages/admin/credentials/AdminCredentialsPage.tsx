@@ -54,8 +54,8 @@ const AUTO_REFRESH_MIN_INTERVAL_MS = 5000;
 const DEFAULT_ROWS_PER_PAGE = 6;
 const MIN_ROWS_PER_PAGE = 1;
 const TABLE_HEADER_HEIGHT_PX = 38;
-const TABLE_ROW_HEIGHT_FALLBACK_PX = 64;
-const TABLE_HEIGHT_PADDING_PX = 0;
+const TABLE_ROW_HEIGHT_FALLBACK_PX = 96;
+const TABLE_HEIGHT_PADDING_PX = 12;
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -129,7 +129,7 @@ export function AdminCredentialsPage() {
   const filterMenuRef = useRef<HTMLDivElement | null>(null);
   const tableViewportRef = useRef<HTMLDivElement | null>(null);
   const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
-  const rowsPerPage = useStableRowsPerPage({
+  const stableRowsPerPage = useStableRowsPerPage({
     viewportRef: tableViewportRef,
     defaultRowsPerPage: DEFAULT_ROWS_PER_PAGE,
     minRowsPerPage: MIN_ROWS_PER_PAGE,
@@ -137,6 +137,9 @@ export function AdminCredentialsPage() {
     rowHeightPx: TABLE_ROW_HEIGHT_FALLBACK_PX,
     heightPaddingPx: TABLE_HEIGHT_PADDING_PX,
   });
+  const rowsPerPage = editingCredentialId
+    ? Math.max(MIN_ROWS_PER_PAGE, stableRowsPerPage - 1)
+    : stableRowsPerPage;
   const lastAutoRefreshAtRef = useRef(0);
   const credentialRows = useMemo<CredentialRow[]>(
     () => credentials,

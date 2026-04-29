@@ -6,6 +6,7 @@ type UseStableRowsPerPageOptions<TElement extends HTMLElement> = {
   headerHeightPx: number;
   heightPaddingPx?: number;
   minRowsPerPage: number;
+  rowSafetyBufferPx?: number;
   rowHeightPx: number;
   viewportRef: RefObject<TElement | null>;
 };
@@ -15,6 +16,7 @@ export function useStableRowsPerPage<TElement extends HTMLElement>({
   headerHeightPx,
   heightPaddingPx = 0,
   minRowsPerPage,
+  rowSafetyBufferPx,
   rowHeightPx,
   viewportRef,
 }: UseStableRowsPerPageOptions<TElement>) {
@@ -30,7 +32,8 @@ export function useStableRowsPerPage<TElement extends HTMLElement>({
     const availableHeight =
       Math.floor(viewport.getBoundingClientRect().height) -
       headerHeightPx -
-      heightPaddingPx;
+      heightPaddingPx -
+      (rowSafetyBufferPx ?? rowHeightPx);
 
     const nextRowsPerPage =
       availableHeight > 0
@@ -47,6 +50,7 @@ export function useStableRowsPerPage<TElement extends HTMLElement>({
     headerHeightPx,
     heightPaddingPx,
     minRowsPerPage,
+    rowSafetyBufferPx,
     rowHeightPx,
     viewportRef,
   ]);
