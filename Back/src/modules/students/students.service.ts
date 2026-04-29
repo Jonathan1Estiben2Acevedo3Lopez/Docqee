@@ -20,13 +20,6 @@ import {
 import { BulkCreateStudentsDto } from './application/dto/bulk-create-students.dto';
 import { CreateStudentDto } from './application/dto/create-student.dto';
 
-const DEFAULT_DOCUMENT_TYPES = [
-  { codigo: 'CC', nombre: 'Cedula de ciudadania' },
-  { codigo: 'CE', nombre: 'Cedula de extranjeria' },
-  { codigo: 'TI', nombre: 'Tarjeta de identidad' },
-  { codigo: 'PASSPORT', nombre: 'Pasaporte' },
-] as const;
-
 type ResolvedDocumentType = {
   codigo: string;
   id_tipo_documento: number;
@@ -517,19 +510,7 @@ export class StudentsService {
     return entityId;
   }
 
-  private async ensureDefaultDocumentTypes() {
-    await this.prisma.tipo_documento.createMany({
-      data: DEFAULT_DOCUMENT_TYPES.map((documentType) => ({
-        codigo: documentType.codigo,
-        nombre: documentType.nombre,
-      })),
-      skipDuplicates: true,
-    });
-  }
-
   private async getDocumentTypeMap(identifiers: string[]) {
-    await this.ensureDefaultDocumentTypes();
-
     const normalizedCodes = [
       ...new Set(
         identifiers.map((identifier) => this.normalizeDocumentTypeIdentifier(identifier)),
@@ -597,8 +578,6 @@ export class StudentsService {
   }
 
   private async resolveDocumentType(identifier: string) {
-    await this.ensureDefaultDocumentTypes();
-
     const documentType = await this.prisma.tipo_documento.findFirst({
       where: {
         OR: [

@@ -658,26 +658,6 @@ export class AuthService {
   }
 
   private async resolveDocumentType(identifier: string) {
-    const seededDocumentTypes = [
-      { codigo: 'CC', nombre: 'Cedula de ciudadania' },
-      { codigo: 'CE', nombre: 'Cedula de extranjeria' },
-      { codigo: 'TI', nombre: 'Tarjeta de identidad' },
-      { codigo: 'PASSPORT', nombre: 'Pasaporte' },
-    ] as const;
-
-    for (const documentType of seededDocumentTypes) {
-      await this.prisma.tipo_documento.upsert({
-        where: { codigo: documentType.codigo },
-        create: {
-          codigo: documentType.codigo,
-          nombre: documentType.nombre,
-        },
-        update: {
-          nombre: documentType.nombre,
-        },
-      });
-    }
-
     const normalizedIdentifier = normalizeText(identifier).toUpperCase();
     const documentTypeCode = normalizedIdentifier.startsWith('DOCUMENT-')
       ? normalizedIdentifier.replace('DOCUMENT-', '')
