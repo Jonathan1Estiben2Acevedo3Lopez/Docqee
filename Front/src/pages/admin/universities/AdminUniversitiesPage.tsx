@@ -443,10 +443,10 @@ export function AdminUniversitiesPage() {
                       <th className="w-[32%] px-1.5 py-2 sm:px-3 sm:py-2.5 md:w-[24%]">
                         Administrador
                       </th>
-                      <th className="w-[15%] px-0.5 py-2 text-center sm:px-3 sm:py-2.5 md:w-[15.5%] md:text-left">
+                      <th className="w-[15%] px-0.5 py-2 text-center sm:px-3 sm:py-2.5 md:w-[15.5%]">
                         Estado
                       </th>
-                      <th className="w-[13%] px-0.5 py-2 text-center sm:px-4 sm:py-2.5 md:w-[15.5%] md:text-right">
+                      <th className="w-[13%] px-0.5 py-2 text-center sm:px-4 sm:py-2.5 md:w-[15.5%]">
                         <span className="sm:hidden">Acción</span>
                         <span className="hidden sm:inline">Acciones</span>
                       </th>
@@ -527,11 +527,11 @@ export function AdminUniversitiesPage() {
                           </td>
                           <td
                             className={classNames(
-                              'overflow-hidden px-1 pt-2 text-center sm:px-3 sm:pt-2.75 md:text-left',
+                              'overflow-hidden px-1 pt-2 text-center sm:px-3 sm:pt-2.75',
                               isLast ? 'pb-2.5 sm:pb-3' : 'pb-2 sm:pb-2.75',
                             )}
                           >
-                            <div className="flex h-7 items-center justify-center sm:h-auto md:justify-start">
+                            <div className="flex h-7 items-center justify-center sm:h-auto">
                               <AdminStatusBadge
                                 entity="university"
                                 size="micro-mobile"
@@ -541,11 +541,11 @@ export function AdminUniversitiesPage() {
                           </td>
                           <td
                             className={classNames(
-                              'overflow-hidden px-1 pt-2 text-center sm:px-4 sm:pt-2.75 md:text-right',
+                              'overflow-hidden px-1 pt-2 text-center sm:px-4 sm:pt-2.75',
                               isLast ? 'pb-2.5 sm:pb-3' : 'pb-2 sm:pb-2.75',
                             )}
                           >
-                            <div className="flex h-7 items-center justify-center sm:h-auto md:justify-end">
+                            <div className="flex h-7 items-center justify-center sm:h-auto">
                               {isPending ? (
                                 <span className="inline-flex rounded-full bg-amber-50 px-1 py-[0.12rem] text-[0.5rem] font-semibold leading-none tracking-[-0.01em] text-amber-700 ring-1 ring-inset ring-amber-200 sm:px-2.5 sm:py-1.5 sm:text-[0.72rem] sm:leading-normal sm:tracking-normal">
                                   {
