@@ -194,7 +194,7 @@ export class AuthService implements OnModuleInit {
         tutorPayload && tutorDocumentType
           ? await transaction.tutor_responsable.upsert({
               where: {
-                uq_tutor_documento: {
+                id_tipo_documento_numero_documento: {
                   id_tipo_documento: tutorDocumentType.id_tipo_documento,
                   numero_documento: normalizeText(tutorPayload.documentNumber),
                 },
