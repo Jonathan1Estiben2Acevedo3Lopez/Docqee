@@ -369,6 +369,16 @@ function persistOverviewCache(overview: UniversityAdminOverview) {
   storage.setItem(OVERVIEW_CACHE_STORAGE_KEY, JSON.stringify(payload));
 }
 
+function clearPersistedOverviewCache() {
+  const storage = readSessionStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  storage.removeItem(OVERVIEW_CACHE_STORAGE_KEY);
+}
+
 function readPersistedOverviewCache() {
   const storage = readSessionStorage();
   const session = readAuthSession();
@@ -545,6 +555,7 @@ export async function refreshUniversityAdminOverviewState() {
 }
 
 export function resetUniversityAdminOverviewState() {
+  clearPersistedOverviewCache();
   state = IS_TEST_MODE ? createMockState() : createRuntimeInitialState();
   runtimeLoadPromise = null;
   emitChange();

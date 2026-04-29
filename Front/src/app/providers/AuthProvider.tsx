@@ -10,6 +10,7 @@ import {
   readAuthSession,
   type AuthSession,
 } from '@/lib/authSession';
+import { resetSessionScopedStores } from '@/lib/sessionScopedStores';
 
 type AuthContextValue = {
   isAuthenticated: boolean;
@@ -29,9 +30,14 @@ const fallbackAuthContext: AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue>(fallbackAuthContext);
 
+function getSessionOwnerKey(session: AuthSession | null) {
+  return session ? `${session.user.role}:${session.user.id}` : null;
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSessionState] = useState<AuthSession | null>(() => readAuthSession());
   const shouldValidateStoredSessionRef = useRef(session !== null);
+  const sessionOwnerKeyRef = useRef(getSessionOwnerKey(session));
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -39,11 +45,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
       logout() {
         shouldValidateStoredSessionRef.current = false;
         clearAuthSession();
+        resetSessionScopedStores();
+        sessionOwnerKeyRef.current = null;
         setSessionState(null);
       },
       session,
       setSession(nextSession) {
         shouldValidateStoredSessionRef.current = false;
+        const nextOwnerKey = getSessionOwnerKey(nextSession);
+
+        if (sessionOwnerKeyRef.current !== nextOwnerKey) {
+          clearAuthSession();
+          resetSessionScopedStores();
+        }
 
         if (nextSession) {
           persistAuthSession(nextSession);
@@ -51,6 +65,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           clearAuthSession();
         }
 
+        sessionOwnerKeyRef.current = nextOwnerKey;
         setSessionState(nextSession);
       },
     }),
@@ -63,7 +78,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
 
     const syncSession = () => {
-      setSessionState(readAuthSession());
+      const nextSession = readAuthSession();
+      const nextOwnerKey = getSessionOwnerKey(nextSession);
+
+      if (sessionOwnerKeyRef.current !== nextOwnerKey) {
+        resetSessionScopedStores();
+      }
+
+      sessionOwnerKeyRef.current = nextOwnerKey;
+      setSessionState(nextSession);
     };
 
     window.addEventListener('storage', syncSession);
@@ -125,6 +148,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
           (error.statusCode === 401 || error.statusCode === 403)
         ) {
           clearAuthSession();
+          resetSessionScopedStores();
+          sessionOwnerKeyRef.current = null;
           setSessionState(null);
         }
       });
