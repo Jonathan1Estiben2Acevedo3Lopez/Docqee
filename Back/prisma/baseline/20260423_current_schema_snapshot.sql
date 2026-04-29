@@ -510,6 +510,12 @@ CREATE UNIQUE INDEX uq_reprogramacion_pendiente_por_cita
 ON reprogramacion_cita (id_cita)
 WHERE estado = 'PENDIENTE';
 
+CREATE INDEX idx_reprogramacion_nueva_sede
+ON reprogramacion_cita (nueva_id_sede);
+
+CREATE INDEX idx_reprogramacion_nuevo_docente
+ON reprogramacion_cita (nuevo_id_docente_universidad);
+
 CREATE TABLE notificacion (
     id_notificacion INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_cuenta_destino INT NOT NULL,
@@ -595,5 +601,122 @@ CREATE TABLE envio_credencial (
     CONSTRAINT fk_envio_credencial
         FOREIGN KEY (id_credencial_inicial) REFERENCES credencial_inicial(id_credencial_inicial)
 );
+
+CREATE INDEX idx_cita_solicitud_inicio
+ON cita (id_solicitud, fecha_hora_inicio);
+
+CREATE INDEX idx_cita_docente_inicio
+ON cita (id_docente_universidad, fecha_hora_inicio);
+
+CREATE INDEX idx_cita_sede
+ON cita (id_sede);
+
+CREATE INDEX idx_credencial_inicial_fecha
+ON credencial_inicial (fecha_creacion);
+
+CREATE INDEX idx_credencial_inicial_pendientes_fecha
+ON credencial_inicial (anulada_at, fecha_creacion);
+
+CREATE INDEX idx_cuenta_acceso_credenciales_pendientes
+ON cuenta_acceso (tipo_cuenta, primer_ingreso_pendiente, ultimo_login_at);
+
+CREATE INDEX idx_cuenta_estudiante_universidad_fecha
+ON cuenta_estudiante (id_universidad, fecha_creacion);
+
+CREATE INDEX idx_cuenta_estudiante_fecha
+ON cuenta_estudiante (fecha_creacion);
+
+CREATE INDEX idx_cuenta_paciente_localidad
+ON cuenta_paciente (id_localidad);
+
+CREATE INDEX idx_docente_universidad_universidad_fecha
+ON docente_universidad (id_universidad, fecha_creacion);
+
+CREATE INDEX idx_enlace_profesional_estudiante
+ON enlace_profesional (id_cuenta_estudiante);
+
+CREATE INDEX idx_envio_credencial_credencial_fecha
+ON envio_credencial (id_credencial_inicial, enviado_at);
+
+CREATE INDEX idx_horario_bloqueado_estudiante_inicio
+ON horario_bloqueado (id_cuenta_estudiante, hora_inicio);
+
+CREATE INDEX idx_mensaje_conversacion_fecha
+ON mensaje (id_conversacion, enviado_at);
+
+CREATE INDEX idx_mensaje_remitente
+ON mensaje (id_cuenta_remitente);
+
+CREATE INDEX idx_notificacion_destino_fecha
+ON notificacion (id_cuenta_destino, fecha_creacion);
+
+CREATE INDEX idx_recuperacion_cuenta_activa_fecha
+ON recuperacion_cuenta (id_cuenta_acceso, usado_at, fecha_creacion);
+
+CREATE INDEX idx_reprogramacion_cita
+ON reprogramacion_cita (id_cita);
+
+CREATE INDEX idx_reprogramacion_propuesta
+ON reprogramacion_cita (propuesta_por_cuenta);
+
+CREATE INDEX idx_reprogramacion_respuesta
+ON reprogramacion_cita (respuesta_por_cuenta);
+
+CREATE INDEX idx_sede_localidad
+ON sede (id_localidad);
+
+CREATE INDEX idx_sede_localidad_estado
+ON sede (id_localidad, estado);
+
+CREATE INDEX idx_solicitud_paciente_fecha
+ON solicitud (id_cuenta_paciente, fecha_envio);
+
+CREATE INDEX idx_solicitud_estudiante_fecha
+ON solicitud (id_cuenta_estudiante, fecha_envio);
+
+CREATE INDEX idx_solicitud_cerrada_por
+ON solicitud (cerrada_por_cuenta);
+
+CREATE INDEX idx_solicitud_estado_fecha
+ON solicitud (estado, fecha_envio);
+
+CREATE INDEX idx_solicitud_patient_student_estado
+ON solicitud (id_cuenta_paciente, id_cuenta_estudiante, estado);
+
+CREATE INDEX idx_solicitud_patient_student_fecha
+ON solicitud (id_cuenta_paciente, id_cuenta_estudiante, fecha_envio DESC);
+
+CREATE INDEX idx_universidad_localidad
+ON universidad (id_localidad_principal);
+
+CREATE INDEX idx_universidad_fecha
+ON universidad (fecha_creacion);
+
+CREATE INDEX idx_valoracion_receptor_fecha
+ON valoracion (id_cuenta_receptor, fecha_creacion);
+
+CREATE INDEX idx_valoracion_emisor_fecha
+ON valoracion (id_cuenta_emisor, fecha_creacion);
+
+CREATE INDEX idx_verificacion_correo_activa_fecha
+ON verificacion_correo (id_cuenta_acceso, usado_at, fecha_creacion);
+
+CREATE INDEX idx_persona_nombres_trgm
+ON persona USING gin (nombres gin_trgm_ops);
+
+CREATE INDEX idx_persona_apellidos_trgm
+ON persona USING gin (apellidos gin_trgm_ops);
+
+CREATE INDEX idx_estudiante_tratamiento_estado_estudiante
+ON estudiante_tratamiento (estado, id_cuenta_estudiante);
+
+CREATE INDEX idx_estudiante_tratamiento_tipo_estado_estudiante
+ON estudiante_tratamiento (id_tipo_tratamiento, estado, id_cuenta_estudiante);
+
+CREATE INDEX idx_estudiante_sede_estado_estudiante
+ON estudiante_sede_practica (estado, id_cuenta_estudiante);
+
+CREATE INDEX idx_estudiante_sede_sede_estado_estudiante
+ON estudiante_sede_practica (id_sede, estado, id_cuenta_estudiante);
 
 COMMIT;
