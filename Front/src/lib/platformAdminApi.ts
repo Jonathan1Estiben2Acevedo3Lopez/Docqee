@@ -51,6 +51,13 @@ export function resendPlatformAdminCredential(credentialId: string) {
   );
 }
 
+export function updatePlatformAdminCredentialEmail(credentialId: string, email: string) {
+  return apiRequest<PendingCredential>(`/platform-admin/credentials/${credentialId}/email`, {
+    body: { email },
+    method: 'PATCH',
+  });
+}
+
 export function sendAllPlatformAdminCredentials() {
   return apiRequest<{ sentCount: number }>('/platform-admin/credentials/send-all', {
     method: 'POST',

@@ -308,6 +308,41 @@ export class PlatformAdminService {
       .filter((credential) => credential !== null);
   }
 
+  async updateCredentialEmail(
+    user: RequestUser,
+    credentialIdentifier: string,
+    email: string,
+  ) {
+    this.assertPlatformAdmin(user);
+
+    const credential = await this.findPendingCredential(credentialIdentifier);
+    const normalizedEmail = normalizeEmail(email);
+
+    if (credential.cuenta_acceso.correo !== normalizedEmail) {
+      const existingAccount = await this.prisma.cuenta_acceso.findUnique({
+        where: { correo: normalizedEmail },
+        select: { id_cuenta: true },
+      });
+
+      if (existingAccount && existingAccount.id_cuenta !== credential.id_cuenta_acceso) {
+        throw new ConflictException('Ya existe una cuenta registrada con este correo.');
+      }
+
+      await this.prisma.cuenta_acceso.update({
+        where: { id_cuenta: credential.id_cuenta_acceso },
+        data: { correo: normalizedEmail },
+      });
+    }
+
+    return this.toPendingCredentialDto({
+      ...credential,
+      cuenta_acceso: {
+        ...credential.cuenta_acceso,
+        correo: normalizedEmail,
+      },
+    });
+  }
+
   async sendAllCredentials(user: RequestUser) {
     this.assertPlatformAdmin(user);
 

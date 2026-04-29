@@ -13,6 +13,7 @@ import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/shared/guards/jwt-auth.guard';
 import type { RequestUser } from '@/shared/types/request-user.type';
 import { CreateUniversityDto } from '../dto/create-university.dto';
+import { UpdateCredentialEmailDto } from '../dto/update-credential-email.dto';
 import { PlatformAdminService } from '../platform-admin.service';
 @Controller('platform-admin')
 @UseGuards(JwtAuthGuard)
@@ -45,6 +46,15 @@ export class PlatformAdminController {
   @Get('credentials')
   listPendingCredentials(@CurrentUser() user: RequestUser) {
     return this.platformAdminService.listPendingCredentials(user);
+  }
+
+  @Patch('credentials/:credentialId/email')
+  updateCredentialEmail(
+    @CurrentUser() user: RequestUser,
+    @Param('credentialId') credentialId: string,
+    @Body() body: UpdateCredentialEmailDto,
+  ) {
+    return this.platformAdminService.updateCredentialEmail(user, credentialId, body.email);
   }
 
   @Post('credentials/:credentialId/send')

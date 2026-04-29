@@ -19,6 +19,7 @@ import {
   sendAllPlatformAdminCredentials,
   sendPlatformAdminCredential,
   togglePlatformAdminUniversityStatus,
+  updatePlatformAdminCredentialEmail,
 } from '@/lib/platformAdminApi';
 
 type AdminModuleStoreState = AdminModuleState & {
@@ -1037,31 +1038,47 @@ async function editCredentialEmail(credentialId: string, email: string) {
     return false;
   }
 
-  setAdminModuleRecords(
-    state.universities.map((university) =>
-      university.id === credential.universityId
-        ? {
-            ...university,
-            adminEmail: normalizeEmail(email),
-          }
-        : university,
-    ),
-    state.credentials.map((item) =>
-      item.id === credentialId
-        ? {
-            ...item,
-            administratorEmail: normalizeEmail(email),
-          }
-        : item,
-    ),
-    {
-      isLoading: false,
-      isReady: true,
-      shouldRefresh: false,
-    },
-  );
+  patchState({
+    errorMessage: null,
+    isLoading: true,
+  });
 
-  return true;
+  try {
+    const updatedCredential = await updatePlatformAdminCredentialEmail(
+      credentialId,
+      normalizeEmail(email),
+    );
+
+    setAdminModuleRecords(
+      state.universities.map((university) =>
+        university.id === credential.universityId
+          ? {
+              ...university,
+              adminEmail: updatedCredential.administratorEmail,
+            }
+          : university,
+      ),
+      state.credentials.map((item) =>
+        item.id === credentialId ? updatedCredential : item,
+      ),
+      {
+        isLoading: false,
+        isReady: true,
+        shouldRefresh: false,
+      },
+    );
+
+    return true;
+  } catch (error) {
+    patchState({
+      errorMessage: getErrorMessage(
+        error,
+        'No pudimos actualizar el correo de la credencial.',
+      ),
+      isLoading: false,
+    });
+    return false;
+  }
 }
 
 export function resetAdminModuleState() {
