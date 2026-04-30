@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AdminPanelCard } from '@/components/admin/AdminPanelCard';
+import { AdminTablePagination } from '@/components/admin/AdminTablePagination';
 import { Seo } from '@/components/ui/Seo';
 import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { patientContent } from '@/content/patientContent';
@@ -33,9 +34,15 @@ import {
 } from '@/lib/imageOptimization';
 import { usePatientModuleStore } from '@/lib/patientModuleStore';
 import { getStarFillRatio } from '@/lib/ratings';
+import { useStableRowsPerPage } from '@/hooks/useStableRowsPerPage';
 
 type NamedFilter = string;
-const INITIAL_STUDENT_RESULTS_LIMIT = 5;
+const INITIAL_STUDENT_RESULTS_LIMIT = 20;
+const DEFAULT_ROWS_PER_PAGE = 5;
+const MIN_ROWS_PER_PAGE = 3;
+const TABLE_HEADER_HEIGHT_PX = 32;
+const TABLE_ROW_HEIGHT_FALLBACK_PX = 64;
+const TABLE_HEIGHT_PADDING_PX = 8;
 
 function getStudentFullName(student: PatientStudentDirectoryItem) {
   return formatDisplayName(`${student.firstName} ${student.lastName}`);
@@ -207,19 +214,6 @@ function getVisibleTreatments(
   ].slice(0, 3);
 }
 
-function getRatingLabel(student: PatientStudentDirectoryItem) {
-  if (student.averageRating === null || student.reviewsCount === 0) {
-    return 'Sin calificacion';
-  }
-
-  const reviewsLabel =
-    student.reviewsCount === 1
-      ? '1 resena'
-      : `${student.reviewsCount} resenas`;
-
-  return `${student.averageRating.toFixed(1)} estrellas - ${reviewsLabel}`;
-}
-
 function renderStars(value: number | null, sizeClassName = 'h-3.5 w-3.5') {
   return Array.from({ length: 5 }, (_, index) => {
     const fillRatio = getStarFillRatio(value, index);
@@ -286,6 +280,10 @@ export function PatientSearchStudentsPage() {
     null,
   );
   const [selectedReviewIndex, setSelectedReviewIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const tableViewportRef = useRef<HTMLDivElement | null>(null);
+  const tableHeaderRef = useRef<HTMLTableSectionElement | null>(null);
+  const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
   const latestSearchFiltersRef = useRef({
     city: initialCityFilter,
     locality: initialLocalityFilter,
@@ -326,6 +324,30 @@ export function PatientSearchStudentsPage() {
         value: university,
       })),
     [studentFilters.universities],
+  );
+  const rowsPerPage = useStableRowsPerPage({
+    viewportRef: tableViewportRef,
+    defaultRowsPerPage: DEFAULT_ROWS_PER_PAGE,
+    minRowsPerPage: MIN_ROWS_PER_PAGE,
+    maxRowsPerPage: students.length,
+    headerMeasurementRef: tableHeaderRef,
+    headerHeightPx: TABLE_HEADER_HEIGHT_PX,
+    rowMeasurementRef: tableBodyRef,
+    rowHeightPx: TABLE_ROW_HEIGHT_FALLBACK_PX,
+    heightPaddingPx: TABLE_HEIGHT_PADDING_PX,
+    rowSafetyBufferPx: 1,
+  });
+  const totalPages = Math.max(1, Math.ceil(students.length / rowsPerPage));
+  const clampedCurrentPage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (clampedCurrentPage - 1) * rowsPerPage;
+  const paginatedStudents = useMemo(
+    () => students.slice(pageStartIndex, pageStartIndex + rowsPerPage),
+    [pageStartIndex, rowsPerPage, students],
+  );
+  const pageStartLabel = students.length > 0 ? pageStartIndex + 1 : 0;
+  const pageEndLabel = Math.min(
+    pageStartIndex + paginatedStudents.length,
+    students.length,
   );
   const selectedStudent = selectedStudentId
     ? (students.find((student) => student.id === selectedStudentId) ?? null)
@@ -399,6 +421,20 @@ export function PatientSearchStudentsPage() {
       setSelectedStudentId(null);
     }
   }, [selectedStudentId, students]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    cityFilter,
+    localityFilter,
+    normalizedSearch,
+    treatmentFilter,
+    universityFilter,
+  ]);
+
+  useEffect(() => {
+    setCurrentPage((currentValue) => Math.min(currentValue, totalPages));
+  }, [totalPages]);
 
   useEffect(() => {
     if (IS_TEST_MODE || !isReady || !hasInteractedWithSearch) {
@@ -775,7 +811,10 @@ export function PatientSearchStudentsPage() {
                   {students.length} perfiles
                 </span>
               </div>
-              <div className="admin-scrollbar min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+              <div
+                ref={tableViewportRef}
+                className="admin-scrollbar min-h-0 flex-1 overflow-x-auto overflow-y-auto"
+              >
                 {students.length > 0 ? (
                   <table className="min-w-[54rem] w-full lg:min-w-0 lg:table-fixed">
                     <colgroup>
@@ -785,7 +824,10 @@ export function PatientSearchStudentsPage() {
                       <col className="w-[30%]" />
                       <col className="w-[14%]" />
                     </colgroup>
-                    <thead className="sticky top-0 z-10 bg-slate-100 text-left">
+                    <thead
+                      ref={tableHeaderRef}
+                      className="sticky top-0 z-10 bg-slate-100 text-left"
+                    >
                       <tr className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink-muted">
                         <th className="px-3 py-1.5 sm:px-4">Estudiante</th>
                         <th className="px-3 py-1.5">Universidad</th>
@@ -796,8 +838,11 @@ export function PatientSearchStudentsPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200/80">
-                      {students.map((student) => {
+                    <tbody
+                      ref={tableBodyRef}
+                      className="divide-y divide-slate-200/80"
+                    >
+                      {paginatedStudents.map((student) => {
                         const isSelected = selectedStudent?.id === student.id;
                         const visibleTreatments = getVisibleTreatments(
                           student.treatments,
@@ -916,6 +961,23 @@ export function PatientSearchStudentsPage() {
                   </div>
                 )}
               </div>
+              <AdminTablePagination
+                currentPage={clampedCurrentPage}
+                onNext={() =>
+                  setCurrentPage((currentValue) =>
+                    Math.min(totalPages, currentValue + 1),
+                  )
+                }
+                onPrevious={() =>
+                  setCurrentPage((currentValue) =>
+                    Math.max(1, currentValue - 1),
+                  )
+                }
+                pageEndLabel={pageEndLabel}
+                pageStartLabel={pageStartLabel}
+                totalItems={students.length}
+                totalPages={totalPages}
+              />
             </div>
           </SurfaceCard>
         </div>
@@ -931,113 +993,113 @@ export function PatientSearchStudentsPage() {
           <div
             aria-labelledby="patient-student-modal-title"
             aria-modal="true"
-            className="admin-scrollbar relative z-10 max-h-[calc(100vh-2rem)] w-full max-w-6xl overflow-y-auto rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_28px_90px_-30px_rgba(15,23,42,0.55)] sm:p-5 lg:p-6"
+            className="admin-scrollbar relative z-10 max-h-[calc(100vh-2rem)] w-full max-w-6xl overflow-y-auto rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-[0_28px_90px_-30px_rgba(15,23,42,0.55)] sm:p-4"
             role="dialog"
           >
             <button
               aria-label="Cerrar informacion del estudiante"
-              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-muted transition duration-200 hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
+              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-muted transition duration-200 hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
               type="button"
               onClick={handleCloseStudentModal}
             >
               <X aria-hidden="true" className="h-4 w-4" />
             </button>
-            <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4 pr-14 sm:px-5 sm:py-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex min-w-0 items-start gap-4">
-                  <div className="flex h-[5rem] w-[5rem] shrink-0 items-center justify-center overflow-hidden rounded-[1.4rem] bg-primary/10 ring-4 ring-primary/10">
-                    {selectedStudent.avatarSrc ? (
-                      <img
-                        alt={selectedStudent.avatarAlt}
-                        className="h-full w-full object-cover"
-                        decoding="async"
-                        src={getOptimizedAvatarUrl(
-                          selectedStudent.avatarSrc,
-                          220,
-                        )}
-                      />
-                    ) : (
-                      <span className="text-xl font-extrabold uppercase text-primary">
-                        {getStudentInitials(selectedStudent)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
+            <div className="rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3 py-3 pr-11 sm:px-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-primary/10 ring-4 ring-primary/10 sm:h-[4.5rem] sm:w-[4.5rem]">
+                  {selectedStudent.avatarSrc ? (
+                    <img
+                      alt={selectedStudent.avatarAlt}
+                      className="h-full w-full object-cover"
+                      decoding="async"
+                      src={getOptimizedAvatarUrl(
+                        selectedStudent.avatarSrc,
+                        220,
+                      )}
+                    />
+                  ) : (
+                    <span className="text-lg font-extrabold uppercase text-primary">
+                      {getStudentInitials(selectedStudent)}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                     <h2
-                      className="font-headline text-2xl font-extrabold tracking-tight text-ink"
+                      className="min-w-0 truncate font-headline text-xl font-extrabold tracking-tight text-ink sm:text-[1.35rem]"
                       id="patient-student-modal-title"
                     >
                       {getStudentFullName(selectedStudent)}
                     </h2>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold text-ink-muted">
-                        Semestre {selectedStudent.semester}
-                      </span>
-                      <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
-                        Estudiante Verificado
-                      </span>
+                    <span
+                      aria-hidden="true"
+                      className="hidden h-1 w-1 shrink-0 rounded-full bg-slate-300 sm:inline-flex"
+                    />
+                    <span className="text-xs font-semibold text-ink-muted sm:text-sm">
+                      Semestre {selectedStudent.semester}
+                    </span>
+                    <div
+                      aria-label="Calificacion del estudiante"
+                      className="flex items-center gap-0.5"
+                    >
+                      {renderStars(selectedStudent.averageRating, 'h-4 w-4')}
                     </div>
-                    <div className="mt-3 flex min-w-0 items-center gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-white">
-                        {selectedStudent.universityLogoSrc ? (
-                          <img
-                            alt={getStudentUniversityLogoAlt(selectedStudent)}
-                            className="h-full w-full object-contain p-1.5"
-                            decoding="async"
-                            src={getOptimizedLogoUrl(
-                              selectedStudent.universityLogoSrc,
-                              160,
-                              160,
-                            )}
-                          />
-                        ) : (
-                          <Building2
-                            aria-hidden="true"
-                            className="h-5 w-5 text-primary"
-                          />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-ink">
-                          {selectedStudent.universityName}
-                        </p>
-                        <p className="text-sm leading-6 text-ink-muted">
-                          {getUniversityLocation(selectedStudent)}
-                        </p>
-                      </div>
+                    <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-[0.7rem] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                      Estudiante Verificado
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[0.8rem] border border-slate-200 bg-white">
+                      {selectedStudent.universityLogoSrc ? (
+                        <img
+                          alt={getStudentUniversityLogoAlt(selectedStudent)}
+                          className="h-full w-full object-contain p-1.5"
+                          decoding="async"
+                          src={getOptimizedLogoUrl(
+                            selectedStudent.universityLogoSrc,
+                            160,
+                            160,
+                          )}
+                        />
+                      ) : (
+                        <Building2
+                          aria-hidden="true"
+                          className="h-4.5 w-4.5 text-primary"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-ink">
+                        {selectedStudent.universityName}
+                      </p>
+                      <p className="truncate text-xs leading-5 text-ink-muted sm:text-sm">
+                        {getUniversityLocation(selectedStudent)}
+                      </p>
                     </div>
                   </div>
-                </div>
-                <div className="rounded-[1.15rem] border border-slate-200 bg-white px-4 py-3 lg:min-w-[17rem]">
-                  <div className="flex items-center gap-0.5">
-                    {renderStars(selectedStudent.averageRating, 'h-5 w-5')}
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-ink">
-                    {getRatingLabel(selectedStudent)}
-                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-3">
-              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+            <div className="mt-3 grid items-start gap-3 lg:grid-cols-3">
+              <div className="rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3 py-3">
                 <div className="flex items-center gap-2">
                   <MapPin
                     aria-hidden="true"
-                    className="h-4.5 w-4.5 text-primary"
+                    className="h-4 w-4 text-primary"
                   />
-                  <p className="text-sm font-semibold text-ink">
+                  <p className="text-xs font-semibold text-ink sm:text-sm">
                     Sedes donde atiende
                   </p>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-2">
                   {selectedStudentPracticeSites.length > 0 ? (
                     selectedStudentPracticeSites.map((site) => (
                       <div
                         key={`${site.name}-${site.city}-${site.locality}`}
-                        className="rounded-[1rem] border border-slate-200 bg-white px-3 py-2"
+                        className="rounded-[0.85rem] border border-slate-200 bg-white px-3 py-2"
                       >
-                        <p className="text-sm font-semibold text-ink">
+                        <p className="text-xs font-semibold text-ink sm:text-sm">
                           {site.name}
                         </p>
                         <p className="text-xs leading-5 text-ink-muted">
@@ -1046,80 +1108,80 @@ export function PatientSearchStudentsPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm leading-6 text-ink-muted">
+                    <p className="text-xs leading-5 text-ink-muted sm:text-sm">
                       Sedes por confirmar.
                     </p>
                   )}
                 </div>
               </div>
-              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+              <div className="rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3 py-3">
                 <div className="flex items-center gap-2">
                   <UserRound
                     aria-hidden="true"
-                    className="h-4.5 w-4.5 text-primary"
+                    className="h-4 w-4 text-primary"
                   />
-                  <p className="text-sm font-semibold text-ink">
+                  <p className="text-xs font-semibold text-ink sm:text-sm">
                     Descripcion profesional
                   </p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-ink-muted">
+                <p className="mt-2 text-xs leading-5 text-ink-muted sm:text-sm">
                   {getStudentBiography(selectedStudent)}
                 </p>
               </div>
-              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+              <div className="rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3 py-3">
                 <div className="flex items-center gap-2">
                   <UserRound
                     aria-hidden="true"
-                    className="h-4.5 w-4.5 text-primary"
+                    className="h-4 w-4 text-primary"
                   />
-                  <p className="text-sm font-semibold text-ink">
+                  <p className="text-xs font-semibold text-ink sm:text-sm">
                     Disponibilidad general
                   </p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-ink-muted">
+                <p className="mt-2 text-xs leading-5 text-ink-muted sm:text-sm">
                   {getStudentAvailability(selectedStudent)}
                 </p>
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
-                <p className="text-sm font-semibold text-ink">
+            <div className="mt-3 grid items-start gap-3 lg:grid-cols-2">
+              <div className="rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3 py-3">
+                <p className="text-xs font-semibold text-ink sm:text-sm">
                   Tratamientos visibles
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-1.5">
                   {selectedStudent.treatments.length > 0 ? (
                     selectedStudent.treatments.map((treatment) => (
                       <span
                         key={treatment}
-                        className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                        className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.7rem] font-semibold text-primary"
                       >
                         {treatment}
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-ink-muted">
+                    <span className="text-xs text-ink-muted sm:text-sm">
                       Sin tratamientos publicados.
                     </span>
                   )}
                 </div>
               </div>
-              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+              <div className="rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3 py-3">
                 <div className="flex items-center gap-2">
                   <Link2
                     aria-hidden="true"
-                    className="h-4.5 w-4.5 text-primary"
+                    className="h-4 w-4 text-primary"
                   />
-                  <p className="text-sm font-semibold text-ink">
+                  <p className="text-xs font-semibold text-ink sm:text-sm">
                     Enlaces profesionales
                   </p>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-2">
                   {selectedStudentProfessionalLinks.length > 0 ? (
                     selectedStudentProfessionalLinks.map((link) => (
                       <a
                         key={link.id}
-                        className="flex items-center justify-between gap-3 rounded-[1rem] border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-primary transition duration-200 hover:border-primary/30 hover:bg-primary/5"
+                        className="flex items-center justify-between gap-3 rounded-[0.85rem] border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-primary transition duration-200 hover:border-primary/30 hover:bg-primary/5 sm:text-sm"
                         href={link.url}
                         rel="noreferrer"
                         target="_blank"
@@ -1139,7 +1201,7 @@ export function PatientSearchStudentsPage() {
                       </a>
                     ))
                   ) : (
-                    <p className="text-sm leading-6 text-ink-muted">
+                    <p className="text-xs leading-5 text-ink-muted sm:text-sm">
                       Sin enlaces profesionales publicados.
                     </p>
                   )}
@@ -1147,9 +1209,9 @@ export function PatientSearchStudentsPage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+            <div className="mt-3 rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3 py-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-ink">
+                <p className="text-xs font-semibold text-ink sm:text-sm">
                   Comentarios de valoraciones
                 </p>
                 {selectedStudentReviews.length > 1 ? (
@@ -1178,7 +1240,7 @@ export function PatientSearchStudentsPage() {
                 ) : null}
               </div>
               {selectedReview ? (
-                <div className="mt-3 rounded-[1rem] border border-slate-200 bg-white px-3 py-3">
+                <div className="mt-2 rounded-[0.85rem] border border-slate-200 bg-white px-3 py-2.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="flex items-center gap-0.5">
                       {renderStars(selectedReview.rating, 'h-3.5 w-3.5')}
@@ -1187,21 +1249,21 @@ export function PatientSearchStudentsPage() {
                       {formatStudentReviewDate(selectedReview.createdAt)}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-ink-muted">
+                  <p className="mt-2 text-xs leading-5 text-ink-muted sm:text-sm">
                     {selectedReview.comment || 'Sin comentario escrito.'}
                   </p>
                 </div>
               ) : (
-                <p className="mt-3 text-sm leading-6 text-ink-muted">
+                <p className="mt-2 text-xs leading-5 text-ink-muted sm:text-sm">
                   Aun no hay comentarios publicados para este estudiante.
                 </p>
               )}
             </div>
 
             {currentRequestForSelectedStudent ? (
-              <div className="mt-5 rounded-[1.35rem] border border-amber-200/80 bg-amber-50/75 px-4 py-4 text-sm text-amber-800">
+              <div className="mt-3 rounded-[1rem] border border-amber-200/80 bg-amber-50/75 px-3 py-3 text-sm text-amber-800">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck aria-hidden="true" className="h-4.5 w-4.5" />
+                  <ShieldCheck aria-hidden="true" className="h-4 w-4" />
                   <p className="font-medium">
                     Ya tienes una solicitud{' '}
                     {currentRequestForSelectedStudent.status.toLowerCase()} con
@@ -1210,10 +1272,10 @@ export function PatientSearchStudentsPage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-5 space-y-3">
+              <div className="mt-3 space-y-2.5">
                 <div className="space-y-1.5">
                   <label
-                    className="block text-sm font-semibold text-ink"
+                    className="block text-xs font-semibold text-ink sm:text-sm"
                     htmlFor="patient-request-reason"
                   >
                     Motivo de la solicitud
@@ -1224,7 +1286,7 @@ export function PatientSearchStudentsPage() {
                     }
                     aria-invalid={Boolean(reasonError)}
                     className={classNames(
-                      'min-h-[7.5rem] w-full rounded-[1.35rem] border bg-surface px-4 py-3 text-sm text-ink placeholder:text-ghost/80 transition duration-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10',
+                      'min-h-[6rem] w-full rounded-[1rem] border bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-ghost/80 transition duration-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10',
                       reasonError
                         ? 'border-rose-300 focus-visible:border-rose-400 focus-visible:ring-rose-200/70'
                         : 'border-slate-200 focus-visible:border-primary',
@@ -1249,14 +1311,14 @@ export function PatientSearchStudentsPage() {
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
                   <button
-                    className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-ink-muted transition duration-300 hover:border-primary/30 hover:text-primary"
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-ink-muted transition duration-300 hover:border-primary/30 hover:text-primary"
                     type="button"
                     onClick={handleCloseStudentModal}
                   >
                     Cancelar
                   </button>
                   <button
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-gradient px-4 py-3 text-sm font-semibold text-white shadow-ambient transition duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-65"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-2 text-sm font-semibold text-white shadow-ambient transition duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-65"
                     disabled={isLoading}
                     type="button"
                     onClick={handleSendRequest}
