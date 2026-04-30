@@ -17,6 +17,8 @@ export function PatientLayout() {
   const location = useLocation();
   const shouldAutoLoadPatientModule =
     IS_TEST_MODE || session?.user.role === 'PATIENT';
+  const isSearchingStudentsRoute =
+    location.pathname === ROUTES.patientSearchStudents;
   const { appointments, conversations, profile, requests, refresh } = usePatientModuleStore({
     autoLoad: shouldAutoLoadPatientModule,
   });
@@ -37,12 +39,12 @@ export function PatientLayout() {
 
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
-        void refresh();
+        void refresh({ preserveStudents: isSearchingStudentsRoute });
       }
     }, NOTIFICATION_POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [shouldAutoLoadPatientModule, refresh]);
+  }, [isSearchingStudentsRoute, shouldAutoLoadPatientModule, refresh]);
 
   if (!IS_TEST_MODE) {
     if (!session) {

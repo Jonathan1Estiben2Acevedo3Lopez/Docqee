@@ -35,7 +35,7 @@ type PatientModuleActions = {
     reason: string,
   ) => Promise<PatientRequest | null>;
   prefetchStudentDirectory: () => Promise<void>;
-  refresh: () => Promise<void>;
+  refresh: (options?: { preserveStudents?: boolean }) => Promise<void>;
   refreshConversation: (conversationId: string) => Promise<void>;
   searchStudents: (
     filters: PatientStudentDirectorySearchParams,
@@ -1447,7 +1447,10 @@ function updateAppointmentStatusMock(
   return true;
 }
 
-async function loadRuntimeState(forceRefresh = false) {
+async function loadRuntimeState(
+  forceRefresh = false,
+  options: { preserveStudents?: boolean } = {},
+) {
   if (IS_TEST_MODE) {
     return state;
   }
@@ -1486,12 +1489,16 @@ async function loadRuntimeState(forceRefresh = false) {
         isReady: true,
         isSearchingStudents: false,
         shouldRefresh: false,
+        students:
+          options.preserveStudents && state.students.length > 0
+            ? state.students
+            : payload.students,
       };
 
       cacheDefaultStudentSearch(payload);
       setRuntimeState(nextState, {
         persistCache: true,
-        updateDashboardStudents: true,
+        updateDashboardStudents: !options.preserveStudents,
       });
       void prefetchStudentDirectory();
 
@@ -1524,8 +1531,10 @@ async function loadRuntimeState(forceRefresh = false) {
   return runtimeLoadPromise;
 }
 
-export async function refreshPatientModuleState() {
-  await loadRuntimeState(true);
+export async function refreshPatientModuleState(
+  options: { preserveStudents?: boolean } = {},
+) {
+  await loadRuntimeState(true, options);
 }
 
 async function updateProfile(values: PatientProfileFormValues) {
