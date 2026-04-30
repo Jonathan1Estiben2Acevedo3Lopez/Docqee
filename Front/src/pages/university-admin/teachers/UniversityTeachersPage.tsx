@@ -493,12 +493,9 @@ export function UniversityTeachersPage() {
                             </p>
                           </td>
                           <td
-                            className={classNames(
-                              'pt-2.5 pl-1 pr-3 text-center sm:px-3 sm:pt-3',
-                              isLast ? 'pb-3 sm:pb-3.5' : 'pb-2.5 sm:pb-3',
-                            )}
+                            className="align-middle py-2.5 pl-1 pr-3 text-center sm:px-3 sm:py-3"
                           >
-                            <div className="flex items-center justify-center">
+                            <div className="flex min-h-[1.75rem] items-center justify-center sm:min-h-[2rem]">
                               <AdminStatusBadge
                                 entity="teacher"
                                 size="compact-mobile"
@@ -507,15 +504,12 @@ export function UniversityTeachersPage() {
                             </div>
                           </td>
                           <td
-                            className={classNames(
-                              'overflow-hidden pt-2.5 pl-3 pr-1.5 text-center sm:px-4 sm:pt-3.5',
-                              isLast ? 'pb-3 sm:pb-3.5' : 'pb-2.5 sm:pb-3',
-                            )}
+                            className="align-middle overflow-hidden py-2.5 pl-3 pr-1.5 text-center sm:px-4 sm:py-3"
                           >
-                            <div className="flex items-center justify-center sm:mt-0.5">
+                            <div className="flex min-h-[1.75rem] items-center justify-center sm:min-h-[2rem]">
                               <button
                                 className={classNames(
-                                  'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[0.62rem] font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-65 sm:gap-1.5 sm:px-3 sm:py-1 sm:text-xs',
+                                  'inline-flex min-h-[1.5rem] items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[0.62rem] font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-65 sm:min-h-[1.75rem] sm:gap-1.5 sm:px-3 sm:py-1 sm:text-xs',
                                   teacher.status === 'active'
                                     ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
                                     : 'bg-primary/10 text-primary hover:bg-primary/15',

@@ -38,6 +38,17 @@ function formatRecentStudentDate(value: string) {
   return recentStudentDateFormatter.format(new Date(value));
 }
 
+function getFirstNameToken(value: string) {
+  return value.trim().split(/\s+/)[0] ?? '';
+}
+
+function formatCompactAdminName(firstName: string, lastName: string) {
+  const compactName =
+    `${getFirstNameToken(firstName)} ${getFirstNameToken(lastName)}`.trim();
+
+  return compactName ? formatDisplayName(compactName) : '';
+}
+
 type SummaryMetricProps = {
   label: string;
   toneClassName: string;
@@ -117,6 +128,35 @@ export function UniversityHomePage() {
     session?.user.firstName,
     session?.user.lastName,
   ]);
+  const adminMobileName = useMemo(() => {
+    const profileCompactName = formatCompactAdminName(
+      institution.adminFirstName,
+      institution.adminLastName,
+    );
+
+    if (profileCompactName) {
+      return profileCompactName;
+    }
+
+    const sessionCompactName = formatCompactAdminName(
+      session?.user.firstName ?? '',
+      session?.user.lastName ?? '',
+    );
+
+    if (sessionCompactName) {
+      return sessionCompactName;
+    }
+
+    return formatCompactAdminName(
+      universityAdminContent.shell.adminUser.firstName,
+      universityAdminContent.shell.adminUser.lastName,
+    );
+  }, [
+    institution.adminFirstName,
+    institution.adminLastName,
+    session?.user.firstName,
+    session?.user.lastName,
+  ]);
   const institutionName = useMemo(
     () => formatDisplayName(institution.name || 'Universidad'),
     [institution.name],
@@ -169,7 +209,12 @@ export function UniversityHomePage() {
             )}
             <div className="flex min-w-0 flex-col gap-1 sm:gap-1.5">
               <h2 className="max-w-[15rem] truncate font-headline text-[0.95rem] font-extrabold tracking-tight text-white sm:max-w-[24rem] sm:text-[1.2rem] xl:max-w-[28rem]">
-                Bienvenido, {adminFullName}
+                <span className="sm:hidden">
+                  Bienvenido, {adminMobileName}
+                </span>
+                <span className="hidden sm:inline">
+                  Bienvenido, {adminFullName}
+                </span>
               </h2>
               <div className="flex min-w-0 flex-wrap items-center gap-1 sm:gap-1.5">
                 <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/12 px-1.5 py-0.5 text-[0.65rem] font-semibold text-white/88 sm:px-2 sm:py-1 sm:text-[0.75rem]">

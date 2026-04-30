@@ -571,12 +571,9 @@ export function UniversityStudentsPage() {
                             </div>
                           </td>
                           <td
-                            className={classNames(
-                              'px-2 pt-2.5 text-center sm:px-3 sm:pt-3',
-                              isLast ? 'pb-3 sm:pb-3.5' : 'pb-2.5 sm:pb-3',
-                            )}
+                            className="align-middle px-2 py-2.5 text-center sm:px-3 sm:py-3"
                           >
-                            <div className="flex items-center justify-center">
+                            <div className="flex min-h-[1.75rem] items-center justify-center sm:min-h-[2rem]">
                               <AdminStatusBadge
                                 entity="student"
                                 size="compact-mobile"
@@ -585,23 +582,12 @@ export function UniversityStudentsPage() {
                             </div>
                           </td>
                           <td
-                            className={classNames(
-                              'overflow-hidden px-1.5 text-center sm:px-4',
-                              displayStatus === 'pending'
-                                ? 'pt-2.5 sm:pt-3'
-                                : 'pt-2.5 sm:pt-3.5',
-                              isLast ? 'pb-3 sm:pb-3.5' : 'pb-2.5 sm:pb-3',
-                            )}
+                            className="align-middle overflow-hidden px-1.5 py-2.5 text-center sm:px-4 sm:py-3"
                           >
-                            <div
-                              className={classNames(
-                                'flex items-center justify-center',
-                                displayStatus === 'pending' ? '' : 'mt-0.5',
-                              )}
-                            >
+                            <div className="flex min-h-[1.75rem] items-center justify-center sm:min-h-[2rem]">
                               {displayStatus === 'pending' ? (
                                 <span
-                                  className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[0.7rem] font-semibold text-amber-700 ring-1 ring-inset ring-amber-200 sm:px-3 sm:py-1 sm:text-xs"
+                                  className="inline-flex min-h-[1.5rem] items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[0.7rem] font-semibold text-amber-700 ring-1 ring-inset ring-amber-200 sm:min-h-[1.75rem] sm:px-3 sm:py-1 sm:text-xs"
                                   title="Envia la credencial primero"
                                 >
                                   Pendiente
@@ -609,7 +595,7 @@ export function UniversityStudentsPage() {
                               ) : (
                                 <button
                                   className={classNames(
-                                    'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[0.62rem] font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-65 sm:gap-1.5 sm:px-3 sm:py-1 sm:text-xs',
+                                    'inline-flex min-h-[1.5rem] items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[0.62rem] font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-65 sm:min-h-[1.75rem] sm:gap-1.5 sm:px-3 sm:py-1 sm:text-xs',
                                     student.status === 'active'
                                       ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
                                       : 'bg-primary/10 text-primary hover:bg-primary/15',
