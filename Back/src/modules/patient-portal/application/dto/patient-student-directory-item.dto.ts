@@ -4,6 +4,19 @@ export class PatientStudentPracticeSiteDto {
   name!: string;
 }
 
+export class PatientStudentDirectoryReviewDto {
+  comment!: string | null;
+  createdAt!: string;
+  id!: string;
+  rating!: number;
+}
+
+export class PatientStudentProfessionalLinkDto {
+  id!: string;
+  type!: 'RED_PROFESIONAL' | 'PORTAFOLIO' | 'HOJA_DE_VIDA' | 'OTRO';
+  url!: string;
+}
+
 export class PatientStudentDirectoryItemDto {
   avatarAlt!: string;
   avatarSrc!: string | null;
@@ -18,10 +31,14 @@ export class PatientStudentDirectoryItemDto {
   locality!: string;
   practiceSite!: string;
   practiceSites!: PatientStudentPracticeSiteDto[];
+  professionalLinks!: PatientStudentProfessionalLinkDto[];
+  reviews!: PatientStudentDirectoryReviewDto[];
   reviewsCount!: number;
   semester!: string;
   treatments!: string[];
   universityCity!: string;
+  universityLogoAlt!: string;
+  universityLogoSrc!: string | null;
   universityLocality!: string;
   universityName!: string;
 }

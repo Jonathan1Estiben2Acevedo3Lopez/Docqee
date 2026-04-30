@@ -84,6 +84,7 @@ const studentDirectorySelect =
     },
     universidad: {
       select: {
+        logo_url: true,
         nombre: true,
         localidad: {
           select: {
@@ -118,6 +119,14 @@ const studentDirectorySelect =
             },
           },
         },
+      },
+    },
+    enlace_profesional: {
+      orderBy: { id_enlace_profesional: "asc" },
+      select: {
+        id_enlace_profesional: true,
+        tipo_enlace: true,
+        url: true,
       },
     },
   });
@@ -158,6 +167,7 @@ type StudentDirectoryRow = {
   universidad_nombre: string;
   university_city: string;
   university_locality: string;
+  university_logo_src: string | null;
   descripcion: string | null;
   disponibilidad_general: string | null;
   foto_url: string | null;
@@ -169,6 +179,21 @@ type StudentDirectoryRow = {
         city: string;
         locality: string;
         name: string;
+      }[]
+    | null;
+  professional_links:
+    | {
+        id: string;
+        type: "RED_PROFESIONAL" | "PORTAFOLIO" | "HOJA_DE_VIDA" | "OTRO";
+        url: string;
+      }[]
+    | null;
+  reviews:
+    | {
+        comment: string | null;
+        createdAt: string;
+        id: string;
+        rating: number;
       }[]
     | null;
   treatments: string[] | null;
@@ -568,12 +593,20 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
       locality: location.locality,
       practiceSite: location.practiceSite,
       practiceSites,
+      professionalLinks: student.enlace_profesional.map((link) => ({
+        id: String(link.id_enlace_profesional),
+        type: link.tipo_enlace,
+        url: link.url,
+      })),
+      reviews: [],
       reviewsCount: 0,
       semester: String(student.semestre),
       treatments: student.estudiante_tratamiento.map(
         (treatment) => treatment.tipo_tratamiento.nombre,
       ),
       universityCity: student.universidad.localidad.ciudad.nombre,
+      universityLogoAlt: `Logo de ${student.universidad.nombre}`,
+      universityLogoSrc: student.universidad.logo_url ?? null,
       universityLocality: student.universidad.localidad.nombre,
       universityName: student.universidad.nombre,
     };
@@ -596,10 +629,14 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
       locality: student.locality,
       practiceSite: student.practice_site ?? "",
       practiceSites: student.practice_sites ?? [],
+      professionalLinks: student.professional_links ?? [],
+      reviews: student.reviews ?? [],
       reviewsCount: Number(student.reviews_count),
       semester: String(student.semestre),
       treatments: student.treatments ?? [],
       universityCity: student.university_city,
+      universityLogoAlt: `Logo de ${student.universidad_nombre}`,
+      universityLogoSrc: student.university_logo_src ?? null,
       universityLocality: student.university_locality,
       universityName: student.universidad_nombre,
     };
@@ -907,6 +944,7 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
         u.nombre AS universidad_nombre,
         fallback_city.nombre AS university_city,
         fallback_locality.nombre AS university_locality,
+        u.logo_url AS university_logo_src,
         pe.descripcion,
         pe.disponibilidad_general,
         pe.foto_url,
@@ -914,6 +952,8 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
         practice.locality AS locality,
         practice.practice_site,
         COALESCE(practice_sites.practice_sites, '[]'::jsonb) AS practice_sites,
+        COALESCE(professional_links.professional_links, '[]'::jsonb) AS professional_links,
+        COALESCE(reviews.reviews, '[]'::jsonb) AS reviews,
         COALESCE(treatments.treatments, ARRAY[]::text[]) AS treatments,
         rating_agg.average_rating,
         COALESCE(rating_agg.reviews_count, 0) AS reviews_count
@@ -979,6 +1019,46 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
         WHERE et.id_cuenta_estudiante = ce.id_cuenta
           AND et.estado = 'ACTIVO'::estado_simple_enum
       ) treatments ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'id', link.id,
+            'type', link.type,
+            'url', link.url
+          )
+          ORDER BY link.created_at ASC, link.id ASC
+        ) AS professional_links
+        FROM (
+          SELECT
+            ep.id_enlace_profesional::text AS id,
+            ep.tipo_enlace::text AS type,
+            ep.url,
+            ep.fecha_creacion AS created_at
+          FROM enlace_profesional ep
+          WHERE ep.id_cuenta_estudiante = ce.id_cuenta
+        ) link
+      ) professional_links ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'id', review.id,
+            'rating', review.rating,
+            'comment', review.comment,
+            'createdAt', review.created_at
+          )
+          ORDER BY review.created_at DESC
+        ) AS reviews
+        FROM (
+          SELECT
+            v.id_valoracion::text AS id,
+            v.calificacion AS rating,
+            v.comentario AS comment,
+            v.fecha_creacion AS created_at
+          FROM valoracion v
+          WHERE v.id_cuenta_receptor = ce.id_cuenta
+          ORDER BY v.fecha_creacion DESC
+        ) review
+      ) reviews ON TRUE
       LEFT JOIN LATERAL (
         SELECT
           CASE

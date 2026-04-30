@@ -87,7 +87,7 @@ type PersistedStudentDirectoryIndexCache = CachedStudentSearch & {
   version: number;
 };
 
-const PATIENT_MODULE_CACHE_STORAGE_KEY = 'docqee.patient.module-cache';
+const PATIENT_MODULE_CACHE_STORAGE_KEY = 'docqee.patient.module-cache.v2';
 const PATIENT_STUDENT_DIRECTORY_INDEX_STORAGE_KEY =
   'docqee.patient.student-directory-index';
 const PATIENT_MODULE_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
@@ -95,7 +95,7 @@ const PATIENT_STUDENT_SEARCH_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 const PATIENT_STUDENT_SEARCH_CACHE_MAX_ENTRIES = 48;
 const PATIENT_STUDENT_DIRECTORY_INDEX_MAX_AGE_MS = 10 * 60 * 1000;
 const PATIENT_STUDENT_DIRECTORY_PREFETCH_LIMIT = 120;
-const PATIENT_STUDENT_DIRECTORY_INDEX_CACHE_VERSION = 2;
+const PATIENT_STUDENT_DIRECTORY_INDEX_CACHE_VERSION = 3;
 
 const listeners = new Set<() => void>();
 const studentSearchCache = new Map<string, CachedStudentSearch>();
@@ -264,10 +264,35 @@ function createMockState(): PatientStoreState {
           name: 'Sede Complementaria',
         },
       ],
+      professionalLinks: [
+        {
+          id: 'patient-student-1-link-1',
+          type: 'RED_PROFESIONAL',
+          url: 'https://linkedin.com/in/daniel-pardo-docqee',
+        },
+      ],
+      reviews: [
+        {
+          comment:
+            'Explico cada paso con claridad y mantuvo una comunicacion muy tranquila durante la cita.',
+          createdAt: '2026-04-10T16:20:00.000Z',
+          id: 'patient-student-1-review-1',
+          rating: 5,
+        },
+        {
+          comment:
+            'Fue puntual y cuidadoso con las indicaciones posteriores al procedimiento.',
+          createdAt: '2026-03-22T11:10:00.000Z',
+          id: 'patient-student-1-review-2',
+          rating: 4,
+        },
+      ],
       reviewsCount: 12,
       semester: '8',
       treatments: ['Operatoria basica', 'Promocion y prevencion'],
       universityCity: 'Bogota',
+      universityLogoAlt: 'Logo de Universidad Clinica del Norte',
+      universityLogoSrc: null,
       universityLocality: 'Chapinero',
       universityName: 'Universidad Clinica del Norte',
     },
@@ -292,10 +317,28 @@ function createMockState(): PatientStoreState {
           name: 'Sede Escuela Clinica',
         },
       ],
+      professionalLinks: [
+        {
+          id: 'patient-student-2-link-1',
+          type: 'PORTAFOLIO',
+          url: 'https://portfolio.docqee.co/valentina-rios',
+        },
+      ],
+      reviews: [
+        {
+          comment:
+            'La comunicacion durante la cita fue clara y el proceso se pudo desarrollar sin inconvenientes.',
+          createdAt: '2026-04-07T13:40:00.000Z',
+          id: 'patient-student-2-review-1',
+          rating: 4,
+        },
+      ],
       reviewsCount: 9,
       semester: '8',
       treatments: ['Rehabilitacion oral', 'Promocion y prevencion'],
       universityCity: 'Bogota',
+      universityLogoAlt: 'Logo de Universidad Clinica del Norte',
+      universityLogoSrc: null,
       universityLocality: 'Chapinero',
       universityName: 'Universidad Clinica del Norte',
     },
@@ -316,10 +359,22 @@ function createMockState(): PatientStoreState {
       practiceSites: [
         { city: 'Bogota', locality: 'Teusaquillo', name: 'Sede Central' },
       ],
+      professionalLinks: [],
+      reviews: [
+        {
+          comment:
+            'Muy buena disposicion para resolver dudas y explicar el tratamiento con calma.',
+          createdAt: '2026-03-26T09:15:00.000Z',
+          id: 'patient-student-3-review-1',
+          rating: 5,
+        },
+      ],
       reviewsCount: 15,
       semester: '9',
       treatments: ['Rehabilitacion oral', 'Valoracion integral'],
       universityCity: 'Bogota',
+      universityLogoAlt: 'Logo de Universidad Metropolitana',
+      universityLogoSrc: null,
       universityLocality: 'Teusaquillo',
       universityName: 'Universidad Metropolitana',
     },
@@ -344,10 +399,14 @@ function createMockState(): PatientStoreState {
           name: 'Sede Clinica Laureles',
         },
       ],
+      professionalLinks: [],
+      reviews: [],
       reviewsCount: 6,
       semester: '7',
       treatments: ['Valoracion integral', 'Promocion y prevencion'],
       universityCity: 'Medellin',
+      universityLogoAlt: 'Logo de Universidad de Antioquia Clinica',
+      universityLogoSrc: null,
       universityLocality: 'Laureles',
       universityName: 'Universidad de Antioquia Clinica',
     },
@@ -372,10 +431,14 @@ function createMockState(): PatientStoreState {
           name: 'Sede Clinica Suba',
         },
       ],
+      professionalLinks: [],
+      reviews: [],
       reviewsCount: 11,
       semester: '10',
       treatments: ['Rehabilitacion oral', 'Endodoncia'],
       universityCity: 'Bogota',
+      universityLogoAlt: 'Logo de Universidad Distrital Clinica',
+      universityLogoSrc: null,
       universityLocality: 'Suba',
       universityName: 'Universidad Distrital Clinica',
     },

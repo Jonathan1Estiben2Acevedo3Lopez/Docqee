@@ -1266,11 +1266,15 @@ export type PatientStudentDirectoryItem = {
   locality: string;
   practiceSite: string;
   practiceSites?: PatientStudentPracticeSiteSummary[];
+  professionalLinks?: PatientStudentProfessionalLinkSummary[];
+  reviews?: PatientStudentReviewSummary[];
   reviewsCount: number;
   semester: string;
   firstName: string;
   treatments: string[];
   universityCity?: string;
+  universityLogoAlt?: string;
+  universityLogoSrc?: string | null;
   universityLocality?: string;
   universityName: string;
 };
@@ -1279,6 +1283,19 @@ export type PatientStudentPracticeSiteSummary = {
   city: string;
   locality: string;
   name: string;
+};
+
+export type PatientStudentProfessionalLinkSummary = {
+  id: string;
+  type: StudentProfessionalLinkType;
+  url: string;
+};
+
+export type PatientStudentReviewSummary = {
+  comment: string | null;
+  createdAt: string;
+  id: string;
+  rating: number;
 };
 
 export type PatientStudentDirectoryFilterOption = {

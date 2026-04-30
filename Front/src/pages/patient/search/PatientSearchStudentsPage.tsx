@@ -1,4 +1,9 @@
 import {
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Link2,
   MapPin,
   Search,
   SendHorizontal,
@@ -15,12 +20,17 @@ import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { patientContent } from '@/content/patientContent';
 import type {
   PatientStudentDirectoryItem,
+  PatientStudentProfessionalLinkSummary,
   PatientStudentPracticeSiteSummary,
+  PatientStudentReviewSummary,
 } from '@/content/types';
 import { IS_TEST_MODE } from '@/lib/apiClient';
 import { classNames } from '@/lib/classNames';
 import { formatDisplayName } from '@/lib/formatDisplayName';
-import { getOptimizedAvatarUrl } from '@/lib/imageOptimization';
+import {
+  getOptimizedAvatarUrl,
+  getOptimizedLogoUrl,
+} from '@/lib/imageOptimization';
 import { usePatientModuleStore } from '@/lib/patientModuleStore';
 import { getStarFillRatio } from '@/lib/ratings';
 
@@ -70,12 +80,58 @@ function getStudentPracticeSites(student: PatientStudentDirectoryItem) {
     : [];
 }
 
-function getStudentPracticeSite(student: PatientStudentDirectoryItem) {
-  return getStudentPracticeSites(student)[0]?.name || 'Sede por confirmar';
+function getStudentReviews(
+  student: PatientStudentDirectoryItem,
+): PatientStudentReviewSummary[] {
+  return student.reviews ?? [];
+}
+
+function getStudentProfessionalLinks(
+  student: PatientStudentDirectoryItem,
+): PatientStudentProfessionalLinkSummary[] {
+  return student.professionalLinks ?? [];
 }
 
 function getStudentAvailability(student: PatientStudentDirectoryItem) {
   return student.availabilityGeneral || 'Disponibilidad por confirmar';
+}
+
+function getStudentBiography(student: PatientStudentDirectoryItem) {
+  return student.biography || 'Descripcion profesional por confirmar.';
+}
+
+function getStudentUniversityLogoAlt(student: PatientStudentDirectoryItem) {
+  return student.universityLogoAlt || `Logo de ${student.universityName}`;
+}
+
+function getProfessionalLinkTypeLabel(
+  type: PatientStudentProfessionalLinkSummary['type'],
+) {
+  switch (type) {
+    case 'RED_PROFESIONAL':
+      return 'Red profesional';
+    case 'PORTAFOLIO':
+      return 'Portafolio';
+    case 'HOJA_DE_VIDA':
+      return 'Hoja de vida';
+    case 'OTRO':
+    default:
+      return 'Otro';
+  }
+}
+
+function formatStudentReviewDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
 }
 
 function normalizeTreatmentFilter(value: string) {
@@ -224,6 +280,7 @@ export function PatientSearchStudentsPage() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
     null,
   );
+  const [selectedReviewIndex, setSelectedReviewIndex] = useState(0);
   const latestSearchFiltersRef = useRef({
     city: initialCityFilter,
     locality: initialLocalityFilter,
@@ -268,6 +325,16 @@ export function PatientSearchStudentsPage() {
   const selectedStudent = selectedStudentId
     ? (students.find((student) => student.id === selectedStudentId) ?? null)
     : null;
+  const selectedStudentReviews = selectedStudent
+    ? getStudentReviews(selectedStudent)
+    : [];
+  const selectedStudentPracticeSites = selectedStudent
+    ? getStudentPracticeSites(selectedStudent)
+    : [];
+  const selectedStudentProfessionalLinks = selectedStudent
+    ? getStudentProfessionalLinks(selectedStudent)
+    : [];
+  const selectedReview = selectedStudentReviews[selectedReviewIndex] ?? null;
   const currentRequestForSelectedStudent = selectedStudent
     ? (requests.find(
         (request) =>
@@ -366,7 +433,16 @@ export function PatientSearchStudentsPage() {
   useEffect(() => {
     setReason('');
     setReasonError(null);
+    setSelectedReviewIndex(0);
   }, [selectedStudentId]);
+
+  useEffect(() => {
+    setSelectedReviewIndex((currentIndex) =>
+      selectedStudentReviews.length === 0
+        ? 0
+        : Math.min(currentIndex, selectedStudentReviews.length - 1),
+    );
+  }, [selectedStudentReviews.length]);
 
   useEffect(() => {
     if (!selectedStudentId) {
@@ -393,6 +469,22 @@ export function PatientSearchStudentsPage() {
 
   const handleCloseStudentModal = () => {
     setSelectedStudentId(null);
+  };
+
+  const handleShowPreviousReview = () => {
+    setSelectedReviewIndex((currentIndex) =>
+      currentIndex === 0
+        ? Math.max(selectedStudentReviews.length - 1, 0)
+        : currentIndex - 1,
+    );
+  };
+
+  const handleShowNextReview = () => {
+    setSelectedReviewIndex((currentIndex) =>
+      selectedStudentReviews.length === 0
+        ? 0
+        : (currentIndex + 1) % selectedStudentReviews.length,
+    );
   };
 
   const handleSendRequest = () => {
@@ -838,7 +930,7 @@ export function PatientSearchStudentsPage() {
             role="dialog"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="flex items-start gap-3">
+              <div className="flex min-w-0 items-start gap-3">
                 <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-[1.4rem] bg-primary/10 ring-4 ring-primary/10">
                   {selectedStudent.avatarSrc ? (
                     <img
@@ -856,7 +948,7 @@ export function PatientSearchStudentsPage() {
                     </span>
                   )}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h2
                     className="font-headline text-2xl font-extrabold tracking-tight text-ink"
                     id="patient-student-modal-title"
@@ -868,6 +960,9 @@ export function PatientSearchStudentsPage() {
                     {selectedStudent.semester}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                      Estudiante Verificado
+                    </span>
                     <div className="flex items-center gap-0.5">
                       {renderStars(selectedStudent.averageRating, 'h-4 w-4')}
                     </div>
@@ -877,31 +972,74 @@ export function PatientSearchStudentsPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={classNames(
-                    'inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset',
-                    selectedStudent.availabilityStatus === 'available'
-                      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
-                      : 'bg-amber-50 text-amber-700 ring-amber-200',
-                  )}
-                >
-                  {selectedStudent.availabilityStatus === 'available'
-                    ? 'Recibiendo solicitudes'
-                    : 'Disponibilidad limitada'}
-                </span>
-                <button
-                  aria-label="Cerrar informacion del estudiante"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-muted transition duration-200 hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
-                  type="button"
-                  onClick={handleCloseStudentModal}
-                >
-                  <X aria-hidden="true" className="h-4 w-4" />
-                </button>
+              <button
+                aria-label="Cerrar informacion del estudiante"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-muted transition duration-200 hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
+                type="button"
+                onClick={handleCloseStudentModal}
+              >
+                <X aria-hidden="true" className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                <div className="flex items-center gap-2">
+                  <Building2
+                    aria-hidden="true"
+                    className="h-4.5 w-4.5 text-primary"
+                  />
+                  <p className="text-sm font-semibold text-ink">
+                    Universidad
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] border border-slate-200 bg-white">
+                    {selectedStudent.universityLogoSrc ? (
+                      <img
+                        alt={getStudentUniversityLogoAlt(selectedStudent)}
+                        className="h-full w-full object-contain p-1.5"
+                        decoding="async"
+                        src={getOptimizedLogoUrl(
+                          selectedStudent.universityLogoSrc,
+                          180,
+                          180,
+                        )}
+                      />
+                    ) : (
+                      <Building2
+                        aria-hidden="true"
+                        className="h-5 w-5 text-primary"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-ink">
+                      {selectedStudent.universityName}
+                    </p>
+                    <p className="text-sm leading-6 text-ink-muted">
+                      {getUniversityLocation(selectedStudent)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                <div className="flex items-center gap-2">
+                  <UserRound
+                    aria-hidden="true"
+                    className="h-4.5 w-4.5 text-primary"
+                  />
+                  <p className="text-sm font-semibold text-ink">
+                    Descripcion profesional
+                  </p>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-ink-muted">
+                  {getStudentBiography(selectedStudent)}
+                </p>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
                 <div className="flex items-center gap-2">
                   <MapPin
@@ -909,15 +1047,30 @@ export function PatientSearchStudentsPage() {
                     className="h-4.5 w-4.5 text-primary"
                   />
                   <p className="text-sm font-semibold text-ink">
-                    Sede y ubicacion
+                    Sedes donde atiende
                   </p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-ink-muted">
-                  {getStudentPracticeSite(selectedStudent)}
-                </p>
-                <p className="text-sm leading-6 text-ink-muted">
-                  {getStudentLocation(selectedStudent)}
-                </p>
+                <div className="mt-3 space-y-2">
+                  {selectedStudentPracticeSites.length > 0 ? (
+                    selectedStudentPracticeSites.map((site) => (
+                      <div
+                        key={`${site.name}-${site.city}-${site.locality}`}
+                        className="rounded-[1rem] border border-slate-200 bg-white px-3 py-2"
+                      >
+                        <p className="text-sm font-semibold text-ink">
+                          {site.name}
+                        </p>
+                        <p className="text-xs leading-5 text-ink-muted">
+                          {getLocationLabel(site.city, site.locality)}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm leading-6 text-ink-muted">
+                      Sedes por confirmar.
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
                 <div className="flex items-center gap-2">
@@ -935,26 +1088,120 @@ export function PatientSearchStudentsPage() {
               </div>
             </div>
 
-            <div className="mt-5">
-              <p className="text-sm font-semibold text-ink">
-                Tratamientos visibles
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {selectedStudent.treatments.length > 0 ? (
-                  selectedStudent.treatments.map((treatment) => (
-                    <span
-                      key={treatment}
-                      className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
-                    >
-                      {treatment}
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                <p className="text-sm font-semibold text-ink">
+                  Tratamientos visibles
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedStudent.treatments.length > 0 ? (
+                    selectedStudent.treatments.map((treatment) => (
+                      <span
+                        key={treatment}
+                        className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                      >
+                        {treatment}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-ink-muted">
+                      Sin tratamientos publicados.
                     </span>
-                  ))
-                ) : (
-                  <span className="text-sm text-ink-muted">
-                    Sin tratamientos publicados.
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
+              <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                <div className="flex items-center gap-2">
+                  <Link2
+                    aria-hidden="true"
+                    className="h-4.5 w-4.5 text-primary"
+                  />
+                  <p className="text-sm font-semibold text-ink">
+                    Enlaces profesionales
+                  </p>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {selectedStudentProfessionalLinks.length > 0 ? (
+                    selectedStudentProfessionalLinks.map((link) => (
+                      <a
+                        key={link.id}
+                        className="flex items-center justify-between gap-3 rounded-[1rem] border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-primary transition duration-200 hover:border-primary/30 hover:bg-primary/5"
+                        href={link.url}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-xs font-bold uppercase tracking-[0.12em] text-primary/70">
+                            {getProfessionalLinkTypeLabel(link.type)}
+                          </span>
+                          <span className="block truncate text-ink">
+                            {link.url}
+                          </span>
+                        </span>
+                        <ExternalLink
+                          aria-hidden="true"
+                          className="h-4 w-4 shrink-0"
+                        />
+                      </a>
+                    ))
+                  ) : (
+                    <p className="text-sm leading-6 text-ink-muted">
+                      Sin enlaces profesionales publicados.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-[1.35rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-ink">
+                  Comentarios de valoraciones
+                </p>
+                {selectedStudentReviews.length > 1 ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      aria-label="Comentario anterior"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-muted transition duration-200 hover:border-primary/30 hover:text-primary"
+                      type="button"
+                      onClick={handleShowPreviousReview}
+                    >
+                      <ChevronLeft aria-hidden="true" className="h-4 w-4" />
+                    </button>
+                    <span className="text-xs font-semibold text-ink-muted">
+                      {selectedReviewIndex + 1} de{' '}
+                      {selectedStudentReviews.length}
+                    </span>
+                    <button
+                      aria-label="Comentario siguiente"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-muted transition duration-200 hover:border-primary/30 hover:text-primary"
+                      type="button"
+                      onClick={handleShowNextReview}
+                    >
+                      <ChevronRight aria-hidden="true" className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              {selectedReview ? (
+                <div className="mt-3 rounded-[1rem] border border-slate-200 bg-white px-3 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-0.5">
+                      {renderStars(selectedReview.rating, 'h-3.5 w-3.5')}
+                    </div>
+                    <span className="text-xs font-semibold text-ink-muted">
+                      {formatStudentReviewDate(selectedReview.createdAt)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-ink-muted">
+                    {selectedReview.comment || 'Sin comentario escrito.'}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm leading-6 text-ink-muted">
+                  Aun no hay comentarios publicados para este estudiante.
+                </p>
+              )}
             </div>
 
             {currentRequestForSelectedStudent ? (
