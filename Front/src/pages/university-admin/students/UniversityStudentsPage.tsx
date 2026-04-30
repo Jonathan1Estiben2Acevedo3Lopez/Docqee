@@ -76,17 +76,6 @@ export function UniversityStudentsPage() {
   const tableViewportRef = useRef<HTMLDivElement | null>(null);
   const tableHeaderRef = useRef<HTMLTableSectionElement | null>(null);
   const tableBodyRef = useRef<HTMLTableSectionElement | null>(null);
-  const rowsPerPage = useStableRowsPerPage({
-    viewportRef: tableViewportRef,
-    defaultRowsPerPage: DEFAULT_ROWS_PER_PAGE,
-    minRowsPerPage: MIN_ROWS_PER_PAGE,
-    headerMeasurementRef: tableHeaderRef,
-    headerHeightPx: TABLE_HEADER_HEIGHT_PX,
-    rowMeasurementRef: tableBodyRef,
-    rowHeightPx: TABLE_ROW_HEIGHT_FALLBACK_PX,
-    heightPaddingPx: TABLE_HEIGHT_PADDING_PX,
-    rowSafetyBufferPx: 2,
-  });
   const location = useLocation();
   const navigate = useNavigate();
   const successNotice = getLocationState(location.state)?.successNotice ?? null;
@@ -119,6 +108,18 @@ export function UniversityStudentsPage() {
         student.documentNumber.toLowerCase().includes(normalizedSearch)) &&
       (statusFilter === 'all' || derivedStatus === statusFilter)
     );
+  });
+  const rowsPerPage = useStableRowsPerPage({
+    viewportRef: tableViewportRef,
+    defaultRowsPerPage: DEFAULT_ROWS_PER_PAGE,
+    minRowsPerPage: MIN_ROWS_PER_PAGE,
+    maxRowsPerPage: filteredStudents.length,
+    headerMeasurementRef: tableHeaderRef,
+    headerHeightPx: TABLE_HEADER_HEIGHT_PX,
+    rowMeasurementRef: tableBodyRef,
+    rowHeightPx: TABLE_ROW_HEIGHT_FALLBACK_PX,
+    heightPaddingPx: TABLE_HEIGHT_PADDING_PX,
+    rowSafetyBufferPx: 1,
   });
   const emptyStateMessage = isLoading
     ? 'Cargando estudiantes...'
