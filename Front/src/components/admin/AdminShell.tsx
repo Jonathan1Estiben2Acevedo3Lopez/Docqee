@@ -501,7 +501,7 @@ export function AdminShell({
                         className={classNames(
                           'z-30 overflow-hidden border border-slate-200/80 bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)]',
                           isMobileViewport
-                            ? 'fixed inset-x-3 top-[3.9rem] max-h-[min(78dvh,27rem)] w-auto rounded-[1.1rem]'
+                            ? 'fixed left-1/2 top-[3.9rem] max-h-[min(78dvh,27rem)] w-[calc(100vw-2rem)] max-w-[21.5rem] -translate-x-1/2 rounded-[1.1rem]'
                             : 'absolute right-0 top-[calc(100%+0.65rem)] w-[20rem] max-w-[calc(100vw-2rem)] rounded-[1.4rem]',
                         )}
                         id="admin-header-notifications"

@@ -10,6 +10,7 @@ export class MailService {
   private readonly client: BrevoClient;
   private readonly from: string;
   private readonly institutionalPartnershipEmail: string;
+  private readonly applicationUrl = 'https://docqee.vercel.app/';
 
   constructor(private readonly configService: ConfigService) {
     this.from = this.configService.get<string>('mail.from') ?? 'no-reply@docqee.com';
@@ -28,6 +29,19 @@ export class MailService {
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#39;');
+  }
+
+  private applicationAccessBlock() {
+    return `
+      <div style="margin: 18px 0;">
+        <a href="${this.applicationUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:999px;">
+          Ingresar a Docqee
+        </a>
+        <p style="margin:10px 0 0;color:#666;font-size:14px;">
+          Enlace de acceso: <a href="${this.applicationUrl}" style="color:#2563eb;">${this.applicationUrl}</a>
+        </p>
+      </div>
+    `;
   }
 
   async sendVerificationCode(to: string, code: string) {
@@ -63,6 +77,7 @@ export class MailService {
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
             <h2>Bienvenido a Docqee</h2>
             <p>Hola <strong>${adminName}</strong>, se ha creado tu cuenta como administrador de <strong>${universityName}</strong>.</p>
+            ${this.applicationAccessBlock()}
             <p>Tus credenciales de acceso son:</p>
             <div style="background: #f4f4f4; border-radius: 8px; padding: 16px; margin: 16px 0;">
               <p style="margin: 4px 0;"><strong>Correo:</strong> ${to}</p>
@@ -88,6 +103,7 @@ export class MailService {
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
             <h2>Bienvenido a Docqee</h2>
             <p>Hola <strong>${studentName}</strong>, se ha creado tu cuenta como estudiante en la plataforma.</p>
+            ${this.applicationAccessBlock()}
             <p>Tus credenciales de acceso son:</p>
             <div style="background: #f4f4f4; border-radius: 8px; padding: 16px; margin: 16px 0;">
               <p style="margin: 4px 0;"><strong>Correo:</strong> ${to}</p>

@@ -400,11 +400,11 @@ export function StudentAgendaCalendar({
             <div className="student-agenda-period-controls flex min-w-0 flex-1 flex-nowrap items-center justify-end gap-0.5 sm:flex-none sm:gap-1">
               <button
                 aria-label="Periodo anterior"
-                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:h-8 sm:w-8"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:h-8 sm:w-8"
                 type="button"
                 onClick={() => stepCalendar('previous')}
               >
-                <ChevronLeft aria-hidden="true" className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <ChevronLeft aria-hidden="true" className="h-4.5 w-4.5 sm:h-4.5 sm:w-4.5" />
               </button>
               <button
                 className="inline-flex shrink-0 rounded-full border border-slate-200/90 bg-white/95 px-1.5 py-0 text-[0.56rem] font-semibold leading-5 text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:px-2.5 sm:py-1 sm:text-[0.72rem] sm:leading-normal"
@@ -418,11 +418,11 @@ export function StudentAgendaCalendar({
               </button>
               <button
                 aria-label="Periodo siguiente"
-                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:h-8 sm:w-8"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-ink transition duration-200 hover:border-primary/20 hover:bg-white sm:h-8 sm:w-8"
                 type="button"
                 onClick={() => stepCalendar('next')}
               >
-                <ChevronRight aria-hidden="true" className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <ChevronRight aria-hidden="true" className="h-4.5 w-4.5 sm:h-4.5 sm:w-4.5" />
               </button>
               <span className="student-agenda-range-label max-w-[6.25rem] truncate rounded-full border border-slate-200/80 bg-white/90 px-1.5 py-0 text-[0.56rem] font-semibold leading-5 text-ink shadow-[0_10px_22px_-24px_rgba(15,23,42,0.3)] sm:max-w-full sm:px-2.5 sm:py-1 sm:text-[0.72rem] sm:leading-normal">
                 {rangeLabel}

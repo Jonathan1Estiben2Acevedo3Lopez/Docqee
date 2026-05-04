@@ -342,8 +342,10 @@
     }
 
     .student-page-compact .student-request-mobile-table td:last-child button {
+      align-items: center !important;
       gap: 0 !important;
       height: 1.22rem !important;
+      justify-content: center !important;
       min-height: 1.22rem !important;
       min-width: 1.22rem !important;
       padding: 0 !important;
@@ -351,7 +353,9 @@
     }
 
     .student-page-compact .student-request-mobile-table td:last-child button svg {
+      display: block !important;
       height: 0.72rem !important;
+      margin: 0 !important;
       width: 0.72rem !important;
     }
 
@@ -362,8 +366,10 @@
     }
 
     .student-page-compact .student-appointment-mobile-table td:last-child .student-appointment-actions button {
+      align-items: center !important;
       gap: 0 !important;
       height: 1.22rem !important;
+      justify-content: center !important;
       min-height: 1.22rem !important;
       min-width: 1.22rem !important;
       padding: 0 !important;
@@ -371,7 +377,9 @@
     }
 
     .student-page-compact .student-appointment-mobile-table td:last-child .student-appointment-actions button svg {
+      display: block !important;
       height: 0.72rem !important;
+      margin: 0 !important;
       width: 0.72rem !important;
     }
 
