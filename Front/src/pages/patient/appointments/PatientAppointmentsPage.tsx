@@ -305,7 +305,7 @@ function AppointmentDetailModal({
 }: AppointmentDetailModalProps) {
   const statusLabel =
     appointment.isRescheduleProposal && displayStatus === 'PROPUESTA'
-      ? 'Reprogramacion propuesta'
+      ? 'Reprogramacion'
       : getStatusLabel(displayStatus);
   const ratingValue =
     appointment.myRating !== null ? `${appointment.myRating}/5` : 'Sin valorar';
@@ -1134,7 +1134,7 @@ export function PatientAppointmentsPage() {
                         >
                           {appointment.isRescheduleProposal &&
                           displayStatus === 'PROPUESTA'
-                            ? 'Reprogramacion propuesta'
+                            ? 'Reprogramacion'
                             : getStatusLabel(displayStatus)}
                         </span>
                       </td>

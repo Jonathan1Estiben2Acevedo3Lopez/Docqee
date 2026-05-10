@@ -898,6 +898,50 @@ let appointmentsRefreshPromise: Promise<void> | null = null;
 let reviewsRefreshPromise: Promise<void> | null = null;
 let requestsRefreshPromise: Promise<void> | null = null;
 let errorMessageDismissTimerId: number | null = null;
+const PENDING_APPOINTMENT_UPDATE_PROTECTION_MS = 60_000;
+const SETTLED_APPOINTMENT_UPDATE_PROTECTION_MS = 10_000;
+const protectedAppointmentUpdates = new Map<
+  string,
+  { appointment: PatientAppointment; expiresAt: number }
+>();
+
+function pruneProtectedAppointmentUpdates(now = Date.now()) {
+  protectedAppointmentUpdates.forEach(({ expiresAt }, appointmentId) => {
+    if (expiresAt <= now) {
+      protectedAppointmentUpdates.delete(appointmentId);
+    }
+  });
+}
+
+function protectAppointmentUpdate(
+  appointment: PatientAppointment,
+  ttlMs = SETTLED_APPOINTMENT_UPDATE_PROTECTION_MS,
+) {
+  protectedAppointmentUpdates.set(appointment.id, {
+    appointment,
+    expiresAt: Date.now() + ttlMs,
+  });
+}
+
+function clearProtectedAppointmentUpdate(appointmentId: string) {
+  protectedAppointmentUpdates.delete(appointmentId);
+}
+
+function mergeProtectedAppointmentUpdates(
+  appointments: PatientAppointment[],
+) {
+  pruneProtectedAppointmentUpdates();
+
+  if (protectedAppointmentUpdates.size === 0) {
+    return appointments;
+  }
+
+  return appointments.map(
+    (appointment) =>
+      protectedAppointmentUpdates.get(appointment.id)?.appointment ??
+      appointment,
+  );
+}
 
 function emitChange() {
   listeners.forEach((listener) => {
@@ -1534,6 +1578,7 @@ async function loadRuntimeState(
       const nextState: PatientStoreState = {
         ...createEmptyRuntimeState(),
         ...payload,
+        appointments: mergeProtectedAppointmentUpdates(payload.appointments),
         conversations: payload.conversations.map((dashboardConv) => {
           const currentConv = state.conversations.find(
             (c) => c.id === dashboardConv.id,
@@ -1613,7 +1658,7 @@ export async function refreshPatientAppointmentsState() {
       setRuntimeState(
         {
           ...state,
-          appointments,
+          appointments: mergeProtectedAppointmentUpdates(appointments),
         },
         { persistCache: state.isReady },
       );
@@ -2330,6 +2375,10 @@ async function updateAppointmentStatus(
         ? 'ACEPTADA'
         : status,
   };
+  protectAppointmentUpdate(
+    optimisticAppointment,
+    PENDING_APPOINTMENT_UPDATE_PROTECTION_MS,
+  );
 
   setRuntimeState(
     {
@@ -2350,14 +2399,17 @@ async function updateAppointmentStatus(
       appointmentId,
       status,
     );
+    protectAppointmentUpdate(appointment);
 
     setRuntimeState(
       {
         ...state,
-        appointments: state.appointments.map((currentAppointment) =>
-          currentAppointment.id === appointment.id
-            ? appointment
-            : currentAppointment,
+        appointments: mergeProtectedAppointmentUpdates(
+          state.appointments.map((currentAppointment) =>
+            currentAppointment.id === appointment.id
+              ? appointment
+              : currentAppointment,
+          ),
         ),
         errorMessage: null,
         isLoading: false,
@@ -2371,10 +2423,12 @@ async function updateAppointmentStatus(
 
     return true;
   } catch (error) {
+    clearProtectedAppointmentUpdate(appointmentId);
+
     setRuntimeState(
       {
         ...state,
-        appointments: previousAppointments,
+        appointments: mergeProtectedAppointmentUpdates(previousAppointments),
         errorMessage: getErrorMessage(
           error,
           status === 'ACEPTADA' || status === 'RECHAZADA'
@@ -2449,6 +2503,7 @@ export function resetPatientModuleState() {
   appointmentsRefreshPromise = null;
   reviewsRefreshPromise = null;
   requestsRefreshPromise = null;
+  protectedAppointmentUpdates.clear();
   studentSearchCache.clear();
   studentSearchPromises.clear();
   studentSearchRequestSequence = 0;
