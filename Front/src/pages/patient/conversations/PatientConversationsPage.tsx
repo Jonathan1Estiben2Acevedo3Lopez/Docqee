@@ -409,6 +409,11 @@ export function PatientConversationsPage() {
                       const studentInitials = getStudentInitials(
                         conversation.studentName,
                       );
+                      const studentAvatarSrc =
+                        conversation.studentAvatarSrc ?? null;
+                      const studentAvatarAlt =
+                        conversation.studentAvatarAlt ??
+                        `Foto de perfil de ${conversation.studentName}`;
 
                       return (
                         <button
@@ -432,7 +437,15 @@ export function PatientConversationsPage() {
                         >
                           <div className="flex items-start gap-2.5">
                             <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-[0.74rem] font-extrabold text-primary ring-1 ring-primary/10">
-                              {studentInitials}
+                              {studentAvatarSrc ? (
+                                <img
+                                  alt={studentAvatarAlt}
+                                  className="h-full w-full object-cover"
+                                  src={studentAvatarSrc}
+                                />
+                              ) : (
+                                studentInitials
+                              )}
                             </span>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start justify-between gap-2">

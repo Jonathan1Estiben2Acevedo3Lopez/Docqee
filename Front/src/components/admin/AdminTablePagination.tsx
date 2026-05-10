@@ -20,8 +20,8 @@ export function AdminTablePagination({
   totalPages,
 }: AdminTablePaginationProps) {
   return (
-    <div className="flex shrink-0 flex-col gap-2 border-t border-slate-200/80 bg-white px-3 py-2.5 text-[0.72rem] font-semibold text-ink-muted sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:text-[0.8rem]">
-      <p className="text-center sm:text-left">
+    <div className="flex min-h-[3.35rem] shrink-0 flex-col gap-2 border-t border-slate-200/80 bg-white px-3 py-2.5 text-[0.72rem] font-semibold leading-4 text-ink-muted sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:text-[0.8rem]">
+      <p className="text-center tabular-nums sm:whitespace-nowrap sm:text-left">
         Mostrando {pageStartLabel}-{pageEndLabel} de {totalItems} &middot;
         P&aacute;gina {currentPage} de {totalPages}
       </p>
@@ -35,7 +35,7 @@ export function AdminTablePagination({
         >
           <ChevronLeft aria-hidden="true" className="h-4 w-4" />
         </button>
-        <span className="min-w-[4.25rem] text-center text-[0.72rem] text-ink">
+        <span className="min-w-[4.25rem] text-center text-[0.72rem] tabular-nums text-ink">
           {currentPage}/{totalPages}
         </span>
         <button

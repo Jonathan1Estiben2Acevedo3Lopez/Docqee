@@ -1268,6 +1268,11 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
           include: {
             cuenta_estudiante: {
               include: {
+                perfil_estudiante: {
+                  select: {
+                    foto_url: true,
+                  },
+                },
                 persona: true,
                 universidad: true,
               },
@@ -1409,6 +1414,9 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
           reason: s.motivo_consulta ?? null,
           requestId: String(s.id_solicitud),
           status: conv.estado,
+          studentAvatarAlt: `Foto de perfil de ${studentName}`,
+          studentAvatarSrc:
+            s.cuenta_estudiante.perfil_estudiante?.foto_url ?? null,
           studentId: String(s.id_cuenta_estudiante),
           studentName,
           universityName: s.cuenta_estudiante.universidad.nombre,
@@ -2398,7 +2406,17 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
         conversacion: { id_conversacion: conversationId },
       },
       include: {
-        cuenta_estudiante: { include: { persona: true, universidad: true } },
+        cuenta_estudiante: {
+          include: {
+            perfil_estudiante: {
+              select: {
+                foto_url: true,
+              },
+            },
+            persona: true,
+            universidad: true,
+          },
+        },
         cuenta_paciente: { include: { persona: true } },
         conversacion: {
           include: {
@@ -2437,6 +2455,9 @@ export class PrismaPatientPortalRepository extends PatientPortalRepository {
       reason: solicitud.motivo_consulta ?? null,
       requestId: String(solicitud.id_solicitud),
       status: conv.estado,
+      studentAvatarAlt: `Foto de perfil de ${studentName}`,
+      studentAvatarSrc:
+        solicitud.cuenta_estudiante.perfil_estudiante?.foto_url ?? null,
       studentId: String(solicitud.id_cuenta_estudiante),
       studentName,
       universityName: solicitud.cuenta_estudiante.universidad.nombre,

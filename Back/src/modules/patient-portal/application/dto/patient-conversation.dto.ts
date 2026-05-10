@@ -6,6 +6,8 @@ export class PatientConversationDto {
   reason!: string | null;
   requestId!: string;
   status!: 'ACTIVA' | 'SOLO_LECTURA' | 'CERRADA';
+  studentAvatarAlt!: string;
+  studentAvatarSrc!: string | null;
   studentId!: string;
   studentName!: string;
   universityName!: string;

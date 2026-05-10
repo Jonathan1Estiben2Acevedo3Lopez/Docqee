@@ -14,6 +14,10 @@ type UseStableRowsPerPageOptions<TElement extends HTMLElement> = {
   viewportRef: RefObject<TElement | null>;
 };
 
+type RowsPerPageUpdateOptions = {
+  resetFitLimit?: boolean;
+};
+
 export function useStableRowsPerPage<TElement extends HTMLElement>({
   defaultRowsPerPage,
   headerMeasurementRef,
@@ -31,114 +35,120 @@ export function useStableRowsPerPage<TElement extends HTMLElement>({
   const lastAvailableHeightRef = useRef<number | null>(null);
   const lastMaxRowsPerPageRef = useRef<number | undefined>(maxRowsPerPage);
 
-  const updateRowsPerPage = useCallback(() => {
-    const viewport = viewportRef.current;
+  const updateRowsPerPage = useCallback(
+    (options: RowsPerPageUpdateOptions = {}) => {
+      const { resetFitLimit = true } = options;
+      const viewport = viewportRef.current;
 
-    if (!viewport) {
-      return;
-    }
+      if (!viewport) {
+        return;
+      }
 
-    const measuredHeaderHeight =
-      headerMeasurementRef?.current?.getBoundingClientRect().height ?? 0;
-    const effectiveHeaderHeight =
-      measuredHeaderHeight > 0 ? measuredHeaderHeight : headerHeightPx;
-    const availableHeight = Math.floor(
-      viewport.getBoundingClientRect().height -
-        effectiveHeaderHeight -
-        heightPaddingPx -
-        (rowSafetyBufferPx ?? 8),
-    );
-    const previousAvailableHeight = lastAvailableHeightRef.current;
+      const measuredHeaderHeight =
+        headerMeasurementRef?.current?.getBoundingClientRect().height ?? 0;
+      const effectiveHeaderHeight =
+        measuredHeaderHeight > 0 ? measuredHeaderHeight : headerHeightPx;
+      const availableHeight = Math.floor(
+        viewport.getBoundingClientRect().height -
+          effectiveHeaderHeight -
+          heightPaddingPx -
+          (rowSafetyBufferPx ?? 8),
+      );
+      const previousAvailableHeight = lastAvailableHeightRef.current;
 
-    if (
-      previousAvailableHeight === null ||
-      Math.abs(previousAvailableHeight - availableHeight) > 2 ||
-      lastMaxRowsPerPageRef.current !== maxRowsPerPage
-    ) {
-      nonFittingRowsLimitRef.current = null;
+      if (
+        previousAvailableHeight === null ||
+        lastMaxRowsPerPageRef.current !== maxRowsPerPage ||
+        (resetFitLimit &&
+          Math.abs(previousAvailableHeight - availableHeight) > 2)
+      ) {
+        nonFittingRowsLimitRef.current = null;
+      }
       lastAvailableHeightRef.current = availableHeight;
       lastMaxRowsPerPageRef.current = maxRowsPerPage;
-    }
 
-    const measuredRows = Array.from(
-      rowMeasurementRef?.current?.querySelectorAll('tr') ?? [],
-    );
-    const measuredRowHeights = measuredRows
-      .map((row) => row.getBoundingClientRect().height)
-      .filter((height) => height > 0);
-    const measuredRowsHeight = measuredRowHeights.reduce(
-      (totalHeight, rowHeight) => totalHeight + rowHeight,
-      0,
-    );
-    const maxAllowedRows =
-      typeof maxRowsPerPage === 'number' && maxRowsPerPage > 0
-        ? Math.max(minRowsPerPage, maxRowsPerPage)
-        : undefined;
-    const clampRowsPerPage = (value: number) => {
-      const minimumClampedValue = Math.max(minRowsPerPage, value);
+      const measuredRows = Array.from(
+        rowMeasurementRef?.current?.querySelectorAll('tr') ?? [],
+      );
+      const measuredRowHeights = measuredRows
+        .map((row) => row.getBoundingClientRect().height)
+        .filter((height) => height > 0);
+      const measuredRowsHeight = measuredRowHeights.reduce(
+        (totalHeight, rowHeight) => totalHeight + rowHeight,
+        0,
+      );
+      const maxAllowedRows =
+        typeof maxRowsPerPage === 'number' && maxRowsPerPage > 0
+          ? Math.max(minRowsPerPage, maxRowsPerPage)
+          : undefined;
+      const clampRowsPerPage = (value: number) => {
+        const minimumClampedValue = Math.max(minRowsPerPage, value);
 
-      return maxAllowedRows
-        ? Math.min(maxAllowedRows, minimumClampedValue)
-        : minimumClampedValue;
-    };
+        return maxAllowedRows
+          ? Math.min(maxAllowedRows, minimumClampedValue)
+          : minimumClampedValue;
+      };
 
-    let nextRowsPerPage = defaultRowsPerPage;
+      let nextRowsPerPage = defaultRowsPerPage;
 
-    if (availableHeight > 0 && measuredRowHeights.length > 0) {
-      if (measuredRowsHeight > availableHeight) {
-        let fittingRows = 0;
-        let fittingRowsHeight = 0;
+      if (availableHeight > 0 && measuredRowHeights.length > 0) {
+        if (measuredRowsHeight > availableHeight) {
+          let fittingRows = 0;
+          let fittingRowsHeight = 0;
 
-        for (const measuredRowHeight of measuredRowHeights) {
-          if (fittingRowsHeight + measuredRowHeight > availableHeight) {
-            break;
+          for (const measuredRowHeight of measuredRowHeights) {
+            if (fittingRowsHeight + measuredRowHeight > availableHeight) {
+              break;
+            }
+
+            fittingRows += 1;
+            fittingRowsHeight += measuredRowHeight;
           }
 
-          fittingRows += 1;
-          fittingRowsHeight += measuredRowHeight;
-        }
+          nonFittingRowsLimitRef.current = measuredRowHeights.length;
+          nextRowsPerPage = clampRowsPerPage(fittingRows);
+        } else {
+          const averageRowHeight =
+            measuredRowsHeight / measuredRowHeights.length;
+          const remainingHeight = availableHeight - measuredRowsHeight;
+          const extraRows = Math.floor(remainingHeight / averageRowHeight);
+          const nonFittingRowsLimit = nonFittingRowsLimitRef.current;
 
-        nonFittingRowsLimitRef.current = measuredRowHeights.length;
-        nextRowsPerPage = clampRowsPerPage(fittingRows);
+          nextRowsPerPage = measuredRowHeights.length + extraRows;
+
+          if (nonFittingRowsLimit !== null) {
+            nextRowsPerPage = Math.min(nextRowsPerPage, nonFittingRowsLimit - 1);
+          }
+
+          nextRowsPerPage = clampRowsPerPage(nextRowsPerPage);
+        }
+      } else if (availableHeight > 0) {
+        nextRowsPerPage = clampRowsPerPage(
+          Math.floor(availableHeight / rowHeightPx),
+        );
       } else {
-        const averageRowHeight = measuredRowsHeight / measuredRowHeights.length;
-        const remainingHeight = availableHeight - measuredRowsHeight;
-        const extraRows = Math.floor(remainingHeight / averageRowHeight);
-        const nonFittingRowsLimit = nonFittingRowsLimitRef.current;
-
-        nextRowsPerPage = measuredRowHeights.length + extraRows;
-
-        if (nonFittingRowsLimit !== null) {
-          nextRowsPerPage = Math.min(nextRowsPerPage, nonFittingRowsLimit - 1);
-        }
-
         nextRowsPerPage = clampRowsPerPage(nextRowsPerPage);
       }
-    } else if (availableHeight > 0) {
-      nextRowsPerPage = clampRowsPerPage(
-        Math.floor(availableHeight / rowHeightPx),
-      );
-    } else {
-      nextRowsPerPage = clampRowsPerPage(defaultRowsPerPage);
-    }
 
-    setRowsPerPage((currentRowsPerPage) =>
-      currentRowsPerPage === nextRowsPerPage
-        ? currentRowsPerPage
-        : nextRowsPerPage,
-    );
-  }, [
-    defaultRowsPerPage,
-    headerMeasurementRef,
-    headerHeightPx,
-    heightPaddingPx,
-    maxRowsPerPage,
-    minRowsPerPage,
-    rowMeasurementRef,
-    rowSafetyBufferPx,
-    rowHeightPx,
-    viewportRef,
-  ]);
+      setRowsPerPage((currentRowsPerPage) =>
+        currentRowsPerPage === nextRowsPerPage
+          ? currentRowsPerPage
+          : nextRowsPerPage,
+      );
+    },
+    [
+      defaultRowsPerPage,
+      headerMeasurementRef,
+      headerHeightPx,
+      heightPaddingPx,
+      maxRowsPerPage,
+      minRowsPerPage,
+      rowMeasurementRef,
+      rowSafetyBufferPx,
+      rowHeightPx,
+      viewportRef,
+    ],
+  );
 
   useLayoutEffect(() => {
     updateRowsPerPage();
@@ -150,15 +160,25 @@ export function useStableRowsPerPage<TElement extends HTMLElement>({
     }
 
     if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(updateRowsPerPage);
+      const headerElement = headerMeasurementRef?.current ?? null;
+      const rowMeasurementElement = rowMeasurementRef?.current ?? null;
+      const resizeObserver = new ResizeObserver((entries) => {
+        const shouldResetFitLimit = entries.some(
+          (entry) =>
+            entry.target === viewport ||
+            (headerElement !== null && entry.target === headerElement),
+        );
+
+        updateRowsPerPage({ resetFitLimit: shouldResetFitLimit });
+      });
       resizeObserver.observe(viewport);
 
-      if (rowMeasurementRef?.current) {
-        resizeObserver.observe(rowMeasurementRef.current);
+      if (rowMeasurementElement) {
+        resizeObserver.observe(rowMeasurementElement);
       }
 
-      if (headerMeasurementRef?.current) {
-        resizeObserver.observe(headerMeasurementRef.current);
+      if (headerElement) {
+        resizeObserver.observe(headerElement);
       }
 
       return () => {
@@ -166,10 +186,12 @@ export function useStableRowsPerPage<TElement extends HTMLElement>({
       };
     }
 
-    window.addEventListener('resize', updateRowsPerPage);
+    const handleWindowResize = () => updateRowsPerPage();
+
+    window.addEventListener('resize', handleWindowResize);
 
     return () => {
-      window.removeEventListener('resize', updateRowsPerPage);
+      window.removeEventListener('resize', handleWindowResize);
     };
   }, [headerMeasurementRef, rowMeasurementRef, updateRowsPerPage, viewportRef]);
 

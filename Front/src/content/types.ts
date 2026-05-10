@@ -1345,6 +1345,8 @@ export type PatientConversation = {
   reason: string | null;
   requestId: string;
   status: PatientConversationStatus;
+  studentAvatarAlt?: string;
+  studentAvatarSrc?: string | null;
   studentId: string;
   studentName: string;
   universityName: string;
