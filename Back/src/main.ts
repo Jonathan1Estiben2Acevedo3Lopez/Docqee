@@ -12,16 +12,60 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 import { appValidationPipe } from './shared/pipes/validation.pipe';
 
+const DEFAULT_CORS_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:4173',
+  'https://docqee.vercel.app',
+];
+
+function normalizeOrigin(origin: string) {
+  return origin.trim().replace(/\/+$/, '');
+}
+
+function getAllowedCorsOrigins() {
+  const configuredOrigins = (process.env.FRONTEND_URL ?? '')
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
+  return new Set([...DEFAULT_CORS_ORIGINS, ...configuredOrigins].map(normalizeOrigin));
+}
+
+function isAllowedVercelPreviewOrigin(origin: string) {
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return protocol === 'https:' && hostname.endsWith('.vercel.app') && hostname.startsWith('docqee-');
+  } catch {
+    return false;
+  }
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const allowedCorsOrigins = getAllowedCorsOrigins();
 
   app.use(json({ limit: '6mb' }));
   app.use(urlencoded({ extended: true, limit: '6mb' }));
   app.use(compression());
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : true,
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const normalizedOrigin = normalizeOrigin(origin);
+      const isAllowed =
+        allowedCorsOrigins.has(normalizedOrigin) || isAllowedVercelPreviewOrigin(normalizedOrigin);
+
+      callback(null, isAllowed);
+    },
+    allowedHeaders: ['Accept', 'Authorization', 'Content-Type'],
     credentials: true,
+    methods: ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT'],
   });
 
   app.useGlobalPipes(appValidationPipe);
