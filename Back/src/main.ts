@@ -42,6 +42,8 @@ function isAllowedVercelPreviewOrigin(origin: string) {
   }
 }
 
+type CorsOriginCallback = (err: Error | null, allow?: boolean) => void;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   const allowedCorsOrigins = getAllowedCorsOrigins();
@@ -51,7 +53,7 @@ async function bootstrap() {
   app.use(compression());
 
   app.enableCors({
-    origin(origin, callback) {
+    origin(origin: string | undefined, callback: CorsOriginCallback) {
       if (!origin) {
         callback(null, true);
         return;
